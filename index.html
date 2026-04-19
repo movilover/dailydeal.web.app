@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ডেইলি ডিল অনলাইন শপিং</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        [x-cloak] { display: none !important; }
+        .daraz-orange { background-color: #f57224; }
+        .text-daraz { color: #f57224; }
+        .btn-3d { transition: all 0.1s; box-shadow: 0 4px 0 #c45a1d; }
+        .btn-3d:active { transform: translateY(2px); box-shadow: 0 1px 0 #c45a1d; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .premium-card { background: linear-gradient(135deg, #111 0%, #333 100%); border: 1px solid #444; }
+        .gold-text { background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .pulse { animation: pulse-animation 2s infinite; }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0px rgba(34, 197, 94, 0.7); }
+            100% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
+        }
+    </style>
+</head>
+<body class="bg-[#f7f8fa] pb-28 min-h-screen" x-data="dailyDealApp()" x-init="initApp()">
+
+    <a href="https://t.me/your_username" target="_blank" class="fixed bottom-24 right-5 z-[60] bg-green-500 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-2xl pulse border-2 border-white">
+        <i class="fa-brands fa-telegram text-2xl"></i>
+    </a>
+
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="daraz-orange p-1 text-white text-[8px] text-center font-bold uppercase tracking-widest">ডেইলি ডিল অনলাইন শপিং</div>
+        <div class="max-w-xl mx-auto p-4 flex items-center justify-between">
+            <h1 class="text-xl font-black text-daraz italic select-none">ডেইলি ডিল</h1>
+            <div class="flex items-center gap-3">
+                <button @click="alert('নোটিফিকেশন নেই')" class="relative bg-gray-100 p-2.5 rounded-full text-gray-700">
+                    <i class="fa-solid fa-bell"></i>
+                </button>
+                <div @click="tab = 'cart'" class="relative cursor-pointer bg-gray-100 p-2.5 rounded-full">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center font-bold" x-text="cart.length"></span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto p-4">
+        
+        <div x-show="tab === 'home'" x-transition>
+            <div class="relative mb-5">
+                <input type="text" x-model="searchQuery" placeholder="পণ্য খুঁজুন..." class="w-full bg-white border border-gray-200 rounded-2xl py-3 px-10 text-xs outline-none focus:border-orange-500 shadow-sm">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-3.5 text-gray-400"></i>
+            </div>
+            <div class="w-full h-36 rounded-2xl overflow-hidden mb-5 shadow-sm bg-gray-200">
+                <img :src="bannerImg" class="w-full h-full object-cover">
+            </div>
+            <div class="flex gap-2 overflow-x-auto no-scrollbar mb-6 pb-2">
+                <template x-for="cat in productCategories">
+                    <button @click="activeCategory = cat" :class="activeCategory === cat ? 'daraz-orange text-white' : 'bg-white text-gray-500'" class="px-5 py-2 rounded-xl text-[10px] font-bold shadow-sm whitespace-nowrap" x-text="cat"></button>
+                </template>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <template x-for="p in filteredProducts" :key="p.id">
+                    <div class="bg-white rounded-2xl p-3 shadow-sm border border-transparent hover:border-orange-200 transition-all">
+                        <div @click="openDetails(p)" class="h-32 bg-gray-50 rounded-xl mb-2 overflow-hidden cursor-pointer">
+                            <img :src="p.images[0]" class="w-full h-full object-cover">
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[11px] font-bold text-gray-800 line-clamp-1" x-text="p.name"></p>
+                            <p class="text-daraz font-black text-sm mb-2">৳ <span x-text="p.price"></span></p>
+                            <button @click="addToCart(p)" class="w-full daraz-orange text-white text-[9px] py-2 rounded-lg font-bold btn-3d uppercase">অর্ডার করুন</button>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <div x-show="tab === 'details'" x-cloak x-transition>
+            <div class="bg-white rounded-2xl p-4 shadow-sm relative">
+                <button @click="tab = 'home'" class="absolute top-2 left-2 bg-white/90 w-8 h-8 rounded-full shadow z-10"><i class="fa-solid fa-arrow-left"></i></button>
+                <div class="h-64 bg-gray-50 rounded-2xl mb-4 overflow-hidden flex items-center justify-center">
+                    <img :src="selectedProduct?.images[currentImgIdx]" class="max-h-full object-contain">
+                </div>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar mb-4">
+                    <template x-for="(img, i) in selectedProduct?.images">
+                        <img @click="currentImgIdx = i" :src="img" :class="currentImgIdx === i ? 'border-orange-500' : 'border-transparent'" class="w-12 h-12 rounded-lg border-2 object-cover bg-gray-100 cursor-pointer flex-shrink-0">
+                    </template>
+                </div>
+                <h2 class="text-lg font-bold" x-text="selectedProduct?.name"></h2>
+                <div class="flex items-center gap-2 mb-4">
+                    <p class="text-daraz text-2xl font-black">৳ <span x-text="selectedProduct?.price"></span></p>
+                    <span class="text-[10px] bg-orange-100 text-orange-600 px-2 py-0.5 rounded font-bold italic">স্টক আছে</span>
+                </div>
+                <div class="mb-4">
+                    <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase">সাইজ নির্বাচন:</p>
+                    <div class="flex gap-2">
+                        <template x-for="s in ['S','M','L','XL','XXL']">
+                            <button @click="activeSize = s" :class="activeSize === s ? 'daraz-orange text-white' : 'bg-gray-100 text-gray-500'" class="w-10 h-10 rounded-xl text-[10px] font-bold border" x-text="s"></button>
+                        </template>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl mb-6">
+                    <p class="text-[10px] font-bold text-gray-400 mb-1 uppercase">পণ্যের বিবরণ:</p>
+                    <p class="text-xs text-gray-600 leading-relaxed" x-text="selectedProduct?.desc"></p>
+                </div>
+                <button @click="addToCart(selectedProduct)" class="w-full daraz-orange text-white py-4 rounded-xl font-bold btn-3d uppercase">কার্টে যোগ করুন</button>
+            </div>
+        </div>
+
+        <div x-show="tab === 'cart'" x-cloak x-transition>
+            <div class="bg-white p-5 rounded-2xl shadow-xl">
+                <h3 class="font-bold text-sm mb-4 border-b pb-2 italic">আপনার কার্ট</h3>
+                <div class="space-y-3 mb-6">
+                    <template x-for="(item, index) in cart" :key="index">
+                        <div class="flex items-center gap-3 bg-gray-50 p-2 rounded-xl">
+                            <img :src="item.images[0]" class="w-12 h-12 rounded-lg object-cover">
+                            <div class="flex-1"><p class="text-[10px] font-bold" x-text="item.name"></p><p class="text-daraz text-[10px] font-black">৳ <span x-text="item.price"></span></p></div>
+                            <button @click="cart.splice(index, 1)" class="text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </template>
+                </div>
+                <div class="space-y-3 mb-6">
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">ডেলিভারি ঠিকানা:</p>
+                    <select x-model="selectedDivision" class="w-full bg-gray-50 rounded-xl p-3 text-xs border outline-none font-bold">
+                        <option value="">বিভাগ সিলেক্ট করুন</option>
+                        <template x-for="div in Object.keys(bdLocations)"><option :value="div" x-text="div"></option></template>
+                    </select>
+                    <textarea x-model="userAddress" placeholder="পুরো ঠিকানা ও মোবাইল নাম্বার দিন..." class="w-full bg-gray-50 border rounded-xl p-3 text-xs outline-none h-20 font-bold"></textarea>
+                </div>
+                <p class="text-[10px] font-bold text-gray-400 mb-2 uppercase">পেমেন্ট মেথড:</p>
+                <div class="grid grid-cols-3 gap-2 mb-4">
+                    <button @click="payMethod = 'Bkash'" :class="payMethod === 'Bkash' ? 'border-daraz bg-orange-50 text-daraz ring-1 ring-daraz' : 'bg-gray-50 text-gray-400'" class="p-3 rounded-xl border text-[9px] font-bold uppercase">Bkash</button>
+                    <button @click="payMethod = 'Nagad'" :class="payMethod === 'Nagad' ? 'border-daraz bg-orange-50 text-daraz ring-1 ring-daraz' : 'bg-gray-50 text-gray-400'" class="p-3 rounded-xl border text-[9px] font-bold uppercase">Nagad</button>
+                    <button @click="payMethod = 'COD'" :class="payMethod === 'COD' ? 'border-daraz bg-orange-50 text-daraz ring-1 ring-daraz' : 'bg-gray-50 text-gray-400'" class="p-3 rounded-xl border text-[9px] font-bold uppercase">COD</button>
+                </div>
+                <div x-show="payMethod !== 'COD' && payMethod !== ''" class="space-y-4 mb-4 bg-gray-50 p-4 rounded-2xl border border-dashed border-gray-300">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button @click="isFullPayment = false" :class="!isFullPayment ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-400'" class="py-2 rounded-lg text-[8px] font-bold uppercase border">শুধু ডেলিভারি চার্জ</button>
+                        <button @click="isFullPayment = true" :class="isFullPayment ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-400'" class="py-2 rounded-lg text-[8px] font-bold uppercase border">ফুল পেমেন্ট</button>
+                    </div>
+                    <div class="bg-gray-900 text-white p-4 rounded-xl relative">
+                        <p class="text-[9px] text-gray-400 mb-1" x-text="payMethod + ' পার্সোনাল নাম্বার'"></p>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-mono text-sm font-bold tracking-widest text-orange-400" x-text="links.bkash"></span>
+                            <button @click="copyNum(links.bkash)" class="bg-white/10 px-3 py-1 rounded text-[8px] border border-white/20 active:bg-white/30">COPY</button>
+                        </div>
+                        <input type="text" x-model="trxID" placeholder="TrxID দিন" class="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-xs outline-none text-center">
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-xl text-xs space-y-2 mb-4 font-bold border">
+                    <div class="flex justify-between"><span>পণ্যের দাম:</span><span>৳ <span x-text="totalPrice"></span></span></div>
+                    <div class="flex justify-between"><span>ডেলিভারি চার্জ:</span><span>৳ <span x-text="deliveryCharge"></span></span></div>
+                    <div class="flex justify-between text-daraz font-black border-t pt-2 text-sm italic"><span>মোট পেমেন্ট:</span><span>৳ <span x-text="finalPayable"></span></span></div>
+                </div>
+                <button @click="confirmOrder()" class="w-full daraz-orange text-white py-4 rounded-xl font-bold btn-3d uppercase">অর্ডার কনফার্ম করুন</button>
+            </div>
+        </div>
+
+        <div x-show="tab === 'orders'" x-cloak x-transition>
+            <div class="bg-white p-4 rounded-2xl min-h-[500px]">
+                <h3 class="font-bold mb-4 border-b pb-2 italic">আমার অর্ডারসমূহ</h3>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-4 mb-4 border-b">
+                    <template x-for="st in ['সব','পেন্ডিং','কনফার্ম','ডেলিভারি']">
+                        <button @click="orderFilter = st" :class="orderFilter === st ? 'daraz-orange text-white' : 'bg-gray-100 text-gray-500'" class="px-5 py-2 rounded-full text-[10px] font-bold whitespace-nowrap" x-text="st"></button>
+                    </template>
+                </div>
+                <div class="space-y-3">
+                    <template x-for="order in filteredOrders">
+                        <div class="bg-gray-50 p-3 rounded-xl border flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <img :src="order.image" class="w-10 h-10 rounded-lg object-cover">
+                                <div><p class="text-[10px] font-bold" x-text="order.name"></p><p class="text-[8px] text-gray-400">#<span x-text="order.id"></span></p></div>
+                            </div>
+                            <span class="text-[8px] px-2 py-1 rounded-full font-bold bg-orange-100 text-orange-600 uppercase" x-text="order.status"></span>
+                        </div>
+                    </template>
+                    <template x-if="filteredOrders.length === 0">
+                        <p class="text-center text-xs text-gray-400 py-10 italic">কোন অর্ডার পাওয়া যায়নি!</p>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="tab === 'profile'" x-cloak x-transition>
+            <div class="bg-white rounded-3xl p-6 shadow-sm">
+                <div class="text-center mb-8">
+                    <div class="w-24 h-24 mx-auto rounded-full border-4 border-orange-100 p-1 relative">
+                        <img :src="profileImg" class="w-full h-full rounded-full object-cover shadow-inner">
+                        <label class="absolute bottom-0 right-0 bg-daraz w-6 h-6 rounded-full text-white text-[10px] flex items-center justify-center border-2 border-white cursor-pointer">
+                            <i class="fa-solid fa-camera"></i>
+                            <input type="file" @change="uploadPhoto" class="hidden" accept="image/*">
+                        </label>
+                    </div>
+                    <h2 class="mt-4 font-black text-gray-800 text-xl italic uppercase" x-text="userName || 'প্রোফাইল নেম'"></h2>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="premium-card p-5 rounded-2xl text-center shadow-lg">
+                        <p class="text-[8px] text-gray-400 uppercase font-bold mb-1">ব্যালেন্স</p>
+                        <p class="text-lg font-black gold-text italic">৳ ০.০০</p>
+                    </div>
+                    <div class="premium-card p-5 rounded-2xl text-center shadow-lg">
+                        <p class="text-[8px] text-gray-400 uppercase font-bold mb-1">অর্ডার</p>
+                        <p class="text-lg font-black gold-text italic" x-text="userOrders.length"></p>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 block">পূর্ণ নাম</label>
+                        <input type="text" x-model="userName" placeholder="আপনার নাম লিখুন" class="w-full bg-transparent text-sm font-bold outline-none text-gray-700">
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                        <label class="text-[9px] font-bold text-gray-400 uppercase mb-1 block">মোবাইল নাম্বার</label>
+                        <input type="text" x-model="userPhone" placeholder="০১৭XXXXXXXX" class="w-full bg-transparent text-sm font-bold outline-none text-gray-700">
+                    </div>
+                    <button @click="alert('তথ্য সেভ হয়েছে!')" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-xs btn-3d uppercase tracking-[2px] mt-4">আপডেট প্রোফাইল</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-3 shadow-2xl z-50 rounded-t-[30px]">
+        <button @click="tab = 'home'" :class="tab === 'home' ? 'text-daraz scale-110' : 'text-gray-400'" class="flex flex-col items-center">
+            <i class="fa-solid fa-house"></i><span class="text-[9px] mt-1 font-bold">হোম</span>
+        </button>
+        <button @click="tab = 'cart'" :class="tab === 'cart' ? 'text-daraz scale-110' : 'text-gray-400'" class="flex flex-col items-center">
+            <i class="fa-solid fa-cart-shopping"></i><span class="text-[9px] mt-1 font-bold">কার্ট</span>
+        </button>
+        <button @click="tab = 'orders'" :class="tab === 'orders' ? 'text-daraz scale-110' : 'text-gray-400'" class="flex flex-col items-center">
+            <i class="fa-solid fa-receipt"></i><span class="text-[9px] mt-1 font-bold">অর্ডার</span>
+        </button>
+        <button @click="tab = 'profile'" :class="tab === 'profile' ? 'text-daraz scale-110' : 'text-gray-400'" class="flex flex-col items-center">
+            <i class="fa-solid fa-circle-user"></i><span class="text-[9px] mt-1 font-bold">প্রোফাইল</span>
+        </button>
+    </nav>
+
+    <script>
+        function dailyDealApp() {
+            return {
+                tab: 'home', searchQuery: '', activeCategory: 'সব', orderFilter: 'সব',
+                selectedProduct: null, currentImgIdx: 0, activeSize: 'M',
+                payMethod: 'COD', isFullPayment: false, trxID: '',
+                selectedDivision: '', userAddress: '', userName: '', userPhone: '',
+                profileImg: 'https://cdn-icons-png.flaticon.com/512/149/149071.png',
+                bannerImg: 'https://img.alicdn.com/imgextra/i4/O1CN01Z9pX4X1C4X4X4X4X4_!!6000000000032-0-tps-1188-356.jpg',
+                productCategories: ['সব', 'ইলেকট্রনিক্স', 'গ্যাজেট', 'ফ্যাশন', 'অফার'],
+                links: { bkash: '01789456123' },
+                cart: [], userOrders: [],
+                bdLocations: {'ঢাকা': 80, 'চট্টগ্রাম': 120, 'রাজশাহী': 120, 'সিলেট': 120, 'খুলনা': 120, 'বরিশাল': 120, 'রংপুর': 120, 'ময়মনসিংহ': 120},
+                
+                products: [
+                    { id: 1, name: 'Premium M10 TWS Earbuds', price: 850, images: ['https://via.placeholder.com/300/f57224/fff', 'https://via.placeholder.com/300/333/fff'], category: 'ইলেকট্রনিক্স', desc: 'অরিজিনাল M10 ইয়ারবাডস।' },
+                    { id: 2, name: 'Luxury Smart Watch Ultra', price: 2200, images: ['https://via.placeholder.com/300/000/fff'], category: 'গ্যাজেট', desc: 'স্মার্ট নোটিফিকেশন সুবিধা।' }
+                ],
+
+                initApp() { console.log("Daily Deal Loaded"); },
+                get filteredProducts() {
+                    return this.products.filter(p => (this.activeCategory === 'সব' || p.category === this.activeCategory) && p.name.toLowerCase().includes(this.searchQuery.toLowerCase()));
+                },
+                get filteredOrders() {
+                    return this.orderFilter === 'সব' ? this.userOrders : this.userOrders.filter(o => o.status === this.orderFilter);
+                },
+                get totalPrice() { return this.cart.reduce((sum, item) => sum + item.price, 0); },
+                get deliveryCharge() { return this.selectedDivision ? this.bdLocations[this.selectedDivision] : 0; },
+                get finalPayable() {
+                    if (this.payMethod === 'COD' || this.isFullPayment) return this.totalPrice + this.deliveryCharge;
+                    return this.deliveryCharge;
+                },
+                openDetails(p) { this.selectedProduct = p; this.currentImgIdx = 0; this.tab = 'details'; window.scrollTo(0,0); },
+                addToCart(p) { this.cart.push({...p}); alert("কার্টে যোগ হয়েছে!"); this.tab = 'cart'; },
+                uploadPhoto(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => { this.profileImg = event.target.result; };
+                        reader.readAsDataURL(file);
+                    }
+                },
+                copyNum(txt) { navigator.clipboard.writeText(txt); alert("কপি হয়েছে!"); },
+                confirmOrder() {
+                    if(!this.selectedDivision || !this.userAddress || this.cart.length === 0) return alert("তথ্য দিন!");
+                    if(this.payMethod !== 'COD' && !this.trxID) return alert("TrxID দিন!");
+                    this.cart.forEach(item => { this.userOrders.unshift({ id: Math.floor(10000+Math.random()*90000), name: item.name, image: item.images[0], status: 'পেন্ডিং' }); });
+                    this.cart = []; alert("অর্ডার সফল!"); this.tab = 'orders';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
