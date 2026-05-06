@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="bn" x-data="App()" x-init="boot()" :class="'theme-'+activeTheme">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title x-text="settings.siteName||'Daily Deal'">Daily Deal — অনলাইন শপিং</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={
+  darkMode:'class',
+  theme:{extend:{
+    fontFamily:{
+      display:['"Playfair Display"','Georgia','serif'],
+      ui:['"Hind Siliguri"','sans-serif'],
+      mono:['"JetBrains Mono"','monospace'],
+    },
+    keyframes:{
+      neonSpin:{'0%':{backgroundPosition:'0% 50%'},'100%':{backgroundPosition:'200% 50%'}},
+      slideUp:{from:{opacity:0,transform:'translateY(24px)'},to:{opacity:1,transform:'translateY(0)'}},
+      fadeIn:{from:{opacity:0},to:{opacity:1}},
+      ticker:{from:{transform:'translateX(0)'},to:{transform:'translateX(-50%)'}},
+      shimmer:{'0%':{backgroundPosition:'-200% 0'},'100%':{backgroundPosition:'200% 0'}},
+      float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-8px)'}},
+      pulse3:{'0%,100%':{transform:'scale(1)'},'50%':{transform:'scale(1.04)'}},
+      rgbBorder:{'0%':{backgroundPosition:'0% 50%'},'50%':{backgroundPosition:'100% 50%'},'100%':{backgroundPosition:'0% 50%'}},
+      zoomIn:{from:{opacity:0,transform:'scale(.94)'},to:{opacity:1,transform:'scale(1)'}},
+    },
+    animation:{
+      'neon-spin':'neonSpin 3s linear infinite',
+      'slide-up':'slideUp .4s cubic-bezier(.22,.68,0,1.2) both',
+      'fade-in':'fadeIn .35s ease both',
+      'ticker':'ticker 24s linear infinite',
+      'shimmer':'shimmer 1.8s linear infinite',
+      'float':'float 3.5s ease infinite',
+      'pulse3':'pulse3 2.5s ease infinite',
+      'rgb-border':'rgbBorder 3s linear infinite',
+      'zoom-in':'zoomIn .35s cubic-bezier(.22,.68,0,1.2) both',
+    }
+  }}
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Firebase -->
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import{getDatabase,ref,push,set,onValue,update,remove}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+const cfg={
+  apiKey:"AIzaSyCQVlbjApQYtyc86ZTVPsBjOZ3J-RHv_vI",
+  authDomain:"daily-deal-online-shopping.firebaseapp.com",
+  projectId:"daily-deal-online-shopping",
+  storageBucket:"daily-deal-online-shopping.firebasestorage.app",
+  messagingSenderId:"373309508928",
+  appId:"1:373309508928:web:93afabc9aff316cc427ea5",
+  measurementId:"G-P5JMGP9NMT",
+  databaseURL:"https://daily-deal-online-shopping-default-rtdb.firebaseio.com"
+};
+const app=initializeApp(cfg);
+const db=getDatabase(app);
+window.$db={
+  saveOrder:async(data)=>{const r=push(ref(db,'orders'));await set(r,data);return r.key},
+  updateOrder:async(id,data)=>update(ref(db,'orders/'+id),data),
+  listenProducts:(cb)=>onValue(ref(db,'products'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
+};
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<style>
+[x-cloak]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+
+/* ═══════════ THEMES ═══════════ */
+body.theme-light{
+  --bg:#F8F5F0;--bg2:#EDE8E0;--bg3:#E0D8CC;
+  --fg:#0F0D0A;--fg2:#3D3830;--fg3:#7A7168;
+  --card:#FFFFFF;--border:rgba(15,13,10,.08);
+  --header:#0F0D0A;--accent:#E8320A;--accent2:#FF6B45;
+  --accentL:#FFF1EE;--shadow:rgba(15,13,10,.12);
+  --hgrad:linear-gradient(135deg,#0F0D0A 0%,#2D1A10 100%);
+}
+body.theme-dark{
+  --bg:#09090E;--bg2:#111118;--bg3:#18181F;
+  --fg:#EEEEFF;--fg2:#9090AA;--fg3:#505070;
+  --card:#14141C;--border:rgba(238,238,255,.07);
+  --header:#060609;--accent:#7C3AED;--accent2:#A78BFA;
+  --accentL:#1A1040;--shadow:rgba(0,0,0,.5);
+  --hgrad:linear-gradient(135deg,#0A0A12 0%,#1A0A38 100%);
+}
+body.theme-blue{
+  --bg:#EFF6FF;--bg2:#DBEAFE;--bg3:#BFDBFE;
+  --fg:#0A1628;--fg2:#1E3A5F;--fg3:#4A6FA5;
+  --card:#FFFFFF;--border:rgba(10,22,40,.08);
+  --header:#0A1628;--accent:#1D4ED8;--accent2:#60A5FA;
+  --accentL:#EFF6FF;--shadow:rgba(29,78,216,.18);
+  --hgrad:linear-gradient(135deg,#0A1628 0%,#1D3A7A 100%);
+}
+body.theme-gold{
+  --bg:#FDFAF3;--bg2:#F5EDD6;--bg3:#EAD9A8;
+  --fg:#1A1200;--fg2:#4A3A00;--fg3:#8A7040;
+  --card:#FFFFFF;--border:rgba(26,18,0,.09);
+  --header:#1A1200;--accent:#B8860B;--accent2:#DAA520;
+  --accentL:#FFFBEB;--shadow:rgba(184,134,11,.2);
+  --hgrad:linear-gradient(135deg,#1A1200 0%,#3D2E00 100%);
+}
+body.theme-rose{
+  --bg:#FFF5F7;--bg2:#FFE4EA;--bg3:#FFCCD7;
+  --fg:#1A0510;--fg2:#5A1530;--fg3:#A04060;
+  --card:#FFFFFF;--border:rgba(26,5,16,.08);
+  --header:#1A0510;--accent:#E8196A;--accent2:#FF6EAD;
+  --accentL:#FFF0F5;--shadow:rgba(232,25,106,.18);
+  --hgrad:linear-gradient(135deg,#1A0510 0%,#3D0A28 100%);
+}
+body.theme-green{
+  --bg:#F0FDF4;--bg2:#DCFCE7;--bg3:#BBF7D0;
+  --fg:#032010;--fg2:#065030;--fg3:#26804A;
+  --card:#FFFFFF;--border:rgba(3,32,16,.08);
+  --header:#032010;--accent:#16A34A;--accent2:#4ADE80;
+  --accentL:#F0FDF4;--shadow:rgba(22,163,74,.18);
+  --hgrad:linear-gradient(135deg,#032010 0%,#0A3D20 100%);
+}
+
+body{background:var(--bg);color:var(--fg)}
+
+/* ═══════════ RGB / NEON BORDER ═══════════ */
+@keyframes rgbSpin{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+.rgb-wrap{
+  position:relative;border-radius:18px;padding:2.5px;
+  background:linear-gradient(90deg,#ff0080,#ff8c00,#ffd700,#00e5ff,#8a2be2,#ff0080);
+  background-size:300% 300%;animation:rgbSpin 2.5s linear infinite;
+}
+.rgb-inner{border-radius:15px;overflow:hidden;position:relative;z-index:1}
+.rgb-glow{
+  position:absolute;inset:-4px;border-radius:22px;z-index:0;
+  background:inherit;filter:blur(10px);opacity:.45;animation:rgbSpin 2.5s linear infinite;
+}
+
+/* ═══════════ CARDS ═══════════ */
+.dd-card{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 2px 16px var(--shadow)}
+.dd-card-hover{transition:transform .22s,box-shadow .22s}
+.dd-card-hover:hover{transform:translateY(-4px);box-shadow:0 12px 40px var(--shadow)}
+
+/* ═══════════ PRODUCT IMG ═══════════ */
+.prod-img-wrap{position:relative;overflow:hidden;aspect-ratio:1;background:var(--bg2);border-radius:16px 16px 0 0}
+.prod-img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.prod-img-wrap:hover .prod-img{transform:scale(1.1)}
+
+/* ═══════════ PILL SCROLL ═══════════ */
+.pill-scroll{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.pill-scroll::-webkit-scrollbar{display:none}
+
+/* ═══════════ TICKER ═══════════ */
+.ticker-outer{overflow:hidden;white-space:nowrap}
+.ticker-track{display:inline-flex;animation:ticker 24s linear infinite}
+.ticker-track:hover{animation-play-state:paused}
+
+/* ═══════════ SIZE CHIP ═══════════ */
+.size-chip{min-width:38px;height:32px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--fg2);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;display:inline-flex;align-items:center;justify-content:center;padding:0 8px}
+.size-chip.active,.size-chip:hover{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.05)}
+
+/* ═══════════ MODAL SHEET ═══════════ */
+.sheet-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(6px)}
+.sheet-body{background:var(--bg);border-radius:28px 28px 0 0;width:100%;max-width:480px;max-height:92vh;overflow-y:auto;animation:slideUp .38s cubic-bezier(.22,.68,0,1.2) both;padding-bottom:32px;scrollbar-width:none}
+.sheet-body::-webkit-scrollbar{display:none}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:14px auto 0}
+
+/* ═══════════ BANNER ═══════════ */
+.banner-slide{transition:opacity .8s ease,transform .8s ease}
+
+/* ═══════════ INPUTS ═══════════ */
+.dd-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Hind Siliguri',sans-serif;color:var(--fg);outline:none;background:var(--bg2);transition:border-color .2s,box-shadow .2s}
+.dd-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+.dd-label{display:block;font-size:10px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+
+/* ═══════════ BOTTOM NAV ═══════════ */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--border);display:flex;justify-content:space-around;align-items:center;padding:10px 0 18px;z-index:50;border-radius:24px 24px 0 0;box-shadow:0 -6px 28px var(--shadow)}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--fg3);transition:all .2s;padding:0 18px;position:relative}
+.nav-btn.active{color:var(--accent)}
+.nav-btn .nav-icon-wrap{width:42px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:14px;transition:all .2s;font-size:19px}
+.nav-btn.active .nav-icon-wrap{background:var(--accentL)}
+.nav-btn span{font-size:9px;font-weight:700;font-family:'Hind Siliguri',sans-serif}
+
+/* ═══════════ BTN PRIMARY ═══════════ */
+.btn-primary{width:100%;padding:15px;border-radius:16px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;border:none;cursor:pointer;box-shadow:0 6px 24px color-mix(in srgb,var(--accent) 35%,transparent);transition:all .2s;font-family:'Hind Siliguri',sans-serif;letter-spacing:.3px}
+.btn-primary:hover{opacity:.92;transform:translateY(-1px)}
+.btn-primary:active{transform:scale(.98)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* ═══════════ STATUS CHIPS ═══════════ */
+.chip-pending{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA}
+.chip-processing{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
+.chip-delivered{background:#F0FDF4;color:#15803D;border:1px solid #BBF7D0}
+.chip-cancelled{background:#FEF2F2;color:#B91C1C;border:1px solid #FECACA}
+
+/* ═══════════ SHIMMER ═══════════ */
+.shimmer{background:linear-gradient(90deg,var(--bg2) 25%,var(--bg3) 50%,var(--bg2) 75%);background-size:200% 100%;animation:shimmer 1.6s linear infinite}
+
+/* ═══════════ SCROLLBAR ═══════════ */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+
+/* ═══════════ INVOICE ═══════════ */
+#inv-content{background:#fff!important;color:#111!important}
+#inv-content *{color-scheme:light}
+
+/* ═══════════ PROD BADGE ═══════════ */
+.prod-badge{position:absolute;top:10px;left:10px;background:var(--accent);color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;letter-spacing:.3px;z-index:2}
+.prod-badge.new-badge{background:#0EA5E9}
+.prod-badge.hot-badge{background:#EF4444}
+.prod-badge.sale-badge{background:#16A34A}
+
+/* ═══════════ TOAST ═══════════ */
+.toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none}
+
+/* ═══════════ MISC ═══════════ */
+.no-scrollbar{scrollbar-width:none}
+.no-scrollbar::-webkit-scrollbar{display:none}
+select.dd-input{appearance:none;-webkit-appearance:none}
+</style>
+</head>
+
+<body :class="'theme-'+activeTheme" class="theme-light">
+
+<!-- ═══════════════════════════════════════
+     PRODUCT DESCRIPTION MODAL
+═══════════════════════════════════════ -->
+<div x-show="descModal.open" x-cloak class="sheet-overlay" @click.self="descModal.open=false" style="z-index:300">
+  <div class="sheet-body" style="max-height:75vh">
+    <div class="sheet-handle"></div>
+    <div class="px-5 pt-5 pb-6">
+      <div class="flex items-start gap-4 mb-5">
+        <img :src="descModal.prod?.images?.[0]||descModal.prod?.img||''" class="w-18 h-18 rounded-2xl object-cover flex-shrink-0"
+             style="width:72px;height:72px;background:var(--bg2)"
+             onerror="this.src='https://placehold.co/72x72/eee/999?text=IMG'"/>
+        <div class="flex-1">
+          <p class="font-display text-lg leading-tight" style="color:var(--fg)" x-text="descModal.prod?.name"></p>
+          <p class="font-mono text-2xl font-bold mt-1.5" style="color:var(--accent)" x-text="'৳'+(descModal.prod?.price||0).toLocaleString()"></p>
+        </div>
+      </div>
+      <div class="rounded-2xl p-4 mb-4" style="background:var(--bg2)">
+        <p class="text-xs font-bold mb-2 flex items-center gap-1.5" style="color:var(--fg2)">
+          <i class="fa-solid fa-circle-info" style="color:var(--accent)"></i> পণ্যের বিবরণ
+        </p>
+        <p class="text-sm leading-relaxed" style="color:var(--fg2)" x-text="descModal.prod?.desc||'কোনো বিবরণ যোগ করা হয়নি।'"></p>
+      </div>
+      <template x-if="descModal.prod?.sizes?.length">
+        <div class="mb-4">
+          <p class="dd-label mb-2">উপলব্ধ সাইজ</p>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="s in descModal.prod.sizes" :key="s">
+              <span class="size-chip" x-text="s"></span>
+            </template>
+          </div>
+        </div>
+      </template>
+      <button @click="descModal.open=false;addToCart(descModal.prod)" class="btn-primary">
+        <i class="fa-solid fa-cart-plus mr-2"></i> কার্টে যোগ করুন
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     INVOICE MODAL
+═══════════════════════════════════════ -->
+<div x-show="inv.open" x-cloak class="sheet-overlay" @click.self="inv.open=false" style="z-index:300">
+  <div class="sheet-body">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between px-5 pt-4 pb-3">
+      <p class="font-display text-xl" style="color:var(--fg)">🧾 অর্ডার ইনভয়েস</p>
+      <button @click="inv.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center bg-transparent border-none cursor-pointer" style="background:var(--bg2);color:var(--fg3)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div id="inv-content" class="mx-4 rounded-2xl overflow-hidden" style="border:1px solid rgba(0,0,0,.1)">
+      <!-- Header -->
+      <div class="px-5 py-5 relative overflow-hidden" style="background:linear-gradient(135deg,#0F0D0B 0%,#2D1A10 100%)">
+        <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full opacity-20" style="background:#E8320A"></div>
+        <div class="absolute -bottom-10 -left-10 w-28 h-28 rounded-full opacity-10" style="background:#FF6B45"></div>
+        <div class="relative">
+          <p class="font-display text-2xl text-white">Daily<span style="color:#E8320A">Deal</span></p>
+          <p class="text-white text-xs mt-0.5 opacity-40">অনলাইন শপিং — বিশ্বস্ত, দ্রুত, সাশ্রয়ী</p>
+          <div class="inline-flex items-center gap-2 mt-3 bg-green-500 text-white text-xs font-bold px-3 py-1.5 rounded-full">
+            <i class="fa-solid fa-circle-check"></i> অর্ডার কনফার্মড
+          </div>
+        </div>
+      </div>
+      <!-- Meta grid -->
+      <div class="grid grid-cols-2" style="background:#fff">
+        <template x-for="m in inv.meta" :key="m.l">
+          <div class="px-4 py-3" style="border-right:1px solid rgba(0,0,0,.07);border-bottom:1px solid rgba(0,0,0,.07)">
+            <p class="text-xs font-bold uppercase tracking-widest" style="color:#bbb" x-text="m.l"></p>
+            <p class="text-sm font-semibold mt-0.5 leading-tight" style="color:#111" x-text="m.v"></p>
+          </div>
+        </template>
+      </div>
+      <!-- Items -->
+      <div class="px-4 py-3" style="background:#fff">
+        <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:#bbb">পণ্য তালিকা</p>
+        <template x-for="it in inv.order.items||[]" :key="it.id">
+          <div class="flex justify-between py-2.5" style="border-bottom:1px dashed rgba(0,0,0,.08)">
+            <div>
+              <p class="text-sm font-semibold" style="color:#111" x-text="it.name"></p>
+              <p class="text-xs mt-0.5" style="color:#888" x-text="(it.size?'সাইজ: '+it.size+' · ':'')+' ×'+it.qty+' · ৳'+it.price.toLocaleString()"></p>
+            </div>
+            <p class="font-mono font-bold text-sm flex-shrink-0 ml-3" style="color:#111" x-text="'৳'+(it.price*it.qty).toLocaleString()"></p>
+          </div>
+        </template>
+      </div>
+      <!-- Totals -->
+      <div class="px-4 py-4" style="background:#F9F6F2">
+        <div class="flex justify-between text-sm mb-1.5">
+          <span style="color:#666">পণ্যের মূল্য</span>
+          <span class="font-semibold" style="color:#111" x-text="'৳'+(inv.order.subtotal||0).toLocaleString()"></span>
+        </div>
+        <div class="flex justify-between text-sm mb-3">
+          <span style="color:#666">ডেলিভারি চার্জ</span>
+          <span class="font-semibold" style="color:#111" x-text="'৳'+(inv.order.shipping||0).toLocaleString()"></span>
+        </div>
+        <div class="flex justify-between font-bold text-base pt-3" style="border-top:1.5px solid rgba(0,0,0,.1)">
+          <span style="color:#111">সর্বমোট</span>
+          <span class="font-display text-xl" style="color:#E8320A" x-text="'৳'+(inv.order.total||0).toLocaleString()"></span>
+        </div>
+      </div>
+      <div class="text-center py-3 text-xs" style="color:#ccc;background:#fff;border-top:1px dashed rgba(0,0,0,.06)">ধন্যবাদ Daily Deal-এ কেনাকাটার জন্য 🙏</div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3 px-4 mt-4">
+      <button @click="dlInvoice()" class="flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white active:scale-95 transition-transform" style="background:#111">
+        <i class="fa-solid fa-download text-xs"></i> ইমেজ সেভ
+      </button>
+      <button @click="waInvoice()" class="flex items-center justify-center gap-2 py-3.5 rounded-xl text-sm font-bold text-white active:scale-95 transition-transform" style="background:#25D366">
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+      </button>
+    </div>
+    <div class="px-4 mt-3">
+      <button @click="inv.open=false;activeTab='orders'" class="w-full py-3.5 rounded-xl text-sm font-bold active:scale-95 transition-transform" style="border:2px solid var(--border);color:var(--fg);background:transparent">
+        আমার অর্ডার দেখুন →
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     HEADER
+═══════════════════════════════════════ -->
+<header class="sticky top-0 z-50" style="background:var(--header);box-shadow:0 2px 20px rgba(0,0,0,.3)">
+  <div class="flex items-center justify-between px-4 py-3">
+    <div>
+      <p class="font-display text-[22px] leading-none text-white">Daily<span style="color:var(--accent)">Deal</span></p>
+      <p class="text-[10px] tracking-widest uppercase mt-0.5" style="color:rgba(255,255,255,.3)">অনলাইন শপিং</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button @click="activeTab='orders'" class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)">
+        <i class="fa-regular fa-bell text-lg"></i>
+        <span x-show="pendingCount>0" x-text="pendingCount"
+          class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:var(--accent);font-size:8px"></span>
+      </button>
+      <button @click="activeTab='cart'" class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.7)">
+        <i class="fa-solid fa-bag-shopping text-lg"></i>
+        <span x-show="cartCount>0" x-text="cartCount"
+          class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:var(--accent);font-size:8px"></span>
+      </button>
+    </div>
+  </div>
+  <!-- Search -->
+  <div class="px-4 pb-3" x-show="activeTab==='home'" x-cloak>
+    <div class="flex items-center gap-2 rounded-xl px-3.5 py-2.5" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.1)">
+      <i class="fa-solid fa-magnifying-glass text-sm" style="color:rgba(255,255,255,.4)"></i>
+      <input x-model="q" type="search" placeholder="পণ্য খুঁজুন..."
+        class="flex-1 bg-transparent text-white text-sm placeholder-white/30 outline-none font-ui"/>
+      <button x-show="q" @click="q=''" style="color:rgba(255,255,255,.4)"><i class="fa-solid fa-xmark text-xs"></i></button>
+    </div>
+  </div>
+  <!-- Ticker -->
+  <div class="ticker-outer py-1.5" style="background:var(--accent)">
+    <div class="ticker-track">
+      <template x-for="(t,i) in [...tickers,...tickers]" :key="i">
+        <span class="mx-8 text-white text-xs font-bold tracking-wide" x-text="t"></span>
+      </template>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════
+     MAIN CONTENT
+═══════════════════════════════════════ -->
+<main class="pb-28">
+
+<!-- ─────────── HOME ─────────── -->
+<section x-show="activeTab==='home'" x-cloak>
+
+  <!-- BANNER SLIDER -->
+  <div class="relative overflow-hidden" style="height:200px" x-data="{si:0,timer:null}" x-init="timer=setInterval(()=>si=(si+1)%banners.length,4500);$watch('banners',()=>{if(si>=banners.length)si=0})">
+    <template x-for="(b,i) in banners" :key="i">
+      <div class="absolute inset-0 flex items-center px-6 overflow-hidden"
+           :style="'opacity:'+(si===i?1:0)+';transform:translateX('+(si===i?0:si>i?'-100%':'100%')+');transition:all .8s cubic-bezier(.65,0,.35,1);z-index:'+(si===i?1:0)"
+           style="background:var(--hgrad)">
+        <!-- BG image overlay -->
+        <div x-show="b.img" class="absolute inset-0 bg-cover bg-center" :style="'background-image:url('+b.img+');opacity:.18'"></div>
+        <div class="absolute top-0 right-0 w-48 h-48 rounded-full -translate-y-16 translate-x-16 opacity-20" style="background:var(--accent)"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 rounded-full translate-y-10 -translate-x-8 opacity-15" style="background:var(--accent2)"></div>
+        <div class="relative z-10">
+          <span class="inline-block text-white text-xs font-bold px-3 py-1 rounded-full mb-3" style="background:var(--accent)">🔥 হট ডিল</span>
+          <p class="font-display text-2xl text-white leading-tight" x-text="b.title"></p>
+          <p class="text-xs mt-1.5 opacity-50 text-white" x-text="b.sub"></p>
+        </div>
+      </div>
+    </template>
+    <!-- Dots -->
+    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+      <template x-for="(b,i) in banners" :key="i">
+        <button @click="si=i" class="h-1.5 rounded-full transition-all duration-400"
+          :style="'background:rgba(255,255,255,'+(si===i?.9:.3)+');width:'+(si===i?22:6)+'px'"></button>
+      </template>
+    </div>
+  </div>
+
+  <!-- NEON RGB BUTTONS -->
+  <div class="px-4 pt-4 grid grid-cols-2 gap-3">
+    <!-- Facebook -->
+    <div class="rgb-wrap" style="border-radius:18px">
+      <div class="rgb-glow"></div>
+      <div class="rgb-inner">
+        <a :href="settings.fbLink||'https://facebook.com'" target="_blank"
+           class="flex items-center justify-center gap-2 py-4 text-sm font-bold text-white"
+           style="background:#1877F2;font-family:'Hind Siliguri',sans-serif">
+          <i class="fa-brands fa-facebook text-lg"></i>
+          <span>Facebook পেজ</span>
+        </a>
+      </div>
+    </div>
+    <!-- Reseller -->
+    <div class="rgb-wrap" style="border-radius:18px">
+      <div class="rgb-glow"></div>
+      <div class="rgb-inner">
+        <a :href="settings.resellerLink||'https://t.me/'" target="_blank"
+           class="flex items-center justify-center gap-2 py-4 text-sm font-bold text-white"
+           :style="'background:var(--accent);font-family:Hind Siliguri,sans-serif'">
+          <i class="fa-solid fa-store text-base"></i>
+          <span>রিসেলার হন</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMO STRIP -->
+  <div class="mx-4 mt-4 rounded-2xl p-3 flex items-center gap-3" style="background:var(--accentL);border:1.5px dashed var(--accent)">
+    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accent)">
+      <i class="fa-solid fa-truck-fast text-white text-sm"></i>
+    </div>
+    <div>
+      <p class="text-xs font-bold" style="color:var(--accent)">দ্রুত ডেলিভারি নিশ্চিত</p>
+      <p class="text-xs mt-0.5" style="color:var(--fg2)">ঢাকা মাত্র ৳৮০ · সারাদেশে ৳১৫০</p>
+    </div>
+    <div class="ml-auto text-right">
+      <p class="text-xs font-bold" style="color:var(--fg3)">৭ দিনে</p>
+      <p class="text-xs font-bold" style="color:var(--accent)">রিটার্ন</p>
+    </div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="px-4 pt-5">
+    <div class="flex items-center justify-between mb-3">
+      <p class="font-display text-xl" style="color:var(--fg)">ক্যাটাগরি</p>
+      <span class="text-xs font-semibold" style="color:var(--fg3)" x-text="filteredProds.length+'টি পণ্য'"></span>
+    </div>
+    <div class="pill-scroll">
+      <template x-for="c in ['সব',...categories]" :key="c">
+        <button @click="activeCat=c"
+          :style="activeCat===c?'background:var(--accent);color:#fff;box-shadow:0 4px 16px color-mix(in srgb,var(--accent) 35%,transparent)':'background:var(--card);color:var(--fg2);border:1px solid var(--border)'"
+          class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap" x-text="c"></button>
+      </template>
+    </div>
+  </div>
+
+  <!-- PRODUCT GRID -->
+  <div class="px-4 pt-4 grid grid-cols-2 gap-3 pb-4">
+    <!-- Loading Skeletons -->
+    <template x-if="loading">
+      <template x-for="i in 6" :key="i">
+        <div class="dd-card overflow-hidden">
+          <div class="shimmer aspect-square rounded-none"></div>
+          <div class="p-3 space-y-2">
+            <div class="shimmer h-3 rounded-lg w-full"></div>
+            <div class="shimmer h-3 rounded-lg w-2/3"></div>
+            <div class="shimmer h-5 rounded-lg w-1/2 mt-2"></div>
+          </div>
+        </div>
+      </template>
+    </template>
+
+    <template x-if="!loading">
+      <template x-for="p in filteredProds" :key="p.fbKey||p.id">
+        <div class="dd-card dd-card-hover overflow-hidden animate-zoom-in">
+          <!-- Image -->
+          <div class="prod-img-wrap" @click="openDetail(p)">
+            <img :src="p.images?.[0]||p.img||''" class="prod-img"
+                 onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/>
+            <!-- Badge -->
+            <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
+            <!-- Info icon -->
+            <button @click.stop="openDesc(p)"
+              class="absolute top-2 right-2 w-7 h-7 rounded-full flex items-center justify-center text-white text-xs shadow-lg"
+              style="background:rgba(0,0,0,.55);backdrop-filter:blur(4px)">
+              <i class="fa-solid fa-circle-info text-xs"></i>
+            </button>
+          </div>
+          <div class="p-3">
+            <p class="text-xs font-semibold leading-tight mb-1.5 cursor-pointer"
+               style="color:var(--fg);min-height:2.4rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden"
+               x-text="p.name" @click="openDetail(p)"></p>
+            <p class="font-display text-base font-bold" style="color:var(--accent)" x-text="'৳'+p.price.toLocaleString()"></p>
+
+            <!-- Size Selection -->
+            <template x-if="p.sizes&&p.sizes.length>0">
+              <div class="mt-2 mb-1">
+                <p class="text-xs mb-1" style="color:var(--fg3)">সাইজ:</p>
+                <div class="flex flex-wrap gap-1">
+                  <template x-for="s in p.sizes" :key="s">
+                    <button @click="setSize(p,s)"
+                      :class="(selectedSizes[p.fbKey||p.id]===s)?'active':''"
+                      class="size-chip" x-text="s"></button>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <div class="flex gap-2 mt-2">
+              <button @click="addToCart(p)"
+                class="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 text-white"
+                style="background:var(--accent)">
+                <i class="fa-solid fa-cart-plus mr-1"></i>কার্ট
+              </button>
+              <button @click="buyNow(p)"
+                class="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95"
+                style="background:var(--bg2);color:var(--fg2)">
+                <i class="fa-solid fa-bolt mr-1"></i>কিনুন
+              </button>
+            </div>
+          </div>
+        </div>
+      </template>
+    </template>
+
+    <div x-show="!loading&&filteredProds.length===0" class="col-span-2 text-center py-16" style="color:var(--fg3)">
+      <i class="fa-solid fa-box-open text-5xl mb-4 opacity-30"></i>
+      <p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── PRODUCT DETAIL ─────────── -->
+<section x-show="activeTab==='detail'" x-cloak class="animate-fade-in">
+  <template x-if="selProd">
+    <div>
+      <div class="relative">
+        <!-- Image gallery -->
+        <div class="relative overflow-hidden" style="height:320px;background:var(--bg2)" x-data="{imgIdx:0}">
+          <template x-for="(img,i) in (selProd.images?.length?selProd.images:[selProd.img||''])" :key="i">
+            <img :src="img" class="absolute inset-0 w-full h-full object-cover transition-all duration-500"
+                 :style="'opacity:'+(imgIdx===i?1:0)"
+                 onerror="this.src='https://placehold.co/480x320/eee/aaa?text=পণ্য'"/>
+          </template>
+          <!-- Thumbnails if multiple images -->
+          <template x-if="selProd.images?.length>1">
+            <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <template x-for="(img,i) in selProd.images" :key="i">
+                <button @click="imgIdx=i" class="h-1.5 rounded-full transition-all"
+                  :style="'background:white;opacity:'+(imgIdx===i?.9:.35)+';width:'+(imgIdx===i?18:6)+'px'"></button>
+              </template>
+            </div>
+          </template>
+          <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.4) 0%,transparent 50%)"></div>
+        </div>
+        <button @click="activeTab='home'" class="absolute top-4 left-4 w-10 h-10 rounded-xl flex items-center justify-center shadow-xl z-10" style="background:rgba(255,255,255,.92)">
+          <i class="fa-solid fa-arrow-left" style="color:var(--fg)"></i>
+        </button>
+        <span x-show="selProd.badge" class="absolute top-4 right-4 text-white text-xs font-bold px-2.5 py-1 rounded-lg z-10" style="background:var(--accent)" x-text="selProd.badge"></span>
+      </div>
+      <div class="rounded-t-[28px] -mt-6 relative px-5 pt-6 pb-4" style="background:var(--bg);z-index:5">
+        <span x-show="selProd.cat" class="inline-block text-xs font-bold px-2.5 py-1 rounded-md mb-2" style="background:var(--accentL);color:var(--accent)" x-text="selProd.cat"></span>
+        <h1 class="font-display text-2xl leading-snug" style="color:var(--fg)" x-text="selProd.name"></h1>
+        <p class="font-mono text-3xl font-bold mt-2" style="color:var(--accent)" x-text="'৳'+selProd.price.toLocaleString()"></p>
+        <p class="text-sm leading-relaxed mt-3" style="color:var(--fg2)" x-text="selProd.desc||'কোনো বিবরণ নেই।'"></p>
+
+        <template x-if="selProd.sizes&&selProd.sizes.length>0">
+          <div class="mt-4">
+            <p class="dd-label mb-2">সাইজ বেছে নিন</p>
+            <div class="flex flex-wrap gap-2">
+              <template x-for="s in selProd.sizes" :key="s">
+                <button @click="setSize(selProd,s)"
+                  :class="(selectedSizes[selProd.fbKey||selProd.id]===s)?'active':''"
+                  class="size-chip" x-text="s"></button>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <div class="flex items-center gap-1 mt-4">
+          <template x-for="i in 5" :key="i"><i class="fa-solid fa-star text-yellow-400 text-xs"></i></template>
+          <span class="text-xs ml-1" style="color:var(--fg3)">(৪.৮ · ১২৮ রিভিউ)</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <button @click="addToCart(selProd)" class="py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 active:scale-95 transition-transform" style="border:2px solid var(--border);color:var(--fg);background:transparent">
+            <i class="fa-solid fa-cart-plus"></i> কার্টে যোগ
+          </button>
+          <button @click="buyNow(selProd)" class="btn-primary py-4 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-bolt"></i> এখনই কিনুন
+          </button>
+        </div>
+      </div>
+    </div>
+  </template>
+</section>
+
+<!-- ─────────── CART + CHECKOUT ─────────── -->
+<section x-show="activeTab==='cart'" x-cloak class="px-4 pt-4 animate-slide-up">
+  <div class="flex items-center justify-between mb-4">
+    <p class="font-display text-xl" style="color:var(--fg)">শপিং ব্যাগ</p>
+    <span class="text-sm font-semibold" style="color:var(--fg3)" x-text="cartCount+'টি পণ্য'"></span>
+  </div>
+
+  <!-- Empty State -->
+  <div x-show="cart.length===0" class="text-center py-20" style="color:var(--fg3)">
+    <div class="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-5 text-4xl animate-float" style="background:var(--bg2)">🛍️</div>
+    <p class="font-display text-xl mb-1" style="color:var(--fg)">ব্যাগ খালি আছে</p>
+    <p class="text-sm mb-6" style="color:var(--fg3)">কেনাকাটা শুরু করুন!</p>
+    <button @click="activeTab='home'" class="btn-primary max-w-xs mx-auto block">পণ্য দেখুন</button>
+  </div>
+
+  <template x-if="cart.length>0">
+    <div class="space-y-4">
+      <!-- Cart Items -->
+      <div class="space-y-3">
+        <template x-for="(it,i) in cart" :key="i">
+          <div class="dd-card flex items-center gap-3 p-3">
+            <img :src="it.images?.[0]||it.img||''" class="w-16 h-16 rounded-xl object-cover flex-shrink-0" style="background:var(--bg2)"
+                 onerror="this.src='https://placehold.co/64x64/eee/aaa?text=IMG'"/>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold leading-tight" style="color:var(--fg)" x-text="it.name"></p>
+              <p x-show="it.size" class="text-xs mt-0.5 font-bold" style="color:var(--accent)" x-text="'সাইজ: '+it.size"></p>
+              <p class="font-mono text-base font-bold mt-0.5" style="color:var(--accent)" x-text="'৳'+(it.price*it.qty).toLocaleString()"></p>
+              <div class="flex items-center gap-2 mt-1.5">
+                <button @click="it.qty>1?it.qty--:cart.splice(i,1);syncCart()" class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold" style="background:var(--bg2);color:var(--fg)">−</button>
+                <span class="text-sm font-bold w-5 text-center" style="color:var(--fg)" x-text="it.qty"></span>
+                <button @click="it.qty++;syncCart()" class="w-7 h-7 rounded-lg flex items-center justify-center text-sm font-bold" style="background:var(--bg2);color:var(--fg)">+</button>
+              </div>
+            </div>
+            <button @click="cart.splice(i,1);syncCart()" class="text-red-400 self-start pt-1 bg-transparent border-none cursor-pointer p-1">
+              <i class="fa-solid fa-trash-can text-sm"></i>
+            </button>
+          </div>
+        </template>
+      </div>
+
+      <!-- DELIVERY FORM -->
+      <div class="dd-card overflow-hidden">
+        <div class="px-4 py-3.5" style="background:var(--header)">
+          <p class="text-white font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-location-dot" style="color:var(--accent)"></i> ডেলিভারি তথ্য
+          </p>
+        </div>
+        <div class="p-4 space-y-3">
+          <div>
+            <label class="dd-label">পূর্ণ নাম *</label>
+            <input class="dd-input" x-model="form.name" placeholder="আপনার সম্পূর্ণ নাম"/>
+          </div>
+          <div>
+            <label class="dd-label">মোবাইল নম্বর *</label>
+            <input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/>
+          </div>
+          <!-- Division -->
+          <div>
+            <label class="dd-label">বিভাগ *</label>
+            <div class="relative">
+              <select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''">
+                <option value="">— বিভাগ বেছে নিন —</option>
+                <template x-for="d in Object.keys(bdLoc)" :key="d">
+                  <option :value="d" x-text="d"></option>
+                </template>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i>
+            </div>
+            <div x-show="form.division" class="mt-1.5 flex items-center gap-1.5 text-xs font-bold"
+              :style="form.division==='ঢাকা'?'color:#16A34A':'color:#D97706'">
+              <i class="fa-solid fa-truck text-xs"></i>
+              <span x-text="form.division==='ঢাকা'?'ঢাকা বিভাগ — ডেলিভারি: ৳৮০':'অন্য বিভাগ — ডেলিভারি: ৳১৫০'"></span>
+            </div>
+          </div>
+          <!-- District -->
+          <div x-show="form.division" x-cloak>
+            <label class="dd-label">জেলা *</label>
+            <div class="relative">
+              <select class="dd-input pr-10 cursor-pointer" x-model="form.district">
+                <option value="">— জেলা বেছে নিন —</option>
+                <template x-for="d in bdLoc[form.division]||[]" :key="d">
+                  <option :value="d" x-text="d"></option>
+                </template>
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i>
+            </div>
+          </div>
+          <div>
+            <label class="dd-label">বিস্তারিত ঠিকানা *</label>
+            <textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা, থানা..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- PAYMENT -->
+      <div class="dd-card overflow-hidden">
+        <div class="px-4 py-3.5" style="background:var(--header)">
+          <p class="text-white font-bold text-sm flex items-center gap-2">
+            <i class="fa-solid fa-credit-card" style="color:var(--accent)"></i> পেমেন্ট পদ্ধতি
+          </p>
+        </div>
+        <div class="p-4 space-y-2">
+          <template x-for="pm in payMethods" :key="pm.id">
+            <label :for="'pm-'+pm.id"
+              class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all"
+              :style="form.pay===pm.id?'border-color:var(--accent);background:var(--accentL)':'border-color:var(--border);background:transparent'">
+              <input type="radio" :id="'pm-'+pm.id" :value="pm.id" x-model="form.pay" class="sr-only"/>
+              <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all flex-shrink-0"
+                :style="form.pay===pm.id?'border-color:var(--accent)':'border-color:var(--fg3)'">
+                <div x-show="form.pay===pm.id" class="w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></div>
+              </div>
+              <span class="text-xl flex-shrink-0" x-text="pm.icon"></span>
+              <div class="flex-1">
+                <p class="text-sm font-bold" style="color:var(--fg)" x-text="pm.label"></p>
+                <p class="text-xs" style="color:var(--fg3)" x-text="pm.id==='bkash'?(settings.bkash||'01XXXXXXXXX'):pm.id==='nagad'?(settings.nagad||'01XXXXXXXXX'):pm.sub"></p>
+              </div>
+            </label>
+          </template>
+          <div x-show="form.pay!=='cod'" x-cloak class="pt-1">
+            <label class="dd-label">ট্রানজেকশন ID *</label>
+            <input class="dd-input" x-model="form.trxId" placeholder="TrxID এখানে লিখুন"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDER SUMMARY -->
+      <div class="dd-card p-4">
+        <p class="font-bold text-sm mb-3 flex items-center gap-2" style="color:var(--fg)">
+          <i class="fa-solid fa-receipt" style="color:var(--accent)"></i> অর্ডার সারসংক্ষেপ
+        </p>
+        <template x-for="it in cart" :key="it.fbKey||it.id">
+          <div class="flex justify-between text-sm py-1.5" style="border-bottom:1px dashed var(--border)">
+            <span style="color:var(--fg2)" class="flex-1 truncate pr-2 text-xs" x-text="it.name+(it.qty>1?' ×'+it.qty:'')+(it.size?' ('+it.size+')':'')"></span>
+            <span class="font-mono text-xs font-semibold flex-shrink-0" style="color:var(--fg)" x-text="'৳'+(it.price*it.qty).toLocaleString()"></span>
+          </div>
+        </template>
+        <div class="flex justify-between text-sm mt-2 pt-2" style="border-top:1px solid var(--border)">
+          <span style="color:var(--fg2)">ডেলিভারি</span>
+          <span class="font-mono text-xs font-semibold" style="color:var(--fg)" x-text="shipping>0?'৳'+shipping:'বিভাগ সিলেক্ট করুন'"></span>
+        </div>
+        <div class="flex justify-between mt-3 pt-3" style="border-top:2px solid var(--border)">
+          <span class="font-bold" style="color:var(--fg)">সর্বমোট</span>
+          <span class="font-display text-xl" style="color:var(--accent)" x-text="'৳'+grandTotal.toLocaleString()"></span>
+        </div>
+      </div>
+
+      <button @click="placeOrder()" :disabled="placing" class="btn-primary animate-pulse3">
+        <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
+        <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>অর্ডার কনফার্ম করুন</span>
+      </button>
+    </div>
+  </template>
+</section>
+
+<!-- ─────────── MY ORDERS ─────────── -->
+<section x-show="activeTab==='orders'" x-cloak class="px-4 pt-4 animate-fade-in">
+  <div class="flex items-center justify-between mb-4">
+    <p class="font-display text-xl" style="color:var(--fg)">আমার অর্ডার</p>
+    <span class="text-sm font-semibold" style="color:var(--fg3)" x-text="myOrders.length+'টি'"></span>
+  </div>
+  <div class="pill-scroll mb-4">
+    <template x-for="s in ['সব','পেন্ডিং','প্রসেসিং','ডেলিভার্ড','বাতিল']" :key="s">
+      <button @click="oFilt=s"
+        :style="oFilt===s?'background:var(--accent);color:#fff':'background:var(--card);color:var(--fg2);border:1px solid var(--border)'"
+        class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all" x-text="s"></button>
+    </template>
+  </div>
+  <div x-show="filteredOrders.length===0" class="text-center py-16" style="color:var(--fg3)">
+    <i class="fa-solid fa-receipt text-5xl mb-4 opacity-25"></i>
+    <p class="text-sm font-semibold">কোনো অর্ডার নেই</p>
+  </div>
+  <div class="space-y-3">
+    <template x-for="o in filteredOrders" :key="o.fbKey||o.id">
+      <div class="dd-card overflow-hidden">
+        <div class="flex items-center justify-between px-4 py-3" style="background:var(--bg2);border-bottom:1px solid var(--border)">
+          <div>
+            <p class="font-mono text-xs font-bold" style="color:var(--fg)">#<span x-text="o.id"></span></p>
+            <p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="o.date"></p>
+          </div>
+          <span class="text-xs font-bold px-3 py-1 rounded-full"
+            :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}"
+            x-text="o.status"></span>
+        </div>
+        <template x-for="it in (o.items||[]).slice(0,2)" :key="it.id">
+          <div class="flex items-center gap-3 px-4 py-2.5" style="border-bottom:1px dashed var(--border)">
+            <img :src="it.images?.[0]||it.img||''" class="w-10 h-10 rounded-xl object-cover flex-shrink-0" style="background:var(--bg2)"
+                 onerror="this.src='https://placehold.co/40x40/eee/aaa?text=IMG'"/>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-semibold truncate" style="color:var(--fg)" x-text="it.name"></p>
+              <p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="'×'+it.qty+(it.size?' · '+it.size:'')"></p>
+            </div>
+            <p class="font-mono text-xs font-bold flex-shrink-0" style="color:var(--accent)" x-text="'৳'+(it.price*it.qty).toLocaleString()"></p>
+          </div>
+        </template>
+        <div class="flex items-center justify-between px-4 py-3">
+          <div>
+            <p class="text-xs" style="color:var(--fg3)" x-text="(o.district||'')+' · '+(o.payMethod||'')"></p>
+            <p class="font-display text-lg mt-0.5" style="color:var(--accent)" x-text="'৳'+o.total.toLocaleString()"></p>
+          </div>
+          <button @click="showInvoice(o)" class="text-xs font-bold px-3 py-2 rounded-xl" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer">
+            <i class="fa-solid fa-file-invoice mr-1"></i>ইনভয়েস
+          </button>
+        </div>
+      </div>
+    </template>
+  </div>
+</section>
+
+<!-- ─────────── PROFILE ─────────── -->
+<section x-show="activeTab==='profile'" x-cloak class="animate-fade-in">
+  <div class="relative px-6 pb-8 pt-8 overflow-hidden" style="background:var(--header)">
+    <div class="absolute -top-12 -right-12 w-48 h-48 rounded-full opacity-15" style="background:var(--accent)"></div>
+    <div class="absolute -bottom-8 -left-8 w-36 h-36 rounded-full opacity-10" style="background:var(--accent2)"></div>
+    <div class="relative flex items-center gap-4">
+      <div class="relative">
+        <img :src="profile.img||'https://placehold.co/64x64/333/fff?text=👤'" class="w-16 h-16 rounded-2xl object-cover" style="border:2px solid rgba(255,255,255,.2)"/>
+        <label class="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg flex items-center justify-center cursor-pointer" style="background:var(--accent);border:1.5px solid rgba(255,255,255,.3)">
+          <i class="fa-solid fa-camera text-white" style="font-size:9px"></i>
+          <input type="file" accept="image/*" @change="uploadPic" class="hidden"/>
+        </label>
+      </div>
+      <div>
+        <p class="font-display text-xl text-white" x-text="profile.name||'আপনার নাম'"></p>
+        <p class="text-xs mt-0.5 opacity-45 text-white" x-text="profile.phone||'মোবাইল নম্বর'"></p>
+      </div>
+    </div>
+    <div class="relative grid grid-cols-3 gap-3 mt-5">
+      <div class="rounded-2xl p-3 text-center" style="background:rgba(255,255,255,.08)">
+        <p class="font-display text-2xl text-white" x-text="myOrders.length"></p>
+        <p class="text-white opacity-40 text-xs mt-0.5">অর্ডার</p>
+      </div>
+      <div class="rounded-2xl p-3 text-center" style="background:rgba(255,255,255,.08)">
+        <p class="font-display text-2xl text-white" x-text="myOrders.filter(o=>o.status==='ডেলিভার্ড').length"></p>
+        <p class="text-white opacity-40 text-xs mt-0.5">ডেলিভার্ড</p>
+      </div>
+      <div class="rounded-2xl p-3 text-center" style="background:rgba(255,255,255,.08)">
+        <p class="font-display text-2xl" style="color:var(--accent)" x-text="cart.length"></p>
+        <p class="text-white opacity-40 text-xs mt-0.5">কার্টে</p>
+      </div>
+    </div>
+  </div>
+  <div class="px-4 pt-4 space-y-3">
+    <div class="dd-card p-4 space-y-3">
+      <p class="font-bold text-sm" style="color:var(--fg)">প্রোফাইল আপডেট</p>
+      <div><label class="dd-label">নাম</label><input class="dd-input" x-model="profile.name" placeholder="আপনার নাম"/></div>
+      <div><label class="dd-label">মোবাইল</label><input class="dd-input" type="tel" x-model="profile.phone" placeholder="০১XXXXXXXXX"/></div>
+      <button @click="saveProfile()" class="btn-primary"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
+    </div>
+    <div class="dd-card overflow-hidden">
+      <template x-for="lnk in profileLinks" :key="lnk.label">
+        <a :href="lnk.href" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="border-bottom:1px solid var(--border)">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" :style="'background:'+lnk.bg">
+            <i :class="lnk.icon" :style="'color:'+lnk.clr+';font-size:16px'"></i>
+          </div>
+          <span class="text-sm font-semibold flex-1" style="color:var(--fg)" x-text="lnk.label"></span>
+          <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
+        </a>
+      </template>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══════════════════════════════════════
+     BOTTOM NAV
+═══════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <template x-for="n in navItems" :key="n.id">
+    <button @click="activeTab=n.id" class="nav-btn" :class="activeTab===n.id?'active':''">
+      <div class="nav-icon-wrap relative">
+        <i :class="n.icon"></i>
+        <span x-show="n.id==='cart'&&cartCount>0" x-text="cartCount"
+          class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:var(--accent);font-size:8px"></span>
+      </div>
+      <span x-text="n.label"></span>
+    </button>
+  </template>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     TOAST
+═══════════════════════════════════════ -->
+<div class="toast-wrap" x-show="toast.show" x-cloak>
+  <div class="text-white text-sm font-bold px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-2.5 animate-slide-up"
+    :style="toast.type==='success'?'background:#059669':toast.type==='error'?'background:#DC2626':'background:#374151'">
+    <i :class="toast.type==='success'?'fa-solid fa-circle-check':'fa-solid fa-circle-xmark'" class="text-base"></i>
+    <span x-text="toast.msg"></span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     ALPINE JS APP
+═══════════════════════════════════════ -->
+<script>
+function App(){return{
+  // STATE
+  activeTab:'home',q:'',activeCat:'সব',oFilt:'সব',
+  placing:false,loading:true,
+  activeTheme:'light',
+  fbProducts:[],fbOrders:[],myOrders:[],
+  selectedSizes:{},selProd:null,cart:[],
+  profile:{name:'',phone:'',img:''},
+  descModal:{open:false,prod:null},
+  inv:{open:false,order:{},meta:[]},
+  settings:{siteName:'Daily Deal',fbLink:'https://facebook.com',resellerLink:'https://t.me/',bkash:'',nagad:'',wa:''},
+  banners:[
+    {title:'আজকের সেরা অফার',sub:'সীমিত সময়ের বিশেষ ছাড়',img:''},
+    {title:'নতুন কালেকশন এসেছে',sub:'সেরা ব্র্যান্ডের পণ্য',img:''},
+    {title:'ফ্রি ডেলিভারি অফার',sub:'ঢাকায় মাত্র ৳৮০ — অর্ডার করুন',img:''},
+  ],
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:''},
+  toast:{show:false,msg:'',type:'success'},
+
+  // STATIC DATA
+  tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল পণ্য','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার চলছে','⭐ ৪.৯ রেটিং'],
+  categories:['বোরকা','ইলেকট্রনিক্স','গ্যাজেট','কসমেটিক্স','ফ্যাশন','অফার'],
+  navItems:[
+    {id:'home',icon:'fa-solid fa-house',label:'হোম'},
+    {id:'cart',icon:'fa-solid fa-bag-shopping',label:'ব্যাগ'},
+    {id:'orders',icon:'fa-solid fa-receipt',label:'অর্ডার'},
+    {id:'profile',icon:'fa-solid fa-circle-user',label:'প্রোফাইল'},
+  ],
+  payMethods:[
+    {id:'cod',icon:'💵',label:'ক্যাশ অন ডেলিভারি',sub:'পণ্য পেলে পেমেন্ট করুন'},
+    {id:'bkash',icon:'📱',label:'bKash',sub:''},
+    {id:'nagad',icon:'🟠',label:'Nagad',sub:''},
+  ],
+  profileLinks:[
+    {label:'Facebook পেজ',href:'https://facebook.com',icon:'fa-brands fa-facebook',bg:'#E7F0FF',clr:'#1877F2'},
+    {label:'রিসেলার হোন',href:'https://t.me/',icon:'fa-brands fa-telegram',bg:'#E3F6FF',clr:'#0088cc'},
+    {label:'WhatsApp সাপোর্ট',href:'https://wa.me/',icon:'fa-brands fa-whatsapp',bg:'#E6FFF1',clr:'#25D366'},
+  ],
+  bdLoc:{
+    'ঢাকা':['ঢাকা','গাজীপুর','নারায়ণগঞ্জ','মানিকগঞ্জ','মুন্সিগঞ্জ','নরসিংদী','কিশোরগঞ্জ','ফরিদপুর','গোপালগঞ্জ','মাদারীপুর','রাজবাড়ী','শরীয়তপুর','টাঙ্গাইল'],
+    'চট্টগ্রাম':['চট্টগ্রাম','কক্সবাজার','ফেনী','নোয়াখালী','লক্ষ্মীপুর','কুমিল্লা','চাঁদপুর','ব্রাহ্মণবাড়িয়া','রাঙামাটি','বান্দরবান','খাগড়াছড়ি'],
+    'রাজশাহী':['রাজশাহী','চাঁপাইনবাবগঞ্জ','নওগাঁ','নাটোর','বগুড়া','জয়পুরহাট','পাবনা','সিরাজগঞ্জ'],
+    'খুলনা':['খুলনা','বাগেরহাট','সাতক্ষীরা','যশোর','নড়াইল','মাগুরা','ঝিনাইদহ','কুষ্টিয়া','মেহেরপুর','চুয়াডাঙ্গা'],
+    'বরিশাল':['বরিশাল','পটুয়াখালী','পিরোজপুর','ভোলা','ঝালকাঠি','বরগুনা'],
+    'সিলেট':['সিলেট','মৌলভীবাজার','হবিগঞ্জ','সুনামগঞ্জ'],
+    'রংপুর':['রংপুর','কুড়িগ্রাম','লালমনিরহাট','নীলফামারী','গাইবান্ধা','ঠাকুরগাঁও','দিনাজপুর','পঞ্চগড়'],
+    'ময়মনসিংহ':['ময়মনসিংহ','নেত্রকোনা','জামালপুর','শেরপুর'],
+  },
+  demoProducts:[
+    {id:1,name:'প্রিমিয়াম বোরকা কালেকশন ২০২৫',price:1350,cat:'বোরকা',badge:'বেস্টসেলার',sizes:['S','M','L','XL','XXL'],images:['https://images.unsplash.com/photo-1614786269829-d24616faf56d?w=400'],desc:'উচ্চমানের মালবেরি শিফন কাপড়ে তৈরি। ফুল-লেন্থ ডিজাইন, হাতের সূক্ষ্ম কাজসহ।'},
+    {id:2,name:'ওয়্যারলেস ব্লুটুথ হেডফোন Pro Max',price:1890,cat:'ইলেকট্রনিক্স',badge:'নতুন',sizes:[],images:['https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400'],desc:'৪০ ঘণ্টার ব্যাটারি, নয়েজ ক্যান্সেলেশন, হাই-ফাই স্টেরিও সাউন্ড।'},
+    {id:3,name:'স্মার্ট ওয়াচ Ultra ফিটনেস ট্র্যাকার',price:2250,cat:'গ্যাজেট',badge:'হট',sizes:[],images:['https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400'],desc:'হার্টরেট, অক্সিজেন লেভেল, স্লিপ ট্র্যাকিং। IP68 ওয়াটারপ্রুফ।'},
+    {id:4,name:'কোরিয়ান গ্লো স্কিনকেয়ার কমপ্লিট সেট',price:980,cat:'কসমেটিক্স',badge:null,sizes:[],images:['https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=400'],desc:'৫-স্টেপ কোরিয়ান স্কিনকেয়ার রুটিন।'},
+    {id:5,name:'ডিজাইনার হিজাব প্রিমিয়াম কালেকশন',price:650,cat:'ফ্যাশন',badge:null,sizes:['ফ্রি সাইজ'],images:['https://images.unsplash.com/photo-1534126511673-b6899657816a?w=400'],desc:'প্রিমিয়াম শিফন ও জর্জেট কাপড়। ১২টি রঙে পাওয়া যায়।'},
+    {id:6,name:'স্পেশাল ঈদ কম্বো অফার প্যাক',price:1999,cat:'অফার',badge:'৩০% ছাড়',sizes:['M','L','XL'],images:['https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400'],desc:'বোরকা + হিজাব + পারফিউম — ঈদ স্পেশাল কম্বো।'},
+  ],
+
+  // COMPUTED
+  get allProducts(){return this.fbProducts.length?this.fbProducts:this.demoProducts},
+  get filteredProds(){
+    return this.allProducts.filter(p=>
+      (this.activeCat==='সব'||p.cat===this.activeCat)&&
+      p.name.toLowerCase().includes(this.q.toLowerCase())
+    )
+  },
+  get cartCount(){return this.cart.reduce((s,i)=>s+i.qty,0)},
+  get cartSubtotal(){return this.cart.reduce((s,i)=>s+i.price*i.qty,0)},
+  get shipping(){if(!this.form.division)return 0;return this.form.division==='ঢাকা'?80:150},
+  get grandTotal(){return this.cartSubtotal+this.shipping},
+  get filteredOrders(){if(this.oFilt==='সব')return this.myOrders;return this.myOrders.filter(o=>o.status===this.oFilt)},
+  get pendingCount(){return this.myOrders.filter(o=>o.status==='পেন্ডিং').length},
+
+  // BOOT
+  boot(){
+    const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
+    const so=localStorage.getItem('dd_myorders');if(so)this.myOrders=JSON.parse(so);
+    const st=localStorage.getItem('dd_theme');if(st)this.activeTheme=st;
+    const sc=localStorage.getItem('dd_cart');if(sc)this.cart=JSON.parse(sc);
+    if(this.profile.name)this.form.name=this.profile.name;
+    if(this.profile.phone)this.form.phone=this.profile.phone;
+
+    window.addEventListener('firebase-ready',()=>{
+      window.$db.listenProducts(prods=>{
+        this.fbProducts=prods;
+        this.loading=false;
+      });
+      window.$db.listenOrders(orders=>{
+        this.fbOrders=orders.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+        // Sync my orders status
+        this.myOrders=this.myOrders.map(mo=>{
+          const fb=this.fbOrders.find(o=>String(o.id)===String(mo.id));
+          return fb?{...mo,status:fb.status}:mo;
+        });
+        localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
+      });
+      window.$db.listenSettings(s=>{
+        if(s.settings)Object.assign(this.settings,s.settings);
+        if(s.banners&&s.banners.length)this.banners=s.banners;
+        if(s.theme){this.activeTheme=s.theme;localStorage.setItem('dd_theme',s.theme)}
+        if(s.settings?.fbLink)this.profileLinks[0].href=s.settings.fbLink;
+        if(s.settings?.resellerLink)this.profileLinks[1].href=s.settings.resellerLink;
+        if(s.settings?.wa)this.profileLinks[2].href='https://wa.me/'+s.settings.wa;
+      });
+      setTimeout(()=>{if(this.loading)this.loading=false},4000);
+    },{once:true});
+  },
+
+  // ACTIONS
+  setSize(p,s){const key=p.fbKey||p.id;this.selectedSizes={...this.selectedSizes,[key]:s}},
+  openDesc(p){this.descModal={open:true,prod:p}},
+  openDetail(p){this.selProd=p;this.activeTab='detail';window.scrollTo(0,0)},
+  syncCart(){localStorage.setItem('dd_cart',JSON.stringify(this.cart))},
+
+  addToCart(p){
+    const key=p.fbKey||p.id;
+    const size=this.selectedSizes[key]||null;
+    if(p.sizes&&p.sizes.length>0&&!size){this.showToast('সাইজ বেছে নিন!','error');return}
+    const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size);
+    if(ex){ex.qty++}else{this.cart.push({...p,qty:1,size})}
+    this.syncCart();
+    this.showToast('কার্টে যোগ হয়েছে! 🛍️','success');
+  },
+  buyNow(p){this.addToCart(p);if(this.cart.length>0)this.activeTab='cart'},
+
+  async placeOrder(){
+    if(!this.form.name.trim())return this.showToast('নাম লিখুন!','error');
+    if(!this.form.phone.trim())return this.showToast('মোবাইল নম্বর দিন!','error');
+    if(!this.form.division)return this.showToast('বিভাগ সিলেক্ট করুন!','error');
+    if(!this.form.district)return this.showToast('জেলা সিলেক্ট করুন!','error');
+    if(!this.form.address.trim())return this.showToast('ঠিকানা দিন!','error');
+    if(this.form.pay!=='cod'&&!this.form.trxId.trim())return this.showToast('TrxID দিন!','error');
+    if(!this.cart.length)return this.showToast('কার্ট খালি!','error');
+    this.placing=true;
+    const pLabel={cod:'ক্যাশ অন ডেলিভারি',bkash:'bKash',nagad:'Nagad'};
+    const order={
+      id:Math.floor(10000+Math.random()*90000),
+      date:new Date().toLocaleDateString('bn-BD',{year:'numeric',month:'long',day:'numeric'}),
+      timestamp:new Date().toISOString(),
+      status:'পেন্ডিং',
+      customerName:this.form.name,phone:this.form.phone,
+      division:this.form.division,district:this.form.district,address:this.form.address,
+      payMethod:pLabel[this.form.pay],trxId:this.form.trxId,
+      items:this.cart.map(i=>({id:i.id||i.fbKey,name:i.name,price:i.price,qty:i.qty,size:i.size||'',img:i.images?.[0]||i.img||'',images:i.images||[i.img||'']})),
+      subtotal:this.cartSubtotal,shipping:this.shipping,total:this.grandTotal,
+    };
+    try{if(window.$db)await window.$db.saveOrder(order)}catch(e){console.warn('Firebase save failed',e)}
+    this.myOrders.unshift(order);
+    localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
+    this.cart=[];localStorage.removeItem('dd_cart');
+    this.form.trxId='';this.placing=false;
+    this.showInvoice(order);
+    this.showToast('অর্ডার সফল! ✅','success');
+  },
+
+  showInvoice(o){
+    this.inv={
+      open:true,order:o,
+      meta:[
+        {l:'অর্ডার আইডি',v:'#'+o.id},{l:'তারিখ',v:o.date},
+        {l:'গ্রাহক',v:o.customerName},{l:'মোবাইল',v:o.phone},
+        {l:'জেলা',v:o.district||''},{l:'বিভাগ',v:o.division||''},
+        {l:'পেমেন্ট',v:o.payMethod||''},{l:'ঠিকানা',v:o.address||''},
+      ]
+    };
+  },
+  async dlInvoice(){
+    try{
+      const el=document.getElementById('inv-content');
+      const c=await html2canvas(el,{scale:2.5,backgroundColor:'#fff',logging:false,useCORS:true});
+      const a=document.createElement('a');
+      a.download=`invoice-${this.inv.order.id}.png`;a.href=c.toDataURL('image/png');a.click();
+      this.showToast('ইমেজ ডাউনলোড হচ্ছে 📥','success');
+    }catch{this.showToast('ডাউনলোড ব্যর্থ!','error')}
+  },
+  waInvoice(){
+    const o=this.inv.order;
+    const items=(o.items||[]).map(i=>`• ${i.name}${i.size?' ('+i.size+')':''} ×${i.qty} = ৳${(i.price*i.qty).toLocaleString()}`).join('\n');
+    const msg=`🛒 *Daily Deal — অর্ডার ইনভয়েস*\n━━━━━━━━━━━━━━━\n📋 #${o.id}\n📅 ${o.date}\n👤 ${o.customerName} · ${o.phone}\n📍 ${o.district}, ${o.division}\n\n${items}\n\n💰 ৳${o.subtotal?.toLocaleString()} + 🚚 ৳${o.shipping?.toLocaleString()}\n━━━━━━━━━━━━━━━\n✅ *মোট: ৳${o.total?.toLocaleString()}*\n\nধন্যবাদ! 🙏`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+  },
+
+  uploadPic(e){
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();r.onload=ev=>{this.profile.img=ev.target.result};r.readAsDataURL(f);
+  },
+  saveProfile(){
+    localStorage.setItem('dd_profile',JSON.stringify(this.profile));
+    this.form.name=this.profile.name;this.form.phone=this.profile.phone;
+    this.showToast('প্রোফাইল সেভ হয়েছে!','success');
+  },
+  showToast(msg,type='success'){
+    this.toast={show:true,msg,type};
+    setTimeout(()=>this.toast.show=false,3000);
+  },
+}}
+</script>
+</body>
+</html>
