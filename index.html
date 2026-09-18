@@ -85,6 +85,8 @@ window.$db={
   // ══ Withdrawals (NEW) ══
   pushWithdrawal:async(data)=>{const r=push(ref(db,'withdrawals'));await set(r,data);return r.key},
   listenAllWithdrawals:(cb)=>onValue(ref(db,'withdrawals'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  // ══ Reseller Inbox — admin → reseller messages (NEW) ══
+  listenResellerMessages:(cb)=>onValue(ref(db,'resellerMessages'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
 };
 window.dispatchEvent(new Event('firebase-ready'));
 </script>
@@ -1192,40 +1194,51 @@ select.dd-input{appearance:none;-webkit-appearance:none}
       <div>
         <div class="flex items-center justify-between mb-4">
           <div><p class="font-display text-lg" style="color:var(--fg)" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs" style="color:var(--fg3)">রিসেলার প্যানেল</p></div>
-          <button @click="resellLogout()" class="btn-ghost !text-xs flex-shrink-0"><i class="fa-solid fa-right-from-bracket"></i></button>
-        </div>
-        <div class="pill-scroll mb-4">
-          <template x-for="t in [{id:'dashboard',l:'ড্যাশবোর্ড'},{id:'sell',l:'বিক্রি করুন'},{id:'myorders',l:'অর্ডার'},{id:'withdraw',l:'উইথড্র'},{id:'shop',l:'শপ সেটিংস'}]" :key="t.id">
-            <button @click="resellSubTab=t.id" :style="resellSubTab===t.id?'background:var(--accent);color:#fff':'background:var(--card);color:var(--fg2);border:1px solid var(--border)'" class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all" x-text="t.l"></button>
-          </template>
+          <div class="flex items-center gap-2">
+            <button @click="resellSubTab='withdraw'" class="text-xs font-bold px-3 py-2 rounded-full text-white flex items-center gap-1 flex-shrink-0" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer">৳ <span x-text="(reseller?.walletBalance||0).toLocaleString()"></span></button>
+            <button @click="resellLogout()" class="btn-ghost !text-xs flex-shrink-0"><i class="fa-solid fa-right-from-bracket"></i></button>
+          </div>
         </div>
 
-        <template x-if="resellSubTab==='dashboard'">
-          <div class="space-y-3">
-            <div class="p-5 relative overflow-hidden rounded-2xl" style="background:linear-gradient(135deg,#1A1200,#3D2E00)">
-              <div class="absolute -top-6 -right-6 w-28 h-28 rounded-full opacity-15" style="background:#DAA520"></div>
-              <p class="text-xs uppercase tracking-widest text-white opacity-60 mb-1">মোট ওয়ালেট ব্যালেন্স</p>
-              <p class="font-display text-3xl text-white" x-text="'৳'+(reseller?.walletBalance||0).toLocaleString()"></p>
-              <button @click="resellSubTab='withdraw'" class="mt-3 text-xs font-bold px-4 py-2 rounded-xl text-white" style="background:rgba(255,255,255,.15);border:none;cursor:pointer">টাকা তুলুন <i class="fa-solid fa-arrow-right ml-1"></i></button>
+        <!-- ══ HOME (button grid, matches shopbasebd) ══ -->
+        <template x-if="resellSubTab==='home'">
+          <div class="space-y-4">
+            <div x-show="settings.marqueeText" class="overflow-hidden rounded-xl py-2 px-3" style="background:var(--accentL)">
+              <p class="text-xs font-semibold truncate" style="color:var(--accent)" x-text="'📢 '+settings.marqueeText"></p>
             </div>
-            <div class="dd-card p-4">
-              <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--fg3)">আপনার রেফারেল কোড</p>
-              <div class="flex items-center gap-2">
-                <p class="font-mono font-bold text-lg flex-1" style="color:var(--accent)" x-text="reseller?.myReferralCode||'—'"></p>
-                <button @click="copyReferralCode()" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-copy text-xs"></i></button>
-              </div>
-              <p class="text-xs mt-2" style="color:var(--fg3)">এই কোড শেয়ার করে নতুন রিসেলার যোগ করুন — তাদের বিক্রি থেকে আপনি কমিশন পাবেন</p>
+            <div class="dd-card p-4" style="border:1px dashed var(--accent)">
+              <p class="text-sm font-bold text-center mb-1.5" style="color:var(--accent)">🔔 জরুরী নোটিশ</p>
+              <p class="text-xs text-center leading-relaxed" style="color:var(--fg2)">কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয়। আপনার শপের নাম ও তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p>
+              <button @click="resellSubTab='shop'" class="btn-primary w-full mt-3" style="justify-content:center"><i class="fa-solid fa-user-pen mr-2"></i>এডিট প্রোফাইল</button>
             </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--fg)" x-text="myResellOrders.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">মোট অর্ডার</p></div>
-              <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--fg)" x-text="myResellOrders.filter(o=>o.status==='ডেলিভার্ড').length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">ডেলিভার্ড</p></div>
+            <div class="dd-card p-4 text-center" style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7)">
+              <p class="text-sm font-bold mb-1" style="color:#92400E">🏪 প্রতিদিন নতুন প্রোডাক্ট যুক্ত হচ্ছে</p>
+              <p class="text-xs mb-3" style="color:#92400E">রিসেলিং প্রোডাক্ট লিস্ট থেকে নতুন কালেকশন দেখুন</p>
+              <button @click="resellSubTab='post'" class="text-xs font-bold px-4 py-2 rounded-xl text-white" style="background:#B45309;border:none;cursor:pointer">প্রোডাক্ট দেখুন →</button>
             </div>
-            <button @click="resellSubTab='sell'" class="btn-primary"><i class="fa-solid fa-cart-plus mr-2"></i>নতুন বিক্রি শুরু করুন</button>
+
+            <div class="grid grid-cols-4 gap-x-2 gap-y-4">
+              <template x-for="b in resellHomeButtons" :key="b.label">
+                <button @click="resellButtonClick(b)" class="flex flex-col items-center gap-1.5" style="background:none;border:none;cursor:pointer">
+                  <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" :style="'background:'+b.bg+';color:'+b.color"><i :class="b.icon"></i></div>
+                  <span class="text-xs font-semibold text-center leading-tight" style="color:var(--fg2)" x-text="b.label"></span>
+                </button>
+              </template>
+            </div>
           </div>
         </template>
 
-        <template x-if="resellSubTab==='sell'">
+        <template x-if="resellSubTab==='post'">
           <div class="space-y-5">
+
+            <!-- BACK + SEARCH -->
+            <div class="flex items-center gap-2">
+              <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+              <div class="relative flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color:var(--fg3)"></i>
+                <input id="resell-search-input" x-model="resellSearchQuery" class="dd-input pl-8" placeholder="প্রোডাক্ট খুঁজুন..."/>
+              </div>
+            </div>
 
             <!-- CATEGORY BUTTONS -->
             <div x-show="resellCategories.length>0" x-cloak>
@@ -1247,7 +1260,7 @@ select.dd-input{appearance:none;-webkit-appearance:none}
             </div>
 
             <!-- OFFERS -->
-            <template x-if="resellActiveCat==='সব'&&resellOfferProducts.length>0">
+            <template x-if="resellActiveCat==='সব'&&!resellSearchQuery&&resellOfferProducts.length>0">
               <div>
                 <p class="section-title mb-2">🔥 স্পেশাল অফার</p>
                 <div class="flex gap-3 overflow-x-auto pb-1" style="scrollbar-width:none">
@@ -1266,7 +1279,7 @@ select.dd-input{appearance:none;-webkit-appearance:none}
             </template>
 
             <!-- NEW COLLECTION -->
-            <template x-if="resellActiveCat==='সব'&&resellNewProducts.length>0">
+            <template x-if="resellActiveCat==='সব'&&!resellSearchQuery&&resellNewProducts.length>0">
               <div>
                 <p class="section-title mb-2">✨ নতুন কালেকশন</p>
                 <div class="flex gap-3 overflow-x-auto pb-1" style="scrollbar-width:none">
@@ -1284,12 +1297,12 @@ select.dd-input{appearance:none;-webkit-appearance:none}
               </div>
             </template>
 
-            <!-- ALL / CATEGORY-FILTERED GRID -->
+            <!-- ALL / CATEGORY-FILTERED / SEARCH GRID -->
             <div>
-              <p class="section-title mb-2" x-text="resellActiveCat==='সব'?'সকল রিসেলিং পণ্য':resellActiveCat"></p>
-              <div x-show="resellFilteredProducts.length===0" class="text-center py-10" style="color:var(--fg3)"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-30"></i><p class="text-sm">এখানে কোনো প্রোডাক্ট নেই</p></div>
+              <p class="section-title mb-2" x-text="resellSearchQuery?'সার্চ ফলাফল':(resellActiveCat==='সব'?'সকল রিসেলিং পণ্য':resellActiveCat)"></p>
+              <div x-show="(resellSearchQuery?resellSearchResults:resellFilteredProducts).length===0" class="text-center py-10" style="color:var(--fg3)"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-30"></i><p class="text-sm">এখানে কোনো প্রোডাক্ট নেই</p></div>
               <div class="grid grid-cols-2 gap-3">
-                <template x-for="p in resellFilteredProducts" :key="p.fbKey||p.id">
+                <template x-for="p in (resellSearchQuery?resellSearchResults:resellFilteredProducts)" :key="p.fbKey||p.id">
                   <div class="dd-card overflow-hidden">
                     <img :src="p.images?.[0]||''" class="w-full h-28 object-cover" onerror="this.src='https://placehold.co/200x150/eee/aaa?text=IMG'"/>
                     <div class="p-2.5">
@@ -1352,6 +1365,8 @@ select.dd-input{appearance:none;-webkit-appearance:none}
 
         <template x-if="resellSubTab==='myorders'">
           <div>
+            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+            <p class="section-title mb-3">অর্ডার লিস্ট</p>
             <div x-show="myResellOrders.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-receipt text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">এখনো কোনো বিক্রি নেই</p></div>
             <div class="space-y-3">
               <template x-for="o in myResellOrders" :key="o.fbKey||o.id">
@@ -1370,8 +1385,50 @@ select.dd-input{appearance:none;-webkit-appearance:none}
           </div>
         </template>
 
+        <template x-if="resellSubTab==='activeorders'">
+          <div>
+            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+            <p class="section-title mb-3">অ্যাক্টিভ অর্ডারস</p>
+            <div x-show="myActiveResellOrders.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-box text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">কোনো অ্যাক্টিভ অর্ডার নেই</p></div>
+            <div class="space-y-3">
+              <template x-for="o in myActiveResellOrders" :key="o.fbKey||o.id">
+                <div class="dd-card overflow-hidden">
+                  <div class="flex items-center justify-between px-4 py-3" style="background:var(--bg2);border-bottom:1px solid var(--border)">
+                    <div><p class="font-mono text-xs font-bold" style="color:var(--fg)">#<span x-text="o.id"></span></p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="o.customerName"></p></div>
+                    <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং'}" x-text="o.status"></span>
+                  </div>
+                  <div class="flex items-center justify-between px-4 py-3">
+                    <p class="font-display text-lg" style="color:var(--accent)" x-text="'৳'+o.total.toLocaleString()"></p>
+                    <button @click="showInvoice(o)" class="text-xs font-bold px-3 py-2 rounded-xl" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer">ইনভয়েস</button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <template x-if="resellSubTab==='referral'">
+          <div>
+            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+            <p class="section-title mb-3">প্যাসিভ ইনকাম</p>
+            <div class="dd-card p-4 mb-3">
+              <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color:var(--fg3)">আপনার রেফারেল কোড</p>
+              <div class="flex items-center gap-2">
+                <p class="font-mono font-bold text-lg flex-1" style="color:var(--accent)" x-text="reseller?.myReferralCode||'—'"></p>
+                <button @click="copyReferralCode()" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-copy text-xs"></i></button>
+              </div>
+            </div>
+            <div class="dd-card p-4 space-y-2 text-xs" style="color:var(--fg2)">
+              <p>👥 এই কোড শেয়ার করে নতুন রিসেলার যোগ করুন — তারা রেজিস্ট্রেশনের সময় আপনার কোড ব্যবহার করলে তারা আপনার আন্ডারে যুক্ত হবে।</p>
+              <p>💰 আপনার আন্ডারে থাকা রিসেলার (এবং তাদের আন্ডারের রিসেলার, ৩ লেভেল পর্যন্ত) যখন কোনো প্রোডাক্ট বিক্রি করবে, আপনি স্বয়ংক্রিয়ভাবে কমিশন পাবেন — কোনো বাড়তি কাজ ছাড়াই!</p>
+            </div>
+          </div>
+        </template>
+
         <template x-if="resellSubTab==='withdraw'">
           <div class="space-y-3">
+            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+            <p class="section-title">ব্যালেন্স স্টেটমেন্ট</p>
             <div class="dd-card p-4 text-center" style="background:var(--accentL)">
               <p class="text-xs" style="color:var(--fg3)">উত্তোলনযোগ্য ব্যালেন্স</p>
               <p class="font-display text-2xl" style="color:var(--accent)" x-text="'৳'+(reseller?.walletBalance||0).toLocaleString()"></p>
@@ -1398,11 +1455,50 @@ select.dd-input{appearance:none;-webkit-appearance:none}
         </template>
 
         <template x-if="resellSubTab==='shop'">
-          <div class="dd-card p-4 space-y-3">
-            <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-shop" style="color:var(--accent)"></i>আপনার শপের নাম</p>
-            <p class="text-xs" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নামটি দেখাবে (আসল সাপ্লায়ারের নাম দেখাবে না)</p>
-            <input class="dd-input" x-model="resellShopNameInput" placeholder="আপনার শপের নাম"/>
-            <button @click="saveShopName()" class="btn-primary"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
+          <div class="space-y-3">
+            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+            <div class="dd-card p-4 space-y-3">
+              <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-shop" style="color:var(--accent)"></i>আপনার শপের নাম</p>
+              <p class="text-xs" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নামটি দেখাবে (আসল সাপ্লায়ারের নাম দেখাবে না)</p>
+              <input class="dd-input" x-model="resellShopNameInput" placeholder="আপনার শপের নাম"/>
+              <button @click="saveShopName()" class="btn-primary"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
+            </div>
+          </div>
+        </template>
+
+        <!-- ══ PRODUCTS (category overview with counts, matches shopbasebd) ══ -->
+        <template x-if="resellSubTab==='products'">
+          <div>
+            <p class="section-title mb-3">ক্যাটাগরি অনুযায়ী প্রোডাক্টস</p>
+            <div x-show="resellCategoryCounts.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">এখনো কোনো ক্যাটাগরি নেই</p></div>
+            <div class="grid grid-cols-4 gap-x-2 gap-y-4">
+              <template x-for="c in resellCategoryCounts" :key="c.fbKey||c.name">
+                <div class="flex flex-col items-center gap-1.5 cursor-pointer" @click="resellActiveCat=c.name;resellSubTab='post'">
+                  <div class="cat-circle" style="width:52px;height:52px">
+                    <img x-show="c.img" :src="c.img" :alt="c.name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+                    <div class="cat-circle-emoji" :style="c.img?'display:none':''"><span x-text="c.emoji||'📦'"></span></div>
+                  </div>
+                  <span class="text-xs font-semibold text-center leading-tight" style="color:var(--fg2)" x-text="c.name"></span>
+                  <span class="text-xs font-mono" style="color:var(--fg3)" x-text="'('+c.count+')'"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- ══ INBOX (admin → reseller messages, matches shopbasebd) ══ -->
+        <template x-if="resellSubTab==='inbox'">
+          <div>
+            <p class="section-title mb-3">ইনবক্স</p>
+            <div x-show="myResellerMessages.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-envelope-open text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">কোনো মেসেজ নেই</p></div>
+            <div class="space-y-3">
+              <template x-for="m in myResellerMessages" :key="m.fbKey">
+                <div class="dd-card p-4">
+                  <div class="flex items-center gap-2 mb-1.5"><i class="fa-solid fa-envelope text-xs" style="color:var(--accent)"></i><p class="text-xs font-bold" style="color:var(--fg)">Admin</p><p class="text-xs ml-auto" style="color:var(--fg3)" x-text="new Date(m.timestamp).toLocaleString('bn-BD')"></p></div>
+                  <p class="text-sm" style="color:var(--fg2)" x-text="m.text"></p>
+                </div>
+              </template>
+            </div>
           </div>
         </template>
 
@@ -1420,11 +1516,21 @@ select.dd-input{appearance:none;-webkit-appearance:none}
 
 <!-- Bottom Nav -->
 <nav class="bottom-nav">
-  <template x-for="n in navItems" :key="n.id">
-    <button @click="activeTab=n.id" class="nav-btn" :class="activeTab===n.id?'active':''">
-      <div class="nav-icon-wrap relative"><i :class="n.icon"></i><span x-show="n.id==='cart'&&cartCount>0" x-text="cartCount" class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:var(--accent);font-size:8px"></span></div>
-      <span x-text="n.label"></span>
-    </button>
+  <template x-if="!(activeTab==='resell'&&resellStatus==='approved')">
+    <template x-for="n in navItems" :key="n.id">
+      <button @click="activeTab=n.id" class="nav-btn" :class="activeTab===n.id?'active':''">
+        <div class="nav-icon-wrap relative"><i :class="n.icon"></i><span x-show="n.id==='cart'&&cartCount>0" x-text="cartCount" class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:var(--accent);font-size:8px"></span></div>
+        <span x-text="n.label"></span>
+      </button>
+    </template>
+  </template>
+  <template x-if="activeTab==='resell'&&resellStatus==='approved'">
+    <template x-for="n in resellNavItems" :key="n.id">
+      <button @click="resellSubTab=n.id" class="nav-btn" :class="resellSubTab===n.id?'active':''">
+        <div class="nav-icon-wrap relative"><i :class="n.icon"></i><span x-show="n.id==='inbox'&&fbResellerMessages.filter(m=>m.resellerPhone===resellSession).length>0" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></span></div>
+        <span x-text="n.label"></span>
+      </button>
+    </template>
   </template>
 </nav>
 
@@ -1456,7 +1562,8 @@ function App(){return{
   resellSignupForm:{name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false},
   // ══ RESELLER / MLM (NEW) ══
   reseller:null,fbAllResellers:[],fbAllOrders:[],fbWithdrawals:[],
-  resellSubTab:'dashboard',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
+  resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
+  resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
   resellApply:{name:'',shopName:'',referralCode:'',agree:false},
   resellShopNameInput:'',
   sellCart:[],sellPlacing:false,
@@ -1475,6 +1582,34 @@ function App(){return{
     {id:'cart',icon:'fa-solid fa-bag-shopping',label:'ব্যাগ'},
     {id:'orders',icon:'fa-solid fa-receipt',label:'অর্ডার'},
     {id:'profile',icon:'fa-solid fa-circle-user',label:'প্রোফাইল'},
+  ],
+  resellNavItems:[
+    {id:'home',icon:'fa-solid fa-house',label:'হোম'},
+    {id:'post',icon:'fa-solid fa-file-lines',label:'পোস্ট'},
+    {id:'products',icon:'fa-solid fa-folder',label:'প্রোডাক্টস'},
+    {id:'inbox',icon:'fa-solid fa-envelope',label:'ইনবক্স'},
+  ],
+  resellHomeButtons:[
+    {label:'সকল প্রোডাক্টস',icon:'fa-solid fa-shirt',bg:'#D1FAE5',color:'#059669',action:'allproducts'},
+    {label:'নতুন প্রোডাক্টস',icon:'fa-solid fa-sparkles',bg:'#FFE4D6',color:'#EA580C',action:'newproducts'},
+    {label:'বুস্টিং প্রোডাক্টস',icon:'fa-solid fa-bullhorn',bg:'#DBEAFE',color:'#2563EB',action:'soon'},
+    {label:'সার্চ প্রোডাক্টস',icon:'fa-solid fa-magnifying-glass',bg:'#FEF3C7',color:'#CA8A04',action:'search'},
+    {label:'টপ সেলিং প্রোডাক্টস',icon:'fa-solid fa-chart-column',bg:'#FFE4D6',color:'#DC2626',action:'soon'},
+    {label:'কাস্টমাইজ প্রিন্ট',icon:'fa-solid fa-print',bg:'#DBEAFE',color:'#2563EB',action:'soon'},
+    {label:'সেলস গাইডলাইন',icon:'fa-solid fa-gift',bg:'#FFE4D6',color:'#EA580C',action:'soon'},
+    {label:'লার্নিং ভিডিও',icon:'fa-solid fa-video',bg:'#D1FAE5',color:'#059669',action:'soon'},
+    {label:'ফ্রিল্যান্সিং মার্কেটপ্লেস',icon:'fa-solid fa-store',bg:'#D1FAE5',color:'#059669',action:'soon'},
+    {label:'মোবাইল রিচার্জ',icon:'fa-solid fa-mobile-screen',bg:'#FFE4D6',color:'#EA580C',action:'soon'},
+    {label:'ই-কমার্স ওয়েবসাইট',icon:'fa-solid fa-globe',bg:'#DBEAFE',color:'#2563EB',action:'soon'},
+    {label:'প্যাসিভ ইনকাম',icon:'fa-solid fa-user-plus',bg:'#FFE4D6',color:'#EA580C',action:'referral'},
+    {label:'অর্ডার লিস্ট',icon:'fa-solid fa-list',bg:'#DBEAFE',color:'#2563EB',action:'orders'},
+    {label:'অ্যাক্টিভ অর্ডারস',icon:'fa-solid fa-box',bg:'#D1FAE5',color:'#059669',action:'activeorders'},
+    {label:'সেলস ড্যাশবোর্ড',icon:'fa-solid fa-gauge',bg:'#FFE4D6',color:'#EA580C',action:'orders'},
+    {label:'ব্যালেন্স স্টেটমেন্ট',icon:'fa-solid fa-file-invoice-dollar',bg:'#D1FAE5',color:'#059669',action:'withdraw'},
+    {label:'সাধারণ জিজ্ঞাসা',icon:'fa-solid fa-circle-question',bg:'#DBEAFE',color:'#2563EB',action:'soon'},
+    {label:'ইউটিউব চ্যানেল',icon:'fa-brands fa-youtube',bg:'#FEE2E2',color:'#DC2626',action:'soon'},
+    {label:'টেলিগ্রাম সাপোর্ট গ্রুপ',icon:'fa-brands fa-telegram',bg:'#D1FAE5',color:'#059669',action:'soon'},
+    {label:'সাপোর্ট সেন্টার',icon:'fa-solid fa-headset',bg:'#D1FAE5',color:'#059669',action:'support'},
   ],
   payMethods:[
     {id:'cod',icon:'💵',label:'ক্যাশ অন ডেলিভারি',sub:'পণ্য পেলে পেমেন্ট করুন'},
@@ -1526,6 +1661,10 @@ function App(){return{
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
   get resellFilteredProducts(){return this.resellActiveCat==='সব'?this.resellableProducts:this.resellableProducts.filter(p=>p.cat===this.resellActiveCat)},
+  get resellSearchResults(){const q=(this.resellSearchQuery||'').trim().toLowerCase();return q?this.resellableProducts.filter(p=>(p.name||'').toLowerCase().includes(q)):[]},
+  get myActiveResellOrders(){return this.myResellOrders.filter(o=>o.status==='পেন্ডিং'||o.status==='প্রসেসিং')},
+  get resellCategoryCounts(){return this.resellCategories.map(c=>({...c,count:this.resellableProducts.filter(p=>p.cat===c.name).length}))},
+  get myResellerMessages(){return this.fbResellerMessages.filter(m=>m.resellerPhone===this.resellSession).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
   get sellCartCount(){return this.sellCart.reduce((s,i)=>s+i.qty,0)},
   get sellCartCost(){return this.sellCart.reduce((s,i)=>s+(i.resellerPrice||0)*i.qty,0)},
   get sellCartTotal(){return this.sellCart.reduce((s,i)=>s+(Number(i.resellerSellPrice)||0)*i.qty,0)},
@@ -1581,6 +1720,7 @@ function App(){return{
       }
       window.$db.listenAllResellers(rs=>this.fbAllResellers=rs);
       window.$db.listenAllWithdrawals(ws=>this.fbWithdrawals=ws);
+      window.$db.listenResellerMessages(ms=>this.fbResellerMessages=ms);
       window.$db.listenProducts(prods=>{
         this.fbProducts=prods.filter(p=>p&&p.name&&p.price>0);
         this.loading=false;
@@ -1849,6 +1989,19 @@ function App(){return{
     catch{this.showToast('ব্যর্থ!','error')}
   },
   copyReferralCode(){navigator.clipboard?.writeText(this.reseller?.myReferralCode||'');this.showToast('কোড কপি হয়েছে! 📋','success')},
+  resellButtonClick(b){
+    switch(b.action){
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
+      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';this.showToast('নতুন কালেকশন সেকশনে স্ক্রল করুন','success');break;
+      case 'search': this.resellSubTab='post';this.$nextTick(()=>document.getElementById('resell-search-input')?.focus());break;
+      case 'orders': this.resellSubTab='myorders';break;
+      case 'activeorders': this.resellSubTab='activeorders';break;
+      case 'withdraw': this.resellSubTab='withdraw';break;
+      case 'referral': this.resellSubTab='referral';break;
+      case 'support': window.open('https://wa.me/'+(this.settings.wa||''),'_blank');break;
+      case 'soon': default: this.showToast('এই ফিচারটি শীঘ্রই যুক্ত হবে 🚀','success');
+    }
+  },
   showToast(msg,type='success'){this.toast={show:true,msg,type};setTimeout(()=>this.toast.show=false,3000)},
 }}
 </script>
