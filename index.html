@@ -87,9 +87,9 @@ window.$db={
   listenAllWithdrawals:(cb)=>onValue(ref(db,'withdrawals'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   // ══ Reseller Inbox — admin → reseller messages (NEW) ══
   listenResellerMessages:(cb)=>onValue(ref(db,'resellerMessages'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
-  // ══ Wallet ledger read (NEW) ══
+  // ══ Wallet ledger — for notifications (NEW) ══
   listenWalletTx:(cb)=>onValue(ref(db,'walletTx'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
-  // ══ Support tickets (NEW) ══
+  // ══ Support Tickets (NEW) ══
   pushSupportTicket:async(data)=>{const r=push(ref(db,'supportTickets'));await set(r,data);return r.key},
   listenSupportTickets:(cb)=>onValue(ref(db,'supportTickets'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   // ══ Deposit requests (NEW) ══
@@ -501,6 +501,24 @@ select.dd-input{appearance:none;-webkit-appearance:none}
     <p class="font-display text-lg mb-1" style="color:var(--fg)" x-text="comingSoon.label"></p>
     <p class="text-sm mb-4" style="color:var(--fg3)">এই ফিচারটি শীঘ্রই যুক্ত হচ্ছে। একটু অপেক্ষা করুন!</p>
     <button @click="comingSoon.open=false" class="btn-primary w-full" style="justify-content:center">বুঝেছি</button>
+  </div>
+</div>
+
+<!-- ═══ RESELLER SIDEBAR DRAWER (NEW) ═══ -->
+<div x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5)" @click.self="resellSidebarOpen=false">
+  <div class="h-full overflow-y-auto" style="width:82%;max-width:300px;background:var(--card)" :style="resellSidebarOpen?'transform:translateX(0)':'transform:translateX(-100%)'" class="transition-transform duration-200">
+    <div class="p-4 flex items-center gap-3" style="background:var(--header)">
+      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style="background:var(--accent)" x-text="(reseller?.shopName||reseller?.name||'R').charAt(0)"></div>
+      <div class="min-w-0"><p class="text-sm font-bold text-white truncate" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs text-white opacity-60" x-text="resellSession"></p></div>
+    </div>
+    <div class="py-2">
+      <template x-for="m in resellSidebarMenu" :key="m.label">
+        <button @click="resellMenuClick(m)" class="w-full flex items-center gap-3 px-4 py-3 text-left" style="background:none;border:none;cursor:pointer;border-bottom:1px solid var(--border)">
+          <i :class="m.icon" class="w-4 text-center text-sm" style="color:var(--accent)"></i>
+          <span class="text-sm font-semibold" style="color:var(--fg2)" x-text="m.label"></span>
+        </button>
+      </template>
+    </div>
   </div>
 </div>
 
@@ -1241,7 +1259,10 @@ select.dd-input{appearance:none;-webkit-appearance:none}
     <template x-if="resellStatus==='approved'">
       <div>
         <div class="flex items-center justify-between mb-4">
-          <div><p class="font-display text-lg" style="color:var(--fg)" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs" style="color:var(--fg3)">রিসেলার প্যানেল</p></div>
+          <div class="flex items-center gap-2.5 min-w-0">
+            <button @click="resellSidebarOpen=true" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-bars text-xs" style="color:var(--fg2)"></i></button>
+            <div class="min-w-0"><p class="font-display text-lg truncate" style="color:var(--fg)" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs" style="color:var(--fg3)">রিসেলার প্যানেল</p></div>
+          </div>
           <div class="flex items-center gap-1.5">
             <button @click="openWalletHistory()" class="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer">
               <i class="fa-solid fa-bell text-xs" style="color:var(--fg2)"></i>
@@ -1741,6 +1762,7 @@ function App(){return{
   reseller:null,fbAllResellers:[],fbAllOrders:[],fbWithdrawals:[],
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
+  resellSidebarOpen:false,
   resellOrdersSubTab:'list',resellOrderStatusF:'সব',resellOrderSearch:'',
   supportForm:{orderId:'',message:''},fbSupportTickets:[],
   depositForm:{amount:'',method:'bkash',trxId:''},fbDeposits:[],withdrawTab:'withdraw',
@@ -1771,6 +1793,25 @@ function App(){return{
     {id:'post',icon:'fa-solid fa-file-lines',label:'পোস্ট'},
     {id:'products',icon:'fa-solid fa-folder',label:'প্রোডাক্টস'},
     {id:'inbox',icon:'fa-solid fa-envelope',label:'ইনবক্স'},
+  ],
+  resellSidebarMenu:[
+    {label:'হোম',icon:'fa-solid fa-house',action:'home'},
+    {label:'প্রোফাইল',icon:'fa-solid fa-user',action:'shop'},
+    {label:'নতুন পোস্ট',icon:'fa-brands fa-facebook',action:'newproducts'},
+    {label:'সকল প্রোডাক্ট',icon:'fa-solid fa-folder',action:'allproducts'},
+    {label:'প্রোডাক্টের ভিডিও',icon:'fa-solid fa-video',action:'soon'},
+    {label:'ফেভরিট প্রোডাক্ট',icon:'fa-solid fa-heart',action:'soon'},
+    {label:'স্টকআউট প্রোডাক্ট',icon:'fa-solid fa-ban',action:'soon'},
+    {label:'অর্ডার লিস্ট',icon:'fa-solid fa-list',action:'orders'},
+    {label:'অ্যাক্টিভ অর্ডার',icon:'fa-solid fa-box',action:'activeorders'},
+    {label:'কার্ট লিস্ট',icon:'fa-solid fa-basket-shopping',action:'cart'},
+    {label:'সেলস ও প্রফিট',icon:'fa-solid fa-chart-line',action:'report'},
+    {label:'ব্যালেন্স স্টেটমেন্ট',icon:'fa-solid fa-file-invoice-dollar',action:'walletstatement'},
+    {label:'অ্যাড একাউন্ট',icon:'fa-solid fa-money-check-dollar',action:'withdraw'},
+    {label:'টাকা উত্তোলন',icon:'fa-solid fa-sack-dollar',action:'withdraw'},
+    {label:'প্যাসিভ ইন.প্যানেল',icon:'fa-solid fa-chart-pie',action:'referral'},
+    {label:'সেলার ইনফরমেশন',icon:'fa-solid fa-id-card',action:'shop'},
+    {label:'সাপোর্ট টিকেট',icon:'fa-solid fa-headset',action:'support'},
   ],
   resellHomeButtons:[
     {label:'সকল প্রোডাক্টস',icon:'fa-solid fa-shirt',bg:'#D1FAE5',color:'#059669',action:'allproducts'},
@@ -2237,6 +2278,24 @@ function App(){return{
     }catch{this.showToast('ব্যর্থ!','error')}
   },
   copyReferralCode(){navigator.clipboard?.writeText(this.reseller?.myReferralCode||'');this.showToast('কোড কপি হয়েছে! 📋','success')},
+  resellMenuClick(m){
+    this.resellSidebarOpen=false;
+    switch(m.action){
+      case 'home': this.resellSubTab='home';break;
+      case 'shop': this.resellSubTab='shop';break;
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
+      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
+      case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
+      case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
+      case 'report': this.resellOrdersSubTab='report';this.resellSubTab='orders';break;
+      case 'cart': this.resellSubTab='post';break;
+      case 'walletstatement': this.openWalletHistory();break;
+      case 'withdraw': this.resellSubTab='withdraw';break;
+      case 'referral': this.resellSubTab='referral';break;
+      case 'support': this.resellSubTab='support';break;
+      case 'soon': default: this.openComingSoon(m.label);
+    }
+  },
   resellButtonClick(b){
     switch(b.action){
       case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
