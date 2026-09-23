@@ -310,6 +310,39 @@ select.dd-input{appearance:none;-webkit-appearance:none}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes zoomIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
 </style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Bengali:wght@600;800&display=swap" rel="stylesheet"/>
+<style>
+.hero3d{background:var(--header);padding:14px 0 14px}
+.hero3d-stage{perspective:900px;height:180px;position:relative;overflow:hidden}
+.hero3d-card{position:absolute;left:11%;top:4px;width:78%;height:170px;border-radius:12px;overflow:hidden;color:#fff;transition:transform .7s cubic-bezier(.2,.8,.2,1),opacity .7s;box-shadow:0 14px 26px rgba(0,0,0,.45);border:2px solid rgba(255,255,255,.18)}
+.hero3d-ov{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.62))}
+.hero3d-txt{position:absolute;left:14px;right:14px;bottom:12px}
+.hero3d-txt h3{font-family:'Noto Serif Bengali','Playfair Display',serif;font-size:19px;line-height:1.25;font-weight:800;margin-top:6px}
+.hero3d-txt p{font-size:11px;opacity:.85;margin-top:3px}
+.hero3d-ic{position:absolute;right:12px;top:8px;font-size:38px;filter:drop-shadow(0 6px 6px rgba(0,0,0,.35))}
+.hero3d-dots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+body.theme-light .product-card,body.theme-light .dd-card{border:2px solid #0F0D0A;box-shadow:4px 4px 0 #0F0D0A;border-radius:8px}
+body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Display',serif;font-weight:800}
+.brand-mark{width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;border:2px solid rgba(255,255,255,.85);flex:none}
+.brand-name{font-family:'Noto Serif Bengali','Playfair Display',serif;font-weight:800;font-size:20px;line-height:1;color:#fff;letter-spacing:.2px}
+.search-glass{padding:7px 12px!important;border-radius:10px!important;gap:8px!important}
+.search-glass input{font-size:12.5px!important}
+.sugg-panel{position:absolute;left:16px;right:16px;top:calc(100% - 6px);background:var(--card);border-radius:12px;padding:12px 14px 14px;box-shadow:0 16px 34px rgba(0,0,0,.3);border:1px solid var(--border);z-index:60}
+.sugg-h{font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:.5px;margin-bottom:9px}
+.sugg-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border-radius:99px;background:var(--bg2);border:1px solid var(--border);color:var(--fg);font:600 12px 'Hind Siliguri',sans-serif;cursor:pointer}
+.sugg-chip i{color:var(--accent);font-size:11px}
+.grp-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;flex:none;border:2px solid rgba(15,13,10,.85)}
+.grp-row{scrollbar-width:none;padding:2px 8px 10px 2px}.grp-row::-webkit-scrollbar{display:none}
+.pol-card{background:var(--card);border:2px solid var(--fg);box-shadow:4px 4px 0 var(--fg);border-radius:8px;overflow:hidden}
+.pol-card.hl{background:var(--accentL)}
+.pol-head{width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:none;border:0;cursor:pointer;text-align:left;color:var(--fg)}
+.pol-ic{width:38px;height:38px;border-radius:8px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:15px;flex:none}
+.pol-card.hl .pol-ic{background:var(--header)}
+.pol-tt{flex:1;font-weight:700;font-size:14px}.pol-ch{font-size:11px;color:var(--fg3);transition:transform .25s}
+.pol-list{list-style:none;margin:0;padding:10px 14px 14px;border-top:1px dashed var(--border)}
+.pol-list li{display:flex;gap:9px;font-size:12.5px;line-height:1.65;color:var(--fg2);padding:3px 0}.pol-list li i{color:var(--accent);font-size:10px;margin-top:7px;flex:none}
+img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
+</style>
 </head>
 <body :class="'theme-'+activeTheme" class="theme-light">
 
@@ -525,12 +558,12 @@ select.dd-input{appearance:none;-webkit-appearance:none}
 <!-- ════════ HEADER ════════ -->
 <header class="sticky top-0 z-50" style="background:var(--header);box-shadow:0 4px 24px rgba(0,0,0,.36)">
   <div class="flex items-center justify-between px-4 py-3.5">
-    <div>
-      <!-- ⭐ FIX: No jump — site name only rendered once from settings, hidden until loaded -->
-      <p class="font-display text-[22px] leading-none text-white" x-show="settings.siteName" x-cloak>
-        <span x-text="settings.siteName.split(' ')[0]"></span><span style="color:var(--accent)" x-text="' '+settings.siteName.split(' ').slice(1).join(' ')"></span>
-      </p>
-      <p class="text-[10px] tracking-widest uppercase mt-0.5" style="color:rgba(255,255,255,.28)" x-text="settings.tagline||'অনলাইন শপিং'"></p>
+    <div class="flex items-center gap-2.5">
+      <span class="brand-mark"><i class="fa-solid fa-bag-shopping"></i></span>
+      <div>
+        <p class="brand-name"><span x-text="(settings.siteName||'Daily Deal').split(' ')[0]"></span><span style="color:var(--accent)" x-text="' '+(settings.siteName||'Daily Deal').split(' ').slice(1).join(' ')"></span></p>
+        <p class="text-[10px] tracking-widest uppercase mt-1" style="color:rgba(255,255,255,.4)" x-text="settings.tagline||'অনলাইন শপিং'"></p>
+      </div>
     </div>
     <div class="flex items-center gap-2.5">
       <button @click="notifOpen=true;unreadNotifs=0" class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);border:none;cursor:pointer">
@@ -543,11 +576,17 @@ select.dd-input{appearance:none;-webkit-appearance:none}
       </button>
     </div>
   </div>
-  <div class="px-4 pb-3.5" x-show="activeTab==='home'" x-cloak>
+  <div class="px-4 pb-3" style="position:relative" x-show="activeTab==='home'" x-cloak @click.outside="searchFocus=false">
     <div class="search-glass">
       <i class="fa-solid fa-magnifying-glass text-xs" style="color:rgba(255,255,255,.5)"></i>
-      <input x-model="q" type="search" placeholder="পণ্য খুঁজুন..." @input="activeCat='সব'"/>
+      <input x-model="q" type="search" placeholder="পণ্য খুঁজুন..." @focus="searchFocus=true" @input="activeCat='সব'"/>
       <button x-show="q" @click="q=''" style="background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);padding:0"><i class="fa-solid fa-xmark text-xs"></i></button>
+    </div>
+    <div x-show="searchFocus&&!q" x-cloak x-transition.opacity class="sugg-panel">
+      <p class="sugg-h">জনপ্রিয় ক্যাটাগরি</p>
+      <div class="flex flex-wrap gap-2">
+        <template x-for="c in searchChips" :key="c"><button class="sugg-chip" @click="q=c.replace(/ (পণ্য|আইটেম)$/,'');activeCat='সব';searchFocus=false"><i class="fa-solid" :class="chipIcon(c)"></i><span x-text="c"></span></button></template>
+      </div>
     </div>
   </div>
   <div class="ticker-outer py-1.5" style="background:var(--accent)">
@@ -566,23 +605,16 @@ select.dd-input{appearance:none;-webkit-appearance:none}
 <section x-show="activeTab==='home'" x-cloak>
 
   <!-- ═══ HERO BANNER — PREMIUM AUTO-SLIDER ═══ -->
-  <div class="hero-banner-wrap" x-data="{si:0,timer:null}" x-init="timer=setInterval(()=>{si=(si+1)%banners.length},4200)">
-    <template x-for="(b,i) in banners" :key="i">
-      <div class="hero-slide" :class="si===i?'active':'inactive'"
-        :style="(b.img?'background-image:url('+b.img+');':'')+(b.img?'':'background:var(--hgrad)')">
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-          <div class="hero-badge" x-text="b.badge||'🔥 হট ডিল'"></div>
-          <div class="hero-shopname" x-text="b.title||settings.siteName||'Daily Deal'"></div>
-          <p class="hero-sub" x-text="b.sub||'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি'"></p>
+  <div class="hero3d" x-data="{a:0}" x-init="setInterval(()=>{const n=heroSlides.length;a=n>1?(a+1)%n:0},3600)">
+    <div class="hero3d-stage">
+      <template x-for="(b,i) in heroSlides" :key="i">
+        <div class="hero3d-card" :style="h3(i,a,heroSlides.length)+';background:'+(b.img?'url('+b.img+') center/cover':b.bg)">
+          <div class="hero3d-ov"></div><i class="hero3d-ic fa-solid" :class="b.fa||''"></i>
+          <div class="hero3d-txt"><span class="hero-badge" x-text="b.badge||'হট ডিল'"></span><h3 x-text="b.title"></h3><p x-text="b.sub"></p></div>
         </div>
-      </div>
-    </template>
-    <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-[3]">
-      <template x-for="(b,i) in banners" :key="i">
-        <button @click="si=i" class="banner-dot" :class="si===i?'active':''"></button>
       </template>
     </div>
+    <div class="hero3d-dots"><template x-for="(b,i) in heroSlides" :key="i"><button @click="a=i" class="banner-dot" :class="a===i?'active':''"></button></template></div>
   </div>
 
   <!-- ═══ TWO BIG ACTION BUTTONS ═══ -->
@@ -648,21 +680,21 @@ select.dd-input{appearance:none;-webkit-appearance:none}
   </div>
 
   <!-- ═══ PINNED FEATURED PRODUCTS (from admin) ═══ -->
-  <template x-if="pinnedProducts.length>0">
+  <template x-for="g in pinnedGroups" :key="g.key">
     <div class="px-4 pt-4">
       <div class="section-header mb-3">
         <div class="flex items-center gap-2">
-          <p class="section-title">⭐ ফিচার্ড পণ্য</p>
-          <span class="pinned-section-badge"><i class="fa-solid fa-thumbtack text-xs"></i> পিন করা</span>
+          <i class="fa-solid fa-fire" style="color:var(--accent)"></i><p class="section-title" x-text="g.title"></p>
+          
         </div>
       </div>
       <div class="grid gap-3" :class="gridClass">
-        <template x-for="p in pinnedProducts" :key="p.fbKey||p.id">
+        <template x-for="p in g.items" :key="p.fbKey||p.id">
           <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
             <div @click="openDetailSheet(p)" style="cursor:pointer">
               <div class="prod-img-wrap">
                 <img :src="p.images?.[0]||p.img||''" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/>
-                <div class="prod-badge" style="background:#F59E0B">⭐</div>
+                <div class="prod-badge" style="background:#F59E0B"><i class="fa-solid fa-fire" style="font-size:10px"></i></div>
               </div>
             </div>
             <div class="p-2.5">
@@ -682,6 +714,28 @@ select.dd-input{appearance:none;-webkit-appearance:none}
     </div>
   </template>
 
+  <template x-for="g in homeGroups" :key="g.key">
+    <div class="px-4 pt-5" x-show="q===''&&activeCat==='সব'&&!loading">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="grp-ic" :style="'background:linear-gradient(135deg,'+g.c1+','+g.c2+')'"><i x-show="g.fa" class="fa-solid" :class="g.fa"></i><span x-show="!g.fa" x-text="g.icon||''"></span></span>
+          <div><p class="section-title" x-text="g.title"></p><p class="text-xs" style="color:var(--fg3)" x-text="g.items.length+'টি পণ্য'"></p></div>
+        </div>
+        <button @click="activeTab='allproducts'" class="text-xs font-bold" style="color:var(--accent);background:none;border:none;cursor:pointer">সব দেখুন <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div class="flex gap-3 overflow-x-auto grp-row">
+        <template x-for="p in g.items.slice(0,10)" :key="p.fbKey||p.id">
+          <div class="product-card" style="flex:none;width:150px">
+          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap"><img :src="p.images?.[0]||p.img||''" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+          <div class="p-2.5">
+            <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
+            <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
+            <button @click="quickAdd(p)" class="w-full py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus mr-1" style="font-size:10px"></i>কার্টে যোগ</button>
+          </div></div>
+        </template>
+      </div>
+    </div>
+  </template>
   <!-- PRODUCT COUNT -->
   <div class="px-4 pt-3 pb-1">
     <p class="text-xs font-semibold" style="color:var(--fg3)" x-text="(activeCat==='সব'?allProducts.length:filteredProds.length)+'টি পণ্য'+(activeCat!=='সব'?' — '+activeCat:(q?' — খোঁজা: '+q:''))"></p>
@@ -726,7 +780,7 @@ select.dd-input{appearance:none;-webkit-appearance:none}
             </div>
           </template>
         </template>
-        <template x-if="q===''&&activeCat==='সব'">
+        <template x-if="false">
           <template x-for="p in displayedHomeProducts" :key="p.fbKey||p.id">
             <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
               <div @click="openDetailSheet(p)" style="cursor:pointer">
@@ -758,9 +812,38 @@ select.dd-input{appearance:none;-webkit-appearance:none}
         </template>
       </template>
     </div>
+    <div class="col-span-full text-center pt-2 pb-4" x-show="!loading&&q===''&&activeCat==='সব'&&false"><button @click="homeShown+=12" class="btn-primary" style="max-width:220px;margin:0 auto">আরও দেখুন <i class="fa-solid fa-chevron-down ml-1"></i></button></div>
     <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')" class="col-span-full text-center py-16" style="color:var(--fg3)"><div class="text-5xl mb-4 animate-float">📦</div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
     <div x-show="!loading&&allProducts.length===0&&q===''&&activeCat==='সব'" class="text-center py-16" style="color:var(--fg3)"><div class="text-5xl mb-4 animate-float">📦</div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
   </div>
+<div class="px-4 pt-8" x-data="{open:null}">
+    <p class="text-xs font-bold" style="color:var(--accent);letter-spacing:1.5px">নীতিমালা ও সহায়তা</p>
+    <p class="section-title" style="font-size:22px;margin-top:2px">আপনার আস্থাই আমাদের শক্তি</p>
+    <p class="text-xs mt-1 mb-4" style="color:var(--fg3)">অর্ডারের আগে আমাদের নিয়মকানুন জেনে নিন</p>
+    <div class="space-y-3">
+      <template x-for="(p,i) in policies" :key="p.t">
+        <div class="pol-card" :class="p.hl?'hl':''">
+          <button @click="open=open===i?null:i" class="pol-head">
+            <span class="pol-ic"><i class="fa-solid" :class="p.fa"></i></span>
+            <span class="pol-tt" x-text="p.t"></span>
+            <i class="fa-solid fa-chevron-down pol-ch" :style="open===i?'transform:rotate(180deg)':''"></i>
+          </button>
+          <ul x-show="open===i" x-cloak class="pol-list"><template x-for="l in p.b"><li><i class="fa-solid fa-check"></i><span x-text="l"></span></li></template></ul>
+        </div>
+      </template>
+    </div>
+  </div>
+  <footer class="ed-foot mt-8 px-4 pt-6 pb-28" style="background:var(--header);color:#FAF6F0">
+    <p class="font-display text-xl" x-text="settings.siteName||'Daily Deal'"></p>
+    <p class="text-xs mt-1 mb-4" style="opacity:.7">সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি</p>
+    <div class="text-xs space-y-2" style="opacity:.9">
+      <p x-show="settings.shopAddress"><i class="fa-solid fa-location-dot mr-2" style="color:var(--accent2)"></i><span x-text="settings.shopAddress"></span></p>
+      <p x-show="settings.shopPhone"><i class="fa-solid fa-phone mr-2" style="color:var(--accent2)"></i><span x-text="settings.shopPhone"></span></p>
+      <p><i class="fa-solid fa-wallet mr-2" style="color:var(--accent2)"></i>পেমেন্ট: bKash · Nagad</p>
+    </div>
+    <a x-show="settings.fbLink" :href="settings.fbLink" target="_blank" rel="noopener" class="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff"><i class="fa-brands fa-facebook"></i> Facebook পেজ</a>
+    <p class="pt-5 text-xs" style="opacity:.6;border-top:1px solid rgba(255,255,255,.15);margin-top:16px">© ২০২৬ <span x-text="settings.siteName||'Daily Deal'"></span> · সর্বস্বত্ব সংরক্ষিত</p>
+  </footer>
 </section>
 
 <!-- ─── ALL PRODUCTS PAGE (Organized by Sections) ─── -->
@@ -1035,6 +1118,7 @@ select.dd-input{appearance:none;-webkit-appearance:none}
       <div class="dd-card overflow-hidden">
         <div class="px-4 py-3.5" style="background:var(--header)"><p class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-credit-card" style="color:var(--accent)"></i>পেমেন্ট পদ্ধতি</p></div>
         <div class="p-4 space-y-2">
+          <div class="text-xs font-semibold p-3 rounded-2xl" style="background:var(--accentL);color:var(--accent)">🚚 অর্ডার নিশ্চিত করতে ডেলিভারি চার্জ <b x-text="shipping?('৳'+shipping):'(বিভাগ সিলেক্ট করুন)'"></b> অগ্রিম bKash/Nagad-এ পাঠিয়ে TrxID দিন। বাকি <b x-text="'৳'+cartSubtotal.toLocaleString()"></b> পণ্য হাতে পেয়ে দিবেন।</div>
           <template x-for="pm in payMethods" :key="pm.id">
             <label :for="'pm-'+pm.id" class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all" :style="form.pay===pm.id?'border-color:var(--accent);background:var(--accentL)':'border-color:var(--border);background:transparent'">
               <input type="radio" :id="'pm-'+pm.id" :value="pm.id" x-model="form.pay" class="sr-only"/>
@@ -1425,6 +1509,23 @@ select.dd-input{appearance:none;-webkit-appearance:none}
                   <div><label class="dd-label">বিভাগ *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="sellForm.division" @change="sellForm.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select></div></div>
                   <div x-show="sellForm.division" x-cloak><label class="dd-label">জেলা *</label><select class="dd-input cursor-pointer" x-model="sellForm.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[sellForm.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select></div>
                   <div><label class="dd-label">ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="sellForm.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
+                  <div class="rounded-2xl p-3 space-y-2" style="background:var(--bg2);border:1px solid var(--border)">
+                    <p class="text-xs font-bold" style="color:var(--fg)">🚚 ডেলিভারি চার্জ: <span x-text="sellShipping?('৳'+sellShipping):'বিভাগ সিলেক্ট করুন'"></span></p>
+                    <label class="dd-label">ডেলিভারি চার্জ কি অগ্রিম নেওয়া হয়েছে? *</label>
+                    <div class="grid grid-cols-2 gap-2">
+                      <button type="button" @click="sellForm.advance='yes'" class="py-2 rounded-xl text-xs font-bold" :style="sellForm.advance==='yes'?'background:var(--accent);color:#fff;border:none':'background:var(--bg);color:var(--fg2);border:1px solid var(--border)'">✅ হ্যাঁ, নেওয়া হয়েছে</button>
+                      <button type="button" @click="sellForm.advance='no'" class="py-2 rounded-xl text-xs font-bold" :style="sellForm.advance==='no'?'background:var(--accent);color:#fff;border:none':'background:var(--bg);color:var(--fg2);border:1px solid var(--border)'">❌ না, পরে নিবে</button>
+                    </div>
+                    <template x-if="sellForm.advance==='yes'">
+                      <div class="space-y-2">
+                        <p class="text-xs" style="color:var(--fg3)">এখন ডেলিভারি চার্জ <b x-text="'৳'+sellShipping"></b> আমাদের নম্বরে পেমেন্ট করুন: bKash <b x-text="settings.bkash||'—'"></b> · Nagad <b x-text="settings.nagad||'—'"></b></p>
+                        <select class="dd-input" x-model="sellForm.pay"><option value="bkash">bKash</option><option value="nagad">Nagad</option></select>
+                        <input class="dd-input" x-model="sellForm.trxId" placeholder="TrxID এখানে লিখুন"/>
+                      </div>
+                    </template>
+                    <p x-show="sellForm.advance==='no'" class="text-xs" style="color:var(--fg3)">ডেলিভারি চার্জ ডেলিভারির সময় কাস্টমারের কাছ থেকে নেওয়া হবে।</p>
+                    <p x-show="sellForm.advance&&sellShipping" class="text-xs font-bold" style="color:var(--accent)">কাস্টমার থেকে আদায়: <span x-text="'৳'+(sellCartTotal+(sellForm.advance==='no'?sellShipping:0)).toLocaleString()"></span> · আপনার লাভ: <span x-text="'৳'+sellCartProfit.toLocaleString()"></span></p>
+                  </div>
                 </div>
               </div>
             </template>
@@ -1751,7 +1852,22 @@ function App(){return{
   customButtons:[],pinnedProductKeys:[],
   notifOpen:false,marqueeText:'',marqueeEnabled:true,
   selectedSizes:{},cart:[],
-  gridCols:2,homepageLimit:8,
+  gridCols:2,homepageLimit:8,homeShown:12,searchFocus:false,policies:[
+  {fa:'fa-circle-info',t:'আমাদের সম্পর্কে',b:['Daily Deal একটি অনলাইন ভিত্তিক শপ; সারা বাংলাদেশে হোম ডেলিভারি দেওয়া হয়।','আমরা মানসম্পন্ন পণ্য, ন্যায্য দাম ও দ্রুত সেবা দিতে প্রতিশ্রুতিবদ্ধ।','ছবি ও বিবরণ যথাসম্ভব সঠিক রাখা হয়; স্ক্রিনের কারণে রঙে সামান্য পার্থক্য হতে পারে।']},
+  {fa:'fa-cart-shopping',t:'অর্ডার ও পেমেন্ট নীতি',b:['অর্ডার নিশ্চিত করতে অগ্রিম ডেলিভারি চার্জ bKash/Nagad-এ পাঠিয়ে TrxID দিতে হয়।','পণ্যের বাকি মূল্য পণ্য হাতে পেয়ে পরিশোধ করতে হবে।','ভুল বা অসম্পূর্ণ তথ্য, ভুয়া TrxID বা যোগাযোগ করা না গেলে অর্ডার বাতিল হতে পারে।','স্টক শেষ হলে বা মূল্য ভুল প্রকাশিত হলে আমরা অর্ডার বাতিল করে জানাব।']},
+  {fa:'fa-truck-fast',t:'ডেলিভারি নীতি',b:['ঢাকায় সাধারণত ১–২ দিন, সারাদেশে ২–৪ কর্মদিবস লাগে।','ডেলিভারি চার্জ: ঢাকা ৳৮০, ঢাকার বাইরে ৳১৫০।','ঈদ, হরতাল, প্রাকৃতিক দুর্যোগ বা কুরিয়ারের সমস্যায় দেরি হতে পারে।','ডেলিভারির সময় ফোন ধরা না হলে অর্ডার ফেরত আসতে পারে।']},
+  {fa:'fa-rotate-left',t:'রিটার্ন, রিফান্ড ও এক্সচেঞ্জ',b:['পণ্য হাতে পাওয়ার ৭ দিনের মধ্যে ভুল, ত্রুটিপূর্ণ বা ক্ষতিগ্রস্ত পণ্য ফেরত/এক্সচেঞ্জ করা যাবে।','পণ্য অব্যবহৃত, ট্যাগসহ ও আসল প্যাকেজিংয়ে থাকতে হবে।','ডেলিভারি ম্যানের সামনে প্যাকেট খুলে দেখে নেওয়া এবং সমস্যা হলে ছবি/ভিডিও সংরক্ষণ করা ভালো।','অনুমোদিত রিফান্ড bKash/Nagad-এ ৩–৭ কর্মদিবসে পাঠানো হয়। ডেলিভারি চার্জ সাধারণত ফেরতযোগ্য নয়।','ব্যবহৃত বা ক্রেতার দোষে নষ্ট পণ্য ফেরত নেওয়া হবে না।']},
+  {fa:'fa-shield-halved',t:'প্রাইভেসি পলিসি',b:['আমরা নাম, মোবাইল নম্বর ও ঠিকানা শুধু অর্ডার প্রসেস ও ডেলিভারির জন্য সংগ্রহ করি।','আপনার তথ্য বিক্রি করা হয় না; শুধু কুরিয়ার/ডেলিভারি অংশীদারকে প্রয়োজনমতো দেওয়া হয়।','পেমেন্টের গোপন পিন বা পাসওয়ার্ড আমরা কখনো চাই না।','তথ্য মুছতে বা সংশোধন করতে চাইলে আমাদের সাপোর্টে যোগাযোগ করুন।']},
+  {fa:'fa-file-contract',t:'শর্তাবলী',b:['সাইট ব্যবহার বা অর্ডার করলে এই নীতিগুলো মেনে নেওয়া হয়েছে বলে ধরা হবে।','সাইটের ছবি, লোগো ও লেখা Daily Deal-এর সম্পত্তি; অনুমতি ছাড়া ব্যবহার করা যাবে না।','প্রয়োজনে আমরা মূল্য ও নীতি পরিবর্তন করতে পারি; পরিবর্তন সাইটে প্রকাশ হলেই কার্যকর হবে।']},
+  {fa:'fa-headset',t:'গ্রাহক সহায়তা ও অভিযোগ',b:['অর্ডার, ডেলিভারি বা পণ্য নিয়ে সমস্যায় Facebook পেজ বা WhatsApp-এ অর্ডার নম্বরসহ জানান।','আমরা যথাসম্ভব ২৪ ঘণ্টার মধ্যে সাড়া দেওয়ার চেষ্টা করি।']},
+  {fa:'fa-handshake',hl:true,t:'রিসেলার নীতিমালা',b:['রিসেলার হতে সঠিক নাম ও মোবাইল নম্বরে রেজিস্ট্রেশন করতে হবে; অনুমোদনের পর রিসেলিং শুরু করা যাবে।','প্রতিটি পণ্যের রিসেলার প্রাইস নির্ধারিত। এর নিচে বিক্রি করা যাবে না। লাভ = আপনার বিক্রয়মূল্য − রিসেলার প্রাইস।','অর্ডারের সময় ডেলিভারি চার্জ অগ্রিম নেওয়া হয়েছে কিনা জানাতে হবে। অগ্রিম হলে আমাদের নম্বরে পাঠিয়ে TrxID দিন; না হলে ডেলিভারির সময় কাস্টমার থেকে নেওয়া হবে।','অর্ডার সফলভাবে ডেলিভারড হলে লাভ ওয়ালেটে জমা হয়। বাতিল বা ফেরত অর্ডারে লাভ পাওয়া যায় না।','ওয়ালেট থেকে bKash/Nagad-এ উইথড্র করা যায়; অ্যাডমিন যাচাইয়ের পর পেমেন্ট হয়। ন্যূনতম উইথড্র অ্যামাউন্ট অ্যাপে উল্লেখ থাকে।','রেফারেল কমিশন পণ্যভেদে অ্যাপে দেখানো হয়।','ভুয়া অর্ডার, প্রতারণা, ভুল তথ্য বা আমাদের নাম অপব্যবহার করলে অ্যাকাউন্ট স্থগিত ও ওয়ালেট আটকে দেওয়া হতে পারে।','কাস্টমারের তথ্য শুধু অর্ডারের কাজে ব্যবহার করতে হবে, অন্য কাউকে দেওয়া যাবে না।']}
+  ],
+  h3(i,a,n){let o=((i-a)%n+n)%n;if(o>n/2)o-=n;const f=Math.abs(o);return `transform:translateX(${o*66}%) translateZ(${o?-90:0}px) rotateY(${-o*38}deg) scale(${o?.86:1});opacity:${f>1?0:(o?.7:1)};z-index:${3-f}`},
+  get heroSlides(){const cs=(this.banners||[]).filter(b=>b&&(b.img||b.title));if(cs.length)return cs.map(b=>({...b,bg:b.bg||'var(--hgrad)'}));const n=this.settings.siteName||'Daily Deal';return [
+    {badge:'হট ডিল',fa:'fa-fire',title:n+' — আজকের সেরা অফার',sub:'সীমিত সময়ের বিশেষ ছাড়',bg:'linear-gradient(135deg,#E8320A,#ff7a3d)'},
+    {badge:'স্পেশাল',fa:'fa-moon',title:n+' ঈদ কালেকশন',sub:'সেরা দামে নতুন কালেকশন',bg:'linear-gradient(135deg,#1B1410,#4a3a2e)'},
+    {badge:'রিসেলার',fa:'fa-coins',title:n+' রিসেলার হোন',sub:'ঘরে বসে নিজের লাভে বিক্রি করুন',bg:'linear-gradient(135deg,#FFB800,#ff8a00)'}]},
+  
   profile:{name:'',phone:'',img:''},
   // ══ AUTH (phone+PIN, NEW) ══
   // ══ RESELLER PORTAL AUTH — separate from normal profile (NEW) ══
@@ -1772,14 +1888,14 @@ function App(){return{
   resellApply:{name:'',shopName:'',referralCode:'',agree:false},
   resellShopNameInput:'',
   sellCart:[],sellPlacing:false,
-  sellForm:{customerName:'',phone:'',division:'',district:'',address:''},
+  sellForm:{customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''},
   withdrawForm:{amount:'',method:'bkash',number:''},
   detailSheet:{open:false,prod:null},
   inv:{open:false,order:{},meta:[]},
   // ⭐ FIX: Start with empty siteName to avoid jump
   settings:{siteName:'',tagline:'',fbLink:'https://facebook.com',resellerLink:'https://t.me/',bkash:'',nagad:'',wa:'',appLink:'',shopAddress:'',shopPhone:'',shopPolicy:'',profileCover:''},
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'🔥 হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:''},
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'bkash',trxId:''},
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
   navItems:[
@@ -1836,7 +1952,6 @@ function App(){return{
     {label:'সাপোর্ট সেন্টার',icon:'fa-solid fa-headset',bg:'#D1FAE5',color:'#059669',action:'support'},
   ],
   payMethods:[
-    {id:'cod',icon:'💵',label:'ক্যাশ অন ডেলিভারি',sub:'পণ্য পেলে পেমেন্ট করুন'},
     {id:'bkash',icon:'📱',label:'bKash',sub:''},
     {id:'nagad',icon:'🟠',label:'Nagad',sub:''},
   ],
@@ -1855,7 +1970,7 @@ function App(){return{
   get allCategories(){return this.fbCategories.filter(c=>c&&c.name)},
   get menCategories(){return this.allCategories.filter(c=>c.gender==='men')},
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
-  get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price)},
+  get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0)},
   get allSections(){return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>(a.order||99)-(b.order||99))},
   get menProducts(){return this.allProducts.filter(p=>p.gender==='men')},
   get womenProducts(){return this.allProducts.filter(p=>p.gender==='women')},
@@ -1869,9 +1984,24 @@ function App(){return{
   get filteredMenProds(){if(!this.menCatFilter)return this.menProducts;return this.menProducts.filter(p=>p.cat===this.menCatFilter);},
   get filteredWomenProds(){if(!this.womenCatFilter)return this.womenProducts;return this.womenProducts.filter(p=>p.cat===this.womenCatFilter);},
   get gridClass(){return this.gridCols===3?'grid-3':this.gridCols===4?'grid-4':'grid-2'},
-  get filteredProds(){return this.allProducts.filter(p=>(this.activeCat==='সব'||p.cat===this.activeCat)&&(p.name||'').toLowerCase().includes(this.q.toLowerCase()));},
+  get filteredProds(){return this.allProducts.filter(p=>(this.activeCat==='সব'||p.cat===this.activeCat)&&this.prodSearchText(p).includes((this.q||'').trim().toLowerCase()));},
   get filteredAllProds(){const q=this.allProdsQ.toLowerCase();return this.allProducts.filter(p=>(p.name||'').toLowerCase().includes(q));},
-  get displayedHomeProducts(){return this.allProducts.slice(0,this.homepageLimit*3)},
+  get searchChips(){const d=['ছেলেদের পণ্য','মেয়েদের পণ্য','কসমেটিক আইটেম'];this.allSections.filter(s=>s.active!==false&&s.name).forEach(s=>{if(!d.includes(s.name))d.push(s.name)});return d.slice(0,8)},
+  chipIcon(c){return c.includes('ছেলে')?'fa-person':c.includes('মেয়ে')?'fa-person-dress':c.includes('কসমেটিক')?'fa-spray-can-sparkles':'fa-tag'},
+  prodSearchText(p){const sec=this.allSections.find(s=>(s.fbKey||s.id)===(p.section||p.sectionId));const g=p.gender==='women'?'মেয়েদের':p.gender==='men'?'ছেলেদের':'';return [p.name,p.cat,sec&&sec.name,g,p.badge].filter(Boolean).join(' ').toLowerCase()},
+  get homeGroups(){
+    const g=[],used=new Set();
+    this.allSections.filter(s=>s.active!==false).forEach(s=>{const items=this.getSectionProducts(s).filter(p=>this.hasValidData(p));if(items.length){items.forEach(p=>used.add(p.fbKey));g.push({key:s.fbKey||s.id,title:s.name,icon:s.icon,c1:s.color||'#E8320A',c2:s.color2||s.color||'#FF6B45',items})}});
+    const rest=this.allProducts.filter(p=>!used.has(p.fbKey)&&this.hasValidData(p));
+    [['women','মেয়েদের পণ্য','fa-person-dress'],['men','ছেলেদের পণ্য','fa-person'],['other','অন্যান্য পণ্য','fa-bag-shopping']].forEach(([k,t,fa])=>{const items=rest.filter(p=>k==='other'?(p.gender!=='men'&&p.gender!=='women'):p.gender===k);if(items.length)g.push({key:'g_'+k,title:t,fa,c1:'#E8320A',c2:'#FF6B45',items})});
+    return g},
+  get pinnedGroups(){const ps=this.pinnedProducts;return [
+    {key:'men',title:'ছেলেদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='men')},
+    {key:'women',title:'মেয়েদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='women')},
+    {key:'other',title:'ভাইরাল পণ্য',items:ps.filter(p=>p.gender!=='men'&&p.gender!=='women')}].filter(g=>g.items.length)},
+  get newestProducts(){const pin=new Set(this.pinnedProducts.map(p=>p.fbKey));return this.allProducts.filter(p=>!pin.has(p.fbKey)).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0)||String(b.fbKey).localeCompare(String(a.fbKey)))},
+  get displayedHomeProducts(){return this.newestProducts.slice(0,this.homeShown)},
+  get sellShipping(){if(!this.sellForm.division)return 0;return this.sellForm.division==='ঢাকা'?80:150},
   get cartCount(){return this.cart.reduce((s,i)=>s+i.qty,0)},
   get cartSubtotal(){return this.cart.reduce((s,i)=>s+i.price*i.qty,0)},
   get shipping(){if(!this.form.division)return 0;return this.form.division==='ঢাকা'?80:150},
@@ -1969,7 +2099,10 @@ function App(){return{
       window.$db.listenSupportTickets(ts=>this.fbSupportTickets=ts);
       window.$db.listenDeposits(ds=>this.fbDeposits=ds);
       window.$db.listenProducts(prods=>{
-        this.fbProducts=prods.filter(p=>p&&p.name&&p.price>0);
+        this.fbProducts=prods
+          .filter(p=>p&&typeof p.name==='string'&&p.name.trim())
+          .map(p=>({...p,price:this._num(p.price),oldPrice:this._num(p.oldPrice),resellerPrice:this._num(p.resellerPrice)}))
+          .filter(p=>p.price>0);
         this.loading=false;
       });
       window.$db.listenCategories(cats=>{this.fbCategories=cats});
@@ -2031,7 +2164,7 @@ function App(){return{
     if(!this.form.division)return this.showToast('বিভাগ সিলেক্ট করুন!','error');
     if(!this.form.district)return this.showToast('জেলা সিলেক্ট করুন!','error');
     if(!this.form.address.trim())return this.showToast('ঠিকানা দিন!','error');
-    if(this.form.pay!=='cod'&&!this.form.trxId.trim())return this.showToast('TrxID দিন!','error');
+    if(!this.form.trxId.trim())return this.showToast('অগ্রিম ডেলিভারি চার্জ পেমেন্ট করে TrxID দিন!','error');
     if(!this.cart.length)return this.showToast('কার্ট খালি!','error');
     this.placing=true;
     const pLabel={cod:'ক্যাশ অন ডেলিভারি',bkash:'bKash',nagad:'Nagad'};
@@ -2044,7 +2177,7 @@ function App(){return{
       division:this.form.division,district:this.form.district,address:this.form.address,
       payMethod:pLabel[this.form.pay],trxId:this.form.trxId,
       items:this.cart.map(i=>({id:i.id||i.fbKey,name:i.name,price:i.price,qty:i.qty,size:i.size||'',img:i.images?.[0]||i.img||'',images:i.images||[]})),
-      subtotal:this.cartSubtotal,shipping:this.shipping,total:this.grandTotal,trackingLink:null,
+      subtotal:this.cartSubtotal,shipping:this.shipping,total:this.grandTotal,advancePaid:this.shipping,dueOnDelivery:this.cartSubtotal,trackingLink:null,
     };
     try{if(window.$db)await window.$db.saveOrder(order)}catch(e){console.warn('Firebase save failed',e)}
     this._autoSaveCustomerAccount(order);
@@ -2073,6 +2206,16 @@ function App(){return{
     const items=(o.items||[]).map(i=>`• ${i.name}${i.size?' ('+i.size+')':''} ×${i.qty} = ৳${((i.resellerSellPrice||i.price)*i.qty).toLocaleString()}`).join('\n');
     const msg=`🛒 *${this.invBrandName} — অর্ডার ইনভয়েস*\n━━━━━━━━━━━━━━━\n📋 #${o.id}\n📅 ${o.date}\n👤 ${o.customerName} · ${o.phone}\n📍 ${o.district}, ${o.division}\n\n${items}\n\n💰 ৳${o.subtotal?.toLocaleString()} + 🚚 ৳${o.shipping?.toLocaleString()}\n━━━━━━━━━━━━━━━\n✅ *মোট: ৳${o.total?.toLocaleString()}*\n\nধন্যবাদ! 🙏`;
     window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+  },
+  // Robust number parser — handles legacy/old product data where price might be
+  // a string, have a ৳ symbol, extra spaces, or use Bengali numerals (০-৯)
+  _num(v){
+    if(v==null||v==='')return 0;
+    if(typeof v==='number')return isNaN(v)?0:v;
+    const bn='০১২৩৪৫৬৭৮৯',en='0123456789';
+    const cleaned=String(v).split('').map(ch=>{const i=bn.indexOf(ch);return i>-1?en[i]:ch}).join('').replace(/[^\d.\-]/g,'');
+    const n=parseFloat(cleaned);
+    return isNaN(n)?0:n;
   },
   uploadPic(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{this.profile.img=ev.target.result};r.readAsDataURL(f)},
   saveProfile(){localStorage.setItem('dd_profile',JSON.stringify(this.profile));this.form.name=this.profile.name;this.form.phone=this.profile.phone;this.showToast('প্রোফাইল সেভ হয়েছে!','success')},
@@ -2194,6 +2337,9 @@ function App(){return{
     if(!this.sellForm.phone.trim())return this.showToast('কাস্টমারের মোবাইল দিন!','error');
     if(!this.sellForm.division||!this.sellForm.district)return this.showToast('বিভাগ ও জেলা বেছে নিন!','error');
     if(!this.sellForm.address.trim())return this.showToast('ঠিকানা দিন!','error');
+    if(!this.sellShipping)return this.showToast('বিভাগ বেছে নিন!','error');
+    if(!this.sellForm.advance)return this.showToast('ডেলিভারি চার্জ অগ্রিম নেওয়া হয়েছে কিনা বেছে নিন!','error');
+    if(this.sellForm.advance==='yes'&&!this.sellForm.trxId.trim())return this.showToast('ডেলিভারি চার্জের TrxID দিন!','error');
     if(this.sellCart.some(i=>!i.resellerSellPrice||i.resellerSellPrice<i.resellerPrice)){this.showToast('বিক্রয়মূল্য রিসেলার প্রাইসের চেয়ে কম দেওয়া যাবে না!','error');return;}
     this.sellPlacing=true;
     const order={
@@ -2205,19 +2351,20 @@ function App(){return{
       resellerShopName:this.reseller?.shopName||this.reseller?.name||'',
       customerName:this.sellForm.customerName,phone:this.sellForm.phone,
       division:this.sellForm.division,district:this.sellForm.district,address:this.sellForm.address,
-      payMethod:'ক্যাশ অন ডেলিভারি (রিসেলার)',trxId:'',
+      payMethod:this.sellForm.advance==='yes'?('ডেলিভারি চার্জ অগ্রিম — '+(this.sellForm.pay==='nagad'?'Nagad':'bKash')):'ক্যাশ অন ডেলিভারি (রিসেলার)',trxId:this.sellForm.advance==='yes'?this.sellForm.trxId:'',
+      deliveryAdvance:this.sellForm.advance==='yes',collectAmount:this.sellCartTotal+(this.sellForm.advance==='no'?this.sellShipping:0),
       items:this.sellCart.map(i=>({
         id:i.id||i.fbKey,name:i.name,price:i.price,
         resellerPrice:i.resellerPrice||0,resellerSellPrice:Number(i.resellerSellPrice)||i.price,
         genCommission1:i.genCommission1||0,genCommission2:i.genCommission2||0,genCommission3:i.genCommission3||0,
         qty:i.qty,size:i.size||'',img:i.images?.[0]||i.img||'',images:i.images||[],
       })),
-      subtotal:this.sellCartTotal,shipping:0,total:this.sellCartTotal,trackingLink:null,
+      subtotal:this.sellCartTotal,shipping:this.sellShipping,total:this.sellCartTotal+this.sellShipping,trackingLink:null,
     };
     try{
       await window.$db.saveOrder(order);
       this.sellCart=[];
-      this.sellForm={customerName:'',phone:'',division:'',district:'',address:''};
+      this.sellForm={customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''};
       this.showInvoice(order);
       this.showToast('অর্ডার সফলভাবে বসানো হয়েছে! ✅','success');
     }catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন।','error')}
@@ -2314,5 +2461,9 @@ function App(){return{
   showToast(msg,type='success'){this.toast={show:true,msg,type};setTimeout(()=>this.toast.show=false,3000)},
 }}
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.3/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script>(function(){var t,run=function(){try{if(!window.twemoji)return;twemoji.parse(document.body,{folder:'svg',ext:'.svg',className:'emoji'});document.querySelectorAll('option img.emoji,textarea img.emoji').forEach(function(i){i.replaceWith(i.alt)})}catch(e){}};
+new MutationObserver(function(rs){if(rs.some(function(r){var el=r.target.nodeType===1?r.target:r.target.parentElement;return el&&!el.closest('option,textarea')})){clearTimeout(t);t=setTimeout(run,150)}}).observe(document.body,{childList:true,subtree:true,characterData:true});
+window.addEventListener('load',run)})();</script>
 </body>
 </html>
