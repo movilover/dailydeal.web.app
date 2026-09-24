@@ -62,7 +62,7 @@ const cfg={
 const app=initializeApp(cfg);
 const db=getDatabase(app);
 const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+'_'+Math.random().toString(36).slice(2);localStorage.setItem('dd_uid',id);}return id;};
-window.$db={
+window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d);return r.key},listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])}),
   saveOrder:async(data)=>{const r=push(ref(db,'orders'));await set(r,data);return r.key},
   listenProducts:(cb)=>onValue(ref(db,'products'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -359,6 +359,31 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .detail-gallery{height:58vh!important;background:#111}.detail-gallery-slide img{object-fit:contain!important;background:#111}
 .detail-actions{position:sticky;bottom:0;background:var(--card);padding:12px 0 14px;z-index:5}
 .pm-logo{width:46px;height:46px;border-radius:12px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;flex:none;overflow:hidden}.pm-logo img{max-width:82%;max-height:82%;object-fit:contain}.pm-logo b{width:100%;height:100%;display:grid;place-items:center;color:#fff;font-size:18px}
+.dp{background:var(--bg)!important}
+.dp-top{position:sticky;top:0;z-index:20;display:flex;gap:8px;padding:12px 14px;margin-bottom:-58px}
+.dp-ic{width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.12)}
+.dp-gal{position:relative;overflow:hidden;background:var(--card);padding:62px 0 34px}
+.dp-track{display:flex;transition:transform .35s ease}.dp-slide{flex:none;width:100%;padding:0 22px}.dp-slide img{width:100%;height:52vh;object-fit:contain;background:var(--card)}
+.dp-dots{position:absolute;bottom:38px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:rgba(0,0,0,.18);padding:5px 9px;border-radius:99px}.dp-dots span{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.7)}.dp-dots span.on{width:16px;background:#fff}
+.dp-badge{position:absolute;left:14px;top:68px;background:var(--accent);color:#fff;font-weight:700;font-size:11px;padding:3px 10px;border-radius:99px}
+.dp-box{margin:10px 12px 0;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px}
+.dp-chip{display:inline-block;background:var(--accentL);color:var(--accent);font-weight:700;font-size:11px;padding:3px 10px;border-radius:99px;margin-bottom:6px}
+.dp-title{font-weight:800;font-size:17px;line-height:1.4;color:var(--fg)}
+.dp-rate{display:inline-flex;align-items:center;gap:6px;margin-top:8px;background:var(--bg2);border-radius:8px;padding:5px 10px;font-size:13px}.dp-rate i{color:#F59E0B}
+.dp-price{display:flex;align-items:baseline;gap:10px;margin-top:12px;flex-wrap:wrap}.dp-price b{font-size:28px;color:var(--fg)}.dp-price s{color:var(--fg3)}.dp-price em{font-style:normal;color:#16A34A;font-weight:800;font-size:13px}
+.dp-h{font-weight:800;font-size:14px;margin-bottom:10px;color:var(--fg)}
+.dp-colors{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px}
+.dp-color{flex:none;width:118px;background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:10px 8px;text-align:center;cursor:pointer;color:var(--fg)}
+.dp-color.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accentL)}
+.dp-color img{width:100%;height:92px;object-fit:contain;border-radius:8px;background:var(--bg2)}
+.dp-color b{display:block;font-size:13px;margin:8px 0 6px;padding-bottom:6px;border-bottom:1px dashed var(--border)}
+.dp-cp{font-weight:800;font-size:13px}.dp-color small{display:block;font-size:11px;color:var(--fg3)}.dp-color small em{font-style:normal;color:#16A34A;font-weight:700}
+.dp-rev{padding:10px 0;border-top:1px solid var(--border)}.dp-rev:first-of-type{border-top:0}
+.dp-revform{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.dp-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;gap:10px;align-items:stretch;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--border)}
+.dp-qty{width:96px;border:1.5px solid var(--border);border-radius:14px;text-align:center;padding:4px 2px}.dp-qty small{display:block;font-size:10px;color:var(--fg3);font-weight:700}.dp-qty div{display:flex;justify-content:space-between;align-items:center;padding:0 6px}.dp-qty button{background:none;border:0;font-size:18px;cursor:pointer;color:var(--fg)}
+.dp-buy,.dp-add{flex:1;border:0;border-radius:14px;color:#fff;font:800 14px 'Hind Siliguri',sans-serif;cursor:pointer}.dp-buy{background:var(--header)}.dp-add{background:var(--accent)}
+.sub-chip{flex:none;display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--border);color:var(--fg);font:600 12px 'Hind Siliguri',sans-serif;cursor:pointer}.sub-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}.sub-chip img{width:20px;height:20px;border-radius:50%;object-fit:cover}
 .grp-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;flex:none;border:2px solid rgba(15,13,10,.85)}
 .grp-row{scrollbar-width:none;padding:2px 8px 10px 2px}.grp-row::-webkit-scrollbar{display:none}
 .pol-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
@@ -383,73 +408,64 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   <button @click="marqueeEnabled=false" class="text-white opacity-60 hover:opacity-100 bg-transparent border-none cursor-pointer flex-shrink-0 text-xs"><i class="fa-solid fa-xmark"></i></button>
 </div>
 
-<!-- ════════ PRODUCT DETAIL POPUP ════════ -->
-<div x-show="detailSheet.open" x-cloak class="sheet-centered" @click.self="detailSheet.open=false">
-  <div class="detail-modal" x-show="detailSheet.prod">
-    <template x-if="detailSheet.prod">
-      <div x-data="{idx:0,autoTimer:null,get imgs(){return detailSheet.prod.images?.length?detailSheet.prod.images:[detailSheet.prod.img||'']},startAuto(){clearInterval(this.autoTimer);const imgs=this.imgs;if(imgs.length>1)this.autoTimer=setInterval(()=>{this.idx=(this.idx+1)%imgs.length},3000);},stopAuto(){clearInterval(this.autoTimer)}}" x-init="startAuto()" x-effect="if(!detailSheet.open)stopAuto()">
-        <div class="detail-gallery" @touchstart="$el._sx=$event.touches[0].clientX" @touchend="const dx=$el._sx-$event.changedTouches[0].clientX;const imgs=detailSheet.prod.images?.length?detailSheet.prod.images:[detailSheet.prod.img||''];if(dx>40)idx=Math.min(idx+1,imgs.length-1);if(dx<-40)idx=Math.max(idx-1,0)">
-          <div class="detail-gallery-inner" :style="'transform:translateX(-'+idx*100+'%)'">
-            <template x-for="(img,i) in (detailSheet.prod.images?.length?detailSheet.prod.images:[detailSheet.prod.img||''])" :key="i">
-              <div class="detail-gallery-slide"><img :src="img" onerror="this.src='https://placehold.co/440x280/eee/aaa?text=পণ্য'"/></div>
-            </template>
-          </div>
-          <template x-if="(detailSheet.prod.images?.length||0)>1">
-            <div class="detail-dots">
-              <template x-for="(img,i) in detailSheet.prod.images" :key="i">
-                <button @click="idx=i;startAuto()" class="detail-dot" :class="idx===i?'active':''"></button>
-              </template>
-            </div>
-          </template>
-          <div class="absolute inset-0" style="background:linear-gradient(to top,rgba(0,0,0,.45) 0%,transparent 50%);pointer-events:none"></div>
-          <button @click="detailSheet.open=false" class="absolute top-3 right-3 w-9 h-9 rounded-xl flex items-center justify-center z-10" style="background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:none;cursor:pointer;color:#fff"><i class="fa-solid fa-xmark text-sm"></i></button>
-          <span x-show="detailSheet.prod.badge" class="absolute top-3 left-3 text-white text-xs font-bold px-2.5 py-1 rounded-lg z-10" style="background:var(--accent)" x-text="detailSheet.prod.badge"></span>
-        </div>
-        <div class="px-5 pt-4 pb-2">
-          <span x-show="detailSheet.prod.cat" class="inline-block text-xs font-bold px-2.5 py-1 rounded-full mb-2" style="background:var(--accentL);color:var(--accent)" x-text="detailSheet.prod.cat"></span>
-          <h2 class="font-display text-xl leading-tight mb-2" style="color:var(--fg)" x-text="detailSheet.prod.name"></h2>
-          <div class="flex items-baseline gap-3 mb-4">
-            <span class="font-mono text-2xl font-bold" style="color:var(--accent)" x-text="'৳'+detailSheet.prod.price.toLocaleString()"></span>
-            <template x-if="detailSheet.prod.oldPrice">
-              <div class="flex items-center gap-2">
-                <span class="price-old text-base" x-text="'৳'+(detailSheet.prod.oldPrice||0).toLocaleString()"></span>
-                <span class="text-xs font-bold px-2 py-0.5 rounded-full" style="background:#ECFDF5;color:#059669" x-text="'৳'+(detailSheet.prod.oldPrice-detailSheet.prod.price)+' সাশ্রয়'"></span>
-              </div>
-            </template>
-          </div>
-          <div class="rounded-2xl p-4 mb-3" style="background:var(--bg2)">
-            <p class="text-xs font-bold mb-1.5" style="color:var(--fg2)"><i class="fa-solid fa-circle-info mr-1.5" style="color:var(--accent)"></i>পণ্যের বিবরণ</p>
-            <p class="text-sm leading-relaxed" style="color:var(--fg2)" x-text="detailSheet.prod.desc||'কোনো বিবরণ যোগ করা হয়নি।'"></p>
-          </div>
-          <div x-show="detailSheet.prod.promoCode" class="rounded-2xl p-3.5 mb-3 flex items-center gap-3" style="background:var(--accentL);border:1.5px dashed var(--accent)">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accent)"><i class="fa-solid fa-tag text-white"></i></div>
-            <div class="flex-1">
-              <p class="text-xs font-bold mb-0.5" style="color:var(--accent)">🎁 প্রোমো কোড</p>
-              <p class="font-mono text-xl font-bold" style="color:var(--fg)" x-text="detailSheet.prod.promoCode"></p>
-            </div>
-            <button @click="navigator.clipboard?.writeText(detailSheet.prod.promoCode);showToast('কোড কপি হয়েছে! 📋','success')" class="text-xs font-bold px-3 py-1.5 rounded-xl text-white flex-shrink-0" style="background:var(--accent);border:none;cursor:pointer">কপি</button>
-          </div>
-          <template x-if="detailSheet.prod.sizes&&detailSheet.prod.sizes.length>0">
-            <div class="mb-4">
-              <p class="dd-label mb-2">সাইজ বেছে নিন</p>
-              <div class="flex flex-wrap gap-2">
-                <template x-for="s in detailSheet.prod.sizes" :key="s">
-                  <button @click="setSize(detailSheet.prod,s)" :class="(selectedSizes[detailSheet.prod.fbKey||detailSheet.prod.id]===s)?'active':''" class="size-chip" x-text="s"></button>
-                </template>
-              </div>
-            </div>
-          </template>
-          <template x-if="detailSheet.prod.colors&&detailSheet.prod.colors.length>0">
-<div class="mb-4"><p class="dd-label mb-2">কালার বেছে নিন</p><div class="flex flex-wrap gap-2"><template x-for="c in detailSheet.prod.colors" :key="c"><button @click="setColor(detailSheet.prod,c)" :class="(selectedColors[detailSheet.prod.fbKey||detailSheet.prod.id]===c)?'active':''" class="size-chip" x-text="c"></button></template></div></div>
-</template>
-<div class="grid grid-cols-2 gap-3 pb-2 detail-actions">
-            <button @click="detailSheet.open=false;addToCart(detailSheet.prod)" class="py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-95" style="border:2px solid var(--border);color:var(--fg);background:transparent;font-family:'Hind Siliguri',sans-serif"><i class="fa-solid fa-cart-plus" style="color:var(--accent)"></i> কার্টে যোগ</button>
-            <button @click="detailSheet.open=false;buyNow(detailSheet.prod)" class="btn-primary py-3.5 flex items-center justify-center gap-2"><i class="fa-solid fa-bolt"></i> এখনই কিনুন</button>
-          </div>
-        </div>
-      </div>
-    </template>
+<!-- ════════ PRODUCT DETAIL PAGE ════════ -->
+<div x-show="detailSheet.open" x-cloak class="sheet-centered">
+<div class="detail-modal dp" x-show="detailSheet.prod">
+<template x-if="detailSheet.prod">
+<div x-data="{idx:0}" x-init="detailQty=1">
+  <div class="dp-top">
+    <button class="dp-ic" @click="detailSheet.open=false"><i class="fa-solid fa-chevron-left"></i></button>
+    <div style="flex:1"></div>
+    <button class="dp-ic" @click="toggleWish(detailSheet.prod)"><i :class="isWish(detailSheet.prod)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(detailSheet.prod)?'color:#E11D48':''"></i></button>
+    <button class="dp-ic" @click="shareProd(detailSheet.prod)"><i class="fa-solid fa-arrow-up-from-bracket"></i></button>
   </div>
+  <div class="dp-gal" @touchstart="$el._sx=$event.touches[0].clientX" @touchend="const dx=$el._sx-$event.changedTouches[0].clientX,n=dpImgs.length;if(dx>40)idx=Math.min(idx+1,n-1);else if(dx<-40)idx=Math.max(idx-1,0)">
+    <div class="dp-track" :style="'transform:translateX(-'+(idx*100)+'%)'">
+      <template x-for="(im,i) in dpImgs" :key="i"><div class="dp-slide"><img :src="im" alt=""/></div></template>
+    </div>
+    <div class="dp-dots"><template x-for="(im,i) in dpImgs" :key="i"><span :class="idx===i?'on':''" @click="idx=i"></span></template></div>
+    <span x-show="detailSheet.prod.badge" class="dp-badge" x-text="detailSheet.prod.badge"></span>
+  </div>
+  <div class="dp-box" style="margin-top:-18px;position:relative">
+    <span class="dp-chip" x-show="detailSheet.prod.cat" x-text="detailSheet.prod.cat"></span>
+    <h2 class="dp-title" x-text="detailSheet.prod.name"></h2>
+    <div class="dp-rate"><i class="fa-solid fa-star"></i><b x-text="ratingOf(detailSheet.prod).n?ratingOf(detailSheet.prod).avg:'—'"></b><span x-text="ratingOf(detailSheet.prod).n?'('+ratingOf(detailSheet.prod).n+' রিভিউ)':'(এখনো কোনো রিভিউ নেই)'"></span></div>
+    <div class="dp-price"><b x-text="'৳'+detailSheet.prod.price.toLocaleString()"></b><s x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="'৳'+(detailSheet.prod.oldPrice||0).toLocaleString()"></s><em x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="Math.round((1-detailSheet.prod.price/detailSheet.prod.oldPrice)*100)+'% ছাড়'"></em></div>
+    <p class="text-xs mt-1" style="color:var(--fg3)" x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="'আপনি সাশ্রয় করছেন ৳'+(detailSheet.prod.oldPrice-detailSheet.prod.price)"></p>
+  </div>
+  <template x-if="detailSheet.prod.colors&&detailSheet.prod.colors.length>0">
+    <div class="dp-box"><p class="dp-h">কালার: <span style="color:var(--accent)" x-text="selectedColors[detailSheet.prod.fbKey||detailSheet.prod.id]||'বেছে নিন'"></span></p>
+      <div class="dp-colors"><template x-for="(c,i) in detailSheet.prod.colors" :key="c">
+        <button class="dp-color" :class="selectedColors[detailSheet.prod.fbKey||detailSheet.prod.id]===c?'on':''" @click="setColor(detailSheet.prod,c);if(dpImgs[i])idx=i">
+          <img :src="dpImgs[i]||dpImgs[0]" alt=""/><b x-text="c"></b>
+          <span class="dp-cp" x-text="'৳'+detailSheet.prod.price.toLocaleString()"></span>
+          <small x-show="detailSheet.prod.oldPrice>detailSheet.prod.price"><s x-text="'৳'+detailSheet.prod.oldPrice"></s> <em x-text="Math.round((1-detailSheet.prod.price/detailSheet.prod.oldPrice)*100)+'% ছাড়'"></em></small>
+        </button></template></div>
+    </div>
+  </template>
+  <template x-if="detailSheet.prod.sizes&&detailSheet.prod.sizes.length>0">
+    <div class="dp-box"><p class="dp-h">সাইজ: <span style="color:var(--accent)" x-text="selectedSizes[detailSheet.prod.fbKey||detailSheet.prod.id]||'বেছে নিন'"></span></p>
+      <div class="flex flex-wrap gap-2"><template x-for="s in detailSheet.prod.sizes" :key="s"><button @click="selectedSizes={...selectedSizes,[detailSheet.prod.fbKey||detailSheet.prod.id]:s}" :class="selectedSizes[detailSheet.prod.fbKey||detailSheet.prod.id]===s?'active':''" class="size-chip" x-text="s"></button></template></div></div>
+  </template>
+  <div class="dp-box" x-show="detailSheet.prod.desc"><p class="dp-h"><i class="fa-solid fa-circle-info" style="color:var(--accent)"></i> পণ্যের বিবরণ</p><p class="text-sm" style="white-space:pre-line;color:var(--fg2);line-height:1.75" x-text="detailSheet.prod.desc"></p></div>
+  <div class="dp-box">
+    <p class="dp-h"><i class="fa-solid fa-star" style="color:#F59E0B"></i> রিভিউ ও রেটিং</p>
+    <template x-for="r in ratingOf(detailSheet.prod).list.slice(0,6)" :key="r.fbKey"><div class="dp-rev"><div class="flex justify-between"><b class="text-sm" x-text="r.name"></b><span class="text-xs" style="color:var(--fg3)" x-text="new Date(r.createdAt).toLocaleDateString('bn-BD')"></span></div><div style="color:#F59E0B;font-size:11px;margin:2px 0"><template x-for="n in 5"><i :class="n<=r.rating?'fa-solid fa-star':'fa-regular fa-star'"></i></template></div><p class="text-sm" style="color:var(--fg2)" x-text="r.text"></p></div></template>
+    <p class="text-sm" style="color:var(--fg3)" x-show="!ratingOf(detailSheet.prod).n">এই পণ্যের প্রথম রিভিউ আপনিই লিখুন।</p>
+    <div class="dp-revform"><p class="text-xs font-bold mb-2">আপনার রিভিউ লিখুন</p>
+      <div class="flex gap-1 mb-2"><template x-for="n in 5"><button @click="revForm.rating=n" style="background:none;border:0;font-size:22px;cursor:pointer" :style="n<=revForm.rating?'color:#F59E0B':'color:var(--border)'"><i class="fa-solid fa-star"></i></button></template></div>
+      <input class="dd-input mb-2" x-model="revForm.name" maxlength="60" placeholder="আপনার নাম"/>
+      <textarea class="dd-input mb-2" rows="2" x-model="revForm.text" maxlength="500" placeholder="পণ্য কেমন লেগেছে?"></textarea>
+      <button @click="submitReview()" class="btn-primary" style="padding:10px">রিভিউ জমা দিন</button></div>
+  </div>
+  <div style="height:96px"></div>
+  <div class="dp-bar">
+    <div class="dp-qty"><small>পরিমাণ</small><div><button @click="detailQty=Math.max(1,detailQty-1)">−</button><b x-text="detailQty"></b><button @click="detailQty++">+</button></div></div>
+    <button class="dp-buy" @click="detailAdd(true)">এখনই কিনুন</button>
+    <button class="dp-add" @click="detailAdd(false)">কার্টে যোগ</button>
+  </div>
+</div></template>
+</div>
 </div>
 
 <!-- ════════ NOTIFICATIONS DRAWER ════════ -->
@@ -694,12 +710,12 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <button @click="activeTab='allproducts'" class="text-xs font-bold" style="color:var(--accent)">সব →</button>
     </div>
     <div class="cat-scroll-wrap">
-      <div class="cat-all-btn" :class="activeCat==='সব'?'active':''" @click="activeCat='সব';q=''">
+      <div class="cat-all-btn" :class="activeCat==='সব'?'active':''" @click="activeCat='সব';activeSub='';q=''">
         <div class="cat-all-circle">🛍️</div>
         <span class="cat-label">সব পণ্য</span>
       </div>
-      <template x-for="c in allCategories" :key="c.fbKey||c.name">
-        <div class="cat-circle-wrap" :class="activeCat===c.name?'active':''" @click="activeCat=c.name;q=''">
+      <template x-for="c in mainCategories" :key="c.fbKey||c.name">
+        <div class="cat-circle-wrap" :class="activeCat===c.name?'active':''" @click="activeCat=c.name;activeSub='';q=''">
           <div class="cat-circle">
             <img x-show="c.img" :src="c.img" :alt="c.name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
             <div class="cat-circle-emoji" :style="c.img?'display:none':''"><span x-text="c.emoji||'📦'"></span></div>
@@ -767,6 +783,12 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       </div>
     </div>
   </template>
+  <div class="px-4 pt-3" x-show="activeCat!=='সব'&&subCats.length>0" x-cloak>
+    <div class="flex gap-2 overflow-x-auto grp-row" style="padding-bottom:4px">
+      <button class="sub-chip" :class="!activeSub?'on':''" @click="activeSub=''">সব</button>
+      <template x-for="sc in subCats" :key="sc.fbKey||sc.name"><button class="sub-chip" :class="activeSub===sc.name?'on':''" @click="activeSub=sc.name"><img x-show="sc.img" :src="sc.img" alt=""/><span x-text="sc.name"></span></button></template>
+    </div>
+  </div>
   <!-- PRODUCT COUNT -->
   <div class="px-4 pt-3 pb-1">
     <p class="text-xs font-semibold" style="color:var(--fg3)" x-text="(activeCat==='সব'?allProducts.length:filteredProds.length)+'টি পণ্য'+(activeCat!=='সব'?' — '+activeCat:(q?' — খোঁজা: '+q:''))"></p>
@@ -1905,7 +1927,7 @@ function App(){return{
   fbProducts:[],myOrders:[],fbCategories:[],fbSections:[],notifications:[],unreadNotifs:0,
   customButtons:[],pinnedProductKeys:[],
   notifOpen:false,marqueeText:'',marqueeEnabled:true,
-  selectedSizes:{},selectedColors:{},cart:[],
+  selectedSizes:{},selectedColors:{},fbReviews:[],detailQty:1,activeSub:'',revForm:{rating:5,text:'',name:''},wish:(()=>{try{return JSON.parse(localStorage.getItem('dd_wish')||'[]')}catch(e){return[]}})(),cart:[],
   gridCols:2,homepageLimit:8,homeShown:12,searchFocus:false,sellView:false,postView:null,pvSize:'',pvColor:'',pvQty:1,pvPrice:'',pvPopup:'',custChecked:false,sellTermsOpen:false,policies:[
   {fa:'fa-circle-info',t:'আমাদের সম্পর্কে',b:['Daily Deal একটি অনলাইন ভিত্তিক শপ; সারা বাংলাদেশে হোম ডেলিভারি দেওয়া হয়।','আমরা মানসম্পন্ন পণ্য, ন্যায্য দাম ও দ্রুত সেবা দিতে প্রতিশ্রুতিবদ্ধ।','ছবি ও বিবরণ যথাসম্ভব সঠিক রাখা হয়; স্ক্রিনের কারণে রঙে সামান্য পার্থক্য হতে পারে।']},
   {fa:'fa-cart-shopping',t:'অর্ডার ও পেমেন্ট নীতি',b:['অর্ডার নিশ্চিত করতে অগ্রিম ডেলিভারি চার্জ bKash/Nagad-এ পাঠিয়ে TrxID দিতে হয়।','পণ্যের বাকি মূল্য পণ্য হাতে পেয়ে পরিশোধ করতে হবে।','ভুল বা অসম্পূর্ণ তথ্য, ভুয়া TrxID বা যোগাযোগ করা না গেলে অর্ডার বাতিল হতে পারে।','স্টক শেষ হলে বা মূল্য ভুল প্রকাশিত হলে আমরা অর্ডার বাতিল করে জানাব।']},
@@ -2035,7 +2057,7 @@ function App(){return{
   get filteredMenProds(){if(!this.menCatFilter)return this.menProducts;return this.menProducts.filter(p=>p.cat===this.menCatFilter);},
   get filteredWomenProds(){if(!this.womenCatFilter)return this.womenProducts;return this.womenProducts.filter(p=>p.cat===this.womenCatFilter);},
   get gridClass(){return this.gridCols===3?'grid-3':this.gridCols===4?'grid-4':'grid-2'},
-  get filteredProds(){return this.allProducts.filter(p=>(this.activeCat==='সব'||p.cat===this.activeCat)&&this.prodSearchText(p).includes((this.q||'').trim().toLowerCase()));},
+  get filteredProds(){return this.allProducts.filter(p=>this.catOk(p)&&this.prodSearchText(p).includes((this.q||'').trim().toLowerCase()));},
   get filteredAllProds(){const q=this.allProdsQ.toLowerCase();return this.allProducts.filter(p=>(p.name||'').toLowerCase().includes(q));},
   get searchChips(){const d=['ছেলেদের পণ্য','মেয়েদের পণ্য','কসমেটিক আইটেম'];this.allSections.filter(s=>s.active!==false&&s.name).forEach(s=>{if(!d.includes(s.name))d.push(s.name)});return d.slice(0,8)},
   chipIcon(c){return c.includes('ছেলে')?'fa-person':c.includes('মেয়ে')?'fa-person-dress':c.includes('কসমেটিক')?'fa-spray-can-sparkles':'fa-tag'},
@@ -2156,7 +2178,7 @@ function App(){return{
           .filter(p=>p.price>0);
         this.loading=false;
       });
-      window.$db.listenCategories(cats=>{this.fbCategories=cats});
+      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false)});
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false)});
       window.$db.listenPinnedProducts(pins=>{this.pinnedProductKeys=pins.map(p=>p.productKey||p.fbKey).filter(Boolean)});
@@ -2198,17 +2220,31 @@ function App(){return{
     if(p.sizes&&p.sizes.length>0){this.openDetailSheet(p);this.showToast('সাইজ বেছে নিন!','error');return;}
     this.addToCart(p);
   },
+  get mainCategories(){return this.allCategories.filter(c=>!c.parent)},
+  get subCats(){const m=this.allCategories.find(c=>c.name===this.activeCat);if(!m)return [];const main=m.parent?(this.allCategories.find(c=>c.name===m.parent)||m):m;return this.allCategories.filter(c=>c.parent===main.name)},
+  catOk(p){const a=this.activeCat;if(a==='সব')return true;const kids=this.allCategories.filter(c=>c.parent===a).map(c=>c.name);return (p.cat===a||kids.includes(p.cat))&&(!this.activeSub||p.cat===this.activeSub)},
+  get dpImgs(){const p=this.detailSheet.prod;return p?((p.images&&p.images.length)?p.images:[p.img||'']):[]},
+  ratingOf(p){const k=p.fbKey||p.id,rs=(this.fbReviews||[]).filter(r=>r.productId===k),n=rs.length;return {n,avg:n?(rs.reduce((s,r)=>s+(Number(r.rating)||0),0)/n).toFixed(1):'0.0',list:[...rs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}},
+  isWish(p){return this.wish.includes(p.fbKey||p.id)},
+  toggleWish(p){const k=p.fbKey||p.id,has=this.wish.includes(k);this.wish=has?this.wish.filter(x=>x!==k):[...this.wish,k];try{localStorage.setItem('dd_wish',JSON.stringify(this.wish))}catch(e){}this.showToast(has?'পছন্দের তালিকা থেকে সরানো হয়েছে':'পছন্দের তালিকায় যোগ হয়েছে','success')},
+  async shareProd(p){const d={title:p.name,text:p.name+' — ৳'+p.price,url:location.href};try{if(navigator.share)await navigator.share(d);else{await navigator.clipboard.writeText(d.url);this.showToast('লিংক কপি হয়েছে','success')}}catch(e){}},
+  detailAdd(buy){const p=this.detailSheet.prod,k=p.fbKey||p.id;
+    if(p.sizes&&p.sizes.length&&!this.selectedSizes[k])return this.showToast('সাইজ বেছে নিন!','error');
+    if(p.colors&&p.colors.length&&!this.selectedColors[k])return this.showToast('কালার বেছে নিন!','error');
+    this.addToCart(p,this.detailQty);this.detailSheet.open=false;if(buy)this.activeTab='cart'},
+  async submitReview(){const p=this.detailSheet.prod,f=this.revForm;if(!f.text.trim())return this.showToast('রিভিউ লিখুন!','error');
+    try{await window.$db.pushReview({productId:p.fbKey||p.id,name:((f.name||'').trim()||'গ্রাহক').slice(0,60),rating:f.rating,text:f.text.trim().slice(0,500),createdAt:Date.now()});this.revForm.text='';this.showToast('রিভিউ জমা হয়েছে, ধন্যবাদ!','success')}catch(e){this.showToast('রিভিউ জমা হয়নি','error')}},
   splitList(v,isSize){const a=Array.isArray(v)?v:[v];return a.flatMap(x=>String(x==null?'':x).split(isSize?/[,\/|\s]+|\.(?=[A-Za-z])/:/[,\/|]+/)).map(x=>x.trim()).filter(Boolean)},
   setColor(p,c){const key=p.fbKey||p.id;this.selectedColors={...this.selectedColors,[key]:c}},
   vLabel(it){return [it.size?'সাইজ: '+it.size:'',it.color?'কালার: '+it.color:''].filter(Boolean).join(' · ')},
-  addToCart(p){
+  addToCart(p,qty){
     const key=p.fbKey||p.id;
     const size=this.selectedSizes[key]||null;
     const color=this.selectedColors[key]||null;
     if(p.sizes&&p.sizes.length>0&&!size){this.showToast('সাইজ বেছে নিন!','error');return}
     if(p.colors&&p.colors.length>0&&!color){this.showToast('কালার বেছে নিন!','error');return}
     const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size&&(i.color||null)===color);
-    if(ex){ex.qty++}else{this.cart.push({...p,qty:1,size,color})}
+    if(ex){ex.qty+=(qty||1)}else{this.cart.push({...p,qty:qty||1,size,color})}
     this.syncCart();
     this.showToast('কার্টে যোগ হয়েছে! 🛍️','success');
   },
