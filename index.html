@@ -54,7 +54,7 @@ tailwind.config={
 <!-- Firebase -->
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getDatabase,ref,push,set,update,onValue}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,push,set,update,onValue,query,orderByChild,limitToLast}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 const cfg={
   apiKey:"AIzaSyCQVlbjApQYtyc86ZTVPsBjOZ3J-RHv_vI",
   authDomain:"daily-deal-online-shopping.firebaseapp.com",
@@ -70,7 +70,18 @@ const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+
 window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d);return r.key},listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])}),
   saveOrder:async(data)=>{const r=push(ref(db,'orders'));await set(r,data);return r.key},
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
-  listenProducts:(cb)=>onValue(ref(db,'products'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenProducts:(cb)=>{
+    // দ্রুত প্রথম পেইন্টের জন্য সাম্প্রতিক ৩০টা প্রোডাক্ট একবার আগে আনা হয়, তারপর ফুল রিয়েলটাইম লিস্টেনার চালু হয়
+    try{onValue(query(ref(db,'products'),orderByChild('createdAt'),limitToLast(30)),s=>{const v=s.val();if(v)cb(Object.entries(v).map(([k,d])=>({fbKey:k,...d})))},{onlyOnce:true});}catch(e){}
+    onValue(ref(db,'products'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false});
+  },
+  // Cloudinary URL অটো-অপ্টিমাইজ হেল্পার — থাম্বনেইল/ডিটেইল ছবি ছোট+কম্প্রেসড সাইজে আনতে
+  optImg:(url,width)=>{
+    if(!url||typeof url!=='string')return url;
+    if(url.indexOf('res.cloudinary.com')===-1)return url;
+    if(url.indexOf('/upload/w_')!==-1)return url; // আগে থেকেই অপ্টিমাইজড
+    return url.replace('/upload/','/upload/w_'+(width||400)+',q_auto,f_auto,c_limit/');
+  },
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -120,7 +131,7 @@ window.dispatchEvent(new Event('firebase-ready'));
 <style>
 [x-cloak]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden}
+html,body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:contain;background:var(--header)}
 
 /* ═══ THEMES ═══ */
 body.theme-light{--bg:#F8F5F0;--bg2:#EDE8E0;--bg3:#E0D8CC;--fg:#0F0D0A;--fg2:#3D3830;--fg3:#7A7168;--card:#FFFFFF;--border:rgba(15,13,10,.08);--header:#0F0D0A;--accent:#E8320A;--accent2:#FF6B45;--accentL:#FFF1EE;--shadow:rgba(15,13,10,.12);--hgrad:linear-gradient(135deg,#0F0D0A 0%,#2D1A10 100%);--catbtn:#F5EDE8;--catbtnText:#E8320A}
@@ -151,7 +162,7 @@ body{background:var(--bg);color:var(--fg)}
 .banner-dot.active{background:#fff;width:18px;border-radius:3px}
 
 /* ═══ CATEGORY CIRCLES ═══ */
-.cat-scroll-wrap{display:flex;gap:14px;overflow-x:auto;padding:6px 0 10px;scrollbar-width:none}
+.cat-scroll-wrap{display:flex;gap:14px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
 .cat-scroll-wrap::-webkit-scrollbar{display:none}
 .cat-circle-wrap{display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;flex-shrink:0;width:68px}
 .cat-circle{width:56px;height:56px;border-radius:50%;overflow:hidden;border:2.5px solid var(--border);background:var(--bg2);transition:all .3s cubic-bezier(.22,.68,0,1.2);position:relative;box-shadow:0 4px 14px var(--shadow)}
@@ -257,6 +268,8 @@ body{background:var(--bg);color:var(--fg)}
 /* ═══ INPUTS ═══ */
 .dd-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:14px;font-family:'Hind Siliguri',sans-serif;color:var(--fg);outline:none;background:var(--bg2);transition:border-color .2s,box-shadow .2s}
 .dd-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
+.otp-box{width:42px;height:52px;text-align:center;font-size:20px;font-weight:800;border:1.5px solid var(--border);border-radius:12px;background:var(--bg2);color:var(--fg);outline:none;transition:border-color .2s,box-shadow .2s;font-family:'Hind Siliguri',sans-serif}
+.otp-box:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent)}
 .dd-label{display:block;font-size:10px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
 
 /* ═══ SIZE CHIP ═══ */
@@ -293,9 +306,8 @@ body{background:var(--bg);color:var(--fg)}
 .rgb-inner{border-radius:16px;overflow:hidden;position:relative;z-index:1}
 
 /* ═══ WA FLOAT ═══ */
-.wa-float{position:fixed;bottom:90px;right:16px;z-index:100;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#25D366,#128C7E);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(37,211,102,.5);cursor:pointer;text-decoration:none;animation:waBounce 2s ease infinite}
+
 @keyframes waBounce{0%,100%{transform:scale(1) translateY(0)}50%{transform:scale(1.1) translateY(-4px)}}
-.wa-float i{color:#fff;font-size:22px}
 
 /* ═══ TOAST ═══ */
 .toast-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:999;pointer-events:none;width:90%;max-width:360px}
@@ -363,11 +375,13 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .pv-dl{width:100%;padding:11px;border-radius:10px;border:1.5px solid #16A34A;background:var(--card);color:#16A34A;font:700 13px 'Hind Siliguri',sans-serif;cursor:pointer}
 /* ═══ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ═══ */
 .savings-badge{display:flex;align-items:center;gap:8px;width:100%;padding:11px 14px;border-radius:14px;background:var(--accentL);border:1.5px solid var(--accent);color:var(--accent);font:800 12.5px 'Hind Siliguri',sans-serif;cursor:pointer;text-align:left}
+.savings-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:12px;flex:none;box-shadow:0 3px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
 .savings-badge span:first-child{font-size:16px}
 .savings-track{width:100%;height:9px;border-radius:20px;background:var(--bg2);overflow:hidden}
 .savings-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.22,.68,0,1.2)}
 /* ═══ কিস্তিতে কেনাকাটা (NEW) ═══ */
 .installment-badge{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:11px 14px;border-radius:14px;background:#EFF6FF;border:1.5px solid #1D4ED8;color:#1D4ED8;font:800 12.5px 'Hind Siliguri',sans-serif;cursor:pointer;text-align:left;margin-top:8px}
+.installment-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#1D4ED8,#60A5FA);color:#fff;font-size:12px;flex:none;box-shadow:0 3px 10px rgba(29,78,216,.35)}
 .installment-badge span:first-child{font-size:16px}
 .installment-panel{margin-top:8px;padding:14px;border-radius:14px;background:var(--bg2);border:1px solid var(--border)}
 .tenure-pill{padding:8px 16px;border-radius:20px;border:1.5px solid var(--border);background:var(--card);color:var(--fg2);font:700 12px 'Hind Siliguri',sans-serif;cursor:pointer;transition:all .2s}
@@ -415,6 +429,7 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .dp-bar{position:sticky;left:0;right:0;bottom:0;z-index:30;display:flex;gap:10px;align-items:stretch;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--border)}
 .dp-qty{width:96px;border:1.5px solid var(--border);border-radius:14px;text-align:center;padding:4px 2px}.dp-qty small{display:block;font-size:10px;color:var(--fg3);font-weight:700}.dp-qty div{display:flex;justify-content:space-between;align-items:center;padding:0 6px}.dp-qty button{background:none;border:0;font-size:18px;cursor:pointer;color:var(--fg)}
 .dp-buy,.dp-add{flex:1;border:0;border-radius:14px;color:#fff;font:800 14px 'Hind Siliguri',sans-serif;cursor:pointer}.dp-buy{background:var(--header)}.dp-add{background:var(--accent)}
+.dp-inst{flex:0 0 auto;width:52px;border:0;border-radius:14px;background:#1D4ED8;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .sub-chip{flex:none;display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--border);color:var(--fg);font:600 12px 'Hind Siliguri',sans-serif;cursor:pointer}.sub-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}.sub-chip img{width:20px;height:20px;border-radius:50%;object-fit:cover}
 .grp-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;flex:none;border:2px solid rgba(15,13,10,.85)}
 .grp-row{scrollbar-width:none;padding:2px 8px 10px 2px}.grp-row::-webkit-scrollbar{display:none}
@@ -462,7 +477,8 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 .bottom-nav{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important}
 
 /* ── Helpline popup ── */
-.help-fab{position:fixed;bottom:150px;right:16px;z-index:99;width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--shadow);cursor:pointer;border:none;font-size:18px}
+.help-fab{position:fixed;bottom:90px;right:16px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--shadow);cursor:pointer;border:none;font-size:19px;animation:helpBreathe 2.8s ease-in-out infinite}
+@keyframes helpBreathe{0%,100%{box-shadow:0 6px 20px var(--shadow),0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}50%{box-shadow:0 6px 20px var(--shadow),0 0 0 9px color-mix(in srgb,var(--accent) 0%,transparent)}}
 .help-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);margin-bottom:10px;transition:transform .15s}
 .help-card:active{transform:scale(.97)}
 .help-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
@@ -522,7 +538,6 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   .grid-2,.grid-3,.grid-4{grid-template-columns:repeat(4,1fr) !important;gap:16px}
   .desk-hide{display:none !important}
   .desk-topnav{display:flex !important}
-  .wa-float{right:24px}
   .help-fab{right:24px}
   .allprod-wrap{display:flex;gap:20px;align-items:flex-start}
   .allprod-sidebar{display:block !important;width:220px;flex-shrink:0}
@@ -537,6 +552,32 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 </style>
 </head>
 <body :class="'theme-'+activeTheme" class="theme-light">
+
+<!-- ════════ FULL-PAGE SKELETON (first load) ════════ -->
+<div x-show="loading" x-transition:leave="transition-opacity duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[400]" style="background:var(--bg);max-width:480px;margin:0 auto;overflow:hidden" x-cloak>
+  <div class="shimmer" style="height:56px"></div>
+  <div class="shimmer" style="height:188px;margin-top:2px"></div>
+  <div class="flex gap-3 px-4 pt-5 pb-1">
+    <template x-for="n in 6" :key="n">
+      <div class="flex flex-col items-center gap-2" style="flex-shrink:0">
+        <div class="shimmer rounded-full" style="width:56px;height:56px"></div>
+        <div class="shimmer rounded-full" style="width:40px;height:8px"></div>
+      </div>
+    </template>
+  </div>
+  <div class="grid grid-cols-2 gap-3 px-4 pt-4">
+    <template x-for="n in 6" :key="n">
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card)">
+        <div class="shimmer" style="aspect-ratio:1/1"></div>
+        <div class="p-2 flex flex-col gap-2">
+          <div class="shimmer h-3 rounded-lg w-full"></div>
+          <div class="shimmer h-3 rounded-lg w-3/5"></div>
+          <div class="shimmer h-6 rounded-full w-2/5 mt-1"></div>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
 
 <!-- ════════ TOP MARQUEE ════════ -->
 <div x-show="marqueeText&&marqueeEnabled" x-cloak class="sticky top-0 z-[60] py-1.5 px-3 flex items-center gap-2" style="background:var(--accent)">
@@ -560,7 +601,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   </div>
   <div class="dp-gal" @touchstart="$el._sx=$event.touches[0].clientX" @touchend="const dx=$el._sx-$event.changedTouches[0].clientX,n=dpImgs.length;if(dx>40)setVar(detailSheet.prod,Math.min(idx+1,n-1));else if(dx<-40)setVar(detailSheet.prod,Math.max(idx-1,0))">
     <div class="dp-track" :style="'transform:translateX(-'+(idx*100)+'%)'">
-      <template x-for="(im,i) in dpImgs" :key="i"><div class="dp-slide"><img :src="im" alt=""/></div></template>
+      <template x-for="(im,i) in dpImgs" :key="i"><div class="dp-slide"><img :src="optImg(im,800)" :loading="i===0?'eager':'lazy'" alt=""/></div></template>
     </div>
     <div class="dp-dots"><template x-for="(im,i) in dpImgs" :key="i"><span :class="idx===i?'on':''" @click="setVar(detailSheet.prod,i)"></span></template></div>
     <span x-show="detailSheet.prod.badge" class="dp-badge" x-text="detailSheet.prod.badge"></span>
@@ -575,11 +616,11 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <span class="text-xs font-bold" style="color:#92400E">কোড <span class="font-mono" x-text="detailSheet.prod.promoCode"></span> — <span x-text="detailSheet.prod.promoDesc||(detailSheet.prod.promoDiscountPct+'% ছাড়')"></span></span>
     </div>
     <p class="text-xs mt-1" style="color:var(--fg3)" x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="'আপনি সাশ্রয় করছেন ৳'+(detailSheet.prod.oldPrice-detailSheet.prod.price)"></p>
-    <button type="button" @click="openSavingsGoal(detailSheet.prod)" class="savings-badge mt-3"><span>🐖</span><span>সঞ্চয় করে কিনুন — ধাপে ধাপে জমা দিয়ে অর্ডার করুন</span></button>
+    <button type="button" @click="openSavingsGoal(detailSheet.prod)" class="savings-badge mt-3"><span class="savings-ic"><i class="fa-solid fa-piggy-bank"></i></span><span>সঞ্চয় করে কিনুন — ধাপে ধাপে জমা দিয়ে অর্ডার করুন</span></button>
     <template x-if="installmentEligible(detailSheet.prod)">
       <div>
         <button type="button" @click="toggleInstallmentPanel(detailSheet.prod)" class="installment-badge">
-          <span class="flex items-center gap-2"><span>🗓️</span><span x-text="'৩ কিস্তিতে মাত্র ৳'+installmentPreviewMonthly(detailSheet.prod)+'/মাসে নিন'"></span></span>
+          <span class="flex items-center gap-2"><span class="installment-ic"><i class="fa-solid fa-calendar-days"></i></span><span x-text="'৩ কিস্তিতে মাত্র ৳'+installmentPreviewMonthly(detailSheet.prod)+'/মাসে নিন'"></span></span>
           <i class="fa-solid" :class="installmentPanel.open?'fa-chevron-up':'fa-chevron-down'"></i>
         </button>
         <div class="installment-panel" x-show="installmentPanel.open" x-cloak>
@@ -604,7 +645,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   <template x-if="dpImgs.length>1">
     <div class="dp-box"><p class="dp-h">কালার / ডিজাইন বেছে নিন</p>
       <div class="dp-vars"><template x-for="(im,i) in dpImgs" :key="i">
-        <button class="dp-var" :class="varIdx(detailSheet.prod)===i?'on':''" @click="setVar(detailSheet.prod,i)"><img :src="im" alt=""/><span x-show="varIdx(detailSheet.prod)===i"><i class="fa-solid fa-check"></i></span></button></template></div>
+        <button class="dp-var" :class="varIdx(detailSheet.prod)===i?'on':''" @click="setVar(detailSheet.prod,i)"><img :src="optImg(im,80)" loading="lazy" alt=""/><span x-show="varIdx(detailSheet.prod)===i"><i class="fa-solid fa-check"></i></span></button></template></div>
     </div>
   </template>
   <template x-if="detailSheet.prod.sizes&&detailSheet.prod.sizes.length>0">
@@ -629,6 +670,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   </div>
   <div class="dp-bar">
     <div class="dp-qty"><small>পরিমাণ</small><div><button @click="detailQty=Math.max(1,detailQty-1)">−</button><b x-text="detailQty"></b><button @click="detailQty++">+</button></div></div>
+    <button type="button" class="dp-inst" x-show="installmentEligible(detailSheet.prod)" x-cloak title="কিস্তিতে কিনুন" @click="toggleInstallmentPanel(detailSheet.prod);$nextTick(()=>document.querySelector('.installment-panel')?.scrollIntoView({behavior:'smooth',block:'center'}))"><i class="fa-solid fa-calendar-days"></i></button>
     <button class="dp-buy" @click="detailAdd(true)" x-text="t('buyNow')"></button>
     <button class="dp-add" @click="detailAdd(false)" x-text="t('addToCart')"></button>
   </div>
@@ -706,7 +748,11 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 <div x-show="kycModal.open" x-cloak class="sheet-overlay" @click.self="kycModal.open=false" style="z-index:270">
   <div class="notif-sheet" style="max-height:90vh;overflow-y:auto">
     <div class="sheet-handle"></div>
-    <div class="flex items-center justify-between px-5 pt-4 pb-3">
+    <div class="flex flex-col items-center pt-4 pb-1">
+      <span class="brand-mark" style="width:40px;height:40px;font-size:16px"><i class="fa-solid fa-bag-shopping"></i></span>
+      <p class="text-xs font-bold mt-1.5" style="color:var(--fg)" x-text="settings.siteName||'Daily Deal'"></p>
+    </div>
+    <div class="flex items-center justify-between px-5 pt-2 pb-3">
       <p class="font-display text-lg" style="color:var(--fg)">🪪 KYC ভেরিফিকেশন</p>
       <button @click="kycModal.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
     </div>
@@ -739,8 +785,27 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
           <input type="file" accept="image/*" capture="user" class="hidden" @change="handleKycImage('selfie',$event)"/>
         </label>
       </div>
-      <div><label class="dd-label">ইমার্জেন্সি যোগাযোগ নম্বর ১ *</label><input class="dd-input" x-model="kycModal.emergencyContact1" placeholder="০১XXXXXXXXX"/></div>
-      <div><label class="dd-label">ইমার্জেন্সি যোগাযোগ নম্বর ২ (ঐচ্ছিক)</label><input class="dd-input" x-model="kycModal.emergencyContact2" placeholder="০১XXXXXXXXX"/></div>
+      <div>
+        <label class="flex items-center gap-2 mb-2 cursor-pointer">
+          <input type="checkbox" x-model="kycModal.notStudent" class="w-4 h-4" style="accent-color:var(--accent)"/>
+          <span class="text-xs font-semibold" style="color:var(--fg2)">আমি স্টুডেন্ট না</span>
+        </label>
+        <template x-if="!kycModal.notStudent">
+          <div>
+            <p class="dp-h mb-2">স্টুডেন্ট আইডি (যদি থাকে)</p>
+            <label class="flex items-center justify-center rounded-xl cursor-pointer overflow-hidden" style="height:110px;background:var(--bg2);border:1.5px dashed var(--border)">
+              <template x-if="kycModal.studentId&&kycModal.studentId!=='UPLOADING'"><img :src="kycModal.studentId" class="w-full h-full object-cover"/></template>
+              <template x-if="kycModal.studentId==='UPLOADING'"><i class="fa-solid fa-spinner fa-spin text-xl" style="color:var(--fg3)"></i></template>
+              <template x-if="!kycModal.studentId"><span class="text-xs font-bold" style="color:var(--fg3)"><i class="fa-solid fa-camera mr-1.5"></i>ছবি আপলোড করুন (ঐচ্ছিক)</span></template>
+              <input type="file" accept="image/*" class="hidden" @change="handleKycImage('studentId',$event)"/>
+            </label>
+          </div>
+        </template>
+      </div>
+      <div><label class="dd-label">বাবার মোবাইল নম্বর (ঐচ্ছিক)</label><input class="dd-input" x-model="kycModal.fatherPhone" placeholder="০১XXXXXXXXX"/></div>
+      <div><label class="dd-label">মায়ের মোবাইল নম্বর (ঐচ্ছিক)</label><input class="dd-input" x-model="kycModal.motherPhone" placeholder="০১XXXXXXXXX"/></div>
+      <div><label class="dd-label">ঘনিষ্ঠ বন্ধু/আত্মীয়ের নম্বর (ঐচ্ছিক)</label><input class="dd-input" x-model="kycModal.closeContact" placeholder="০১XXXXXXXXX"/></div>
+      <p class="text-[11px]" style="color:var(--fg3)">উপরের ৩টি নম্বরের মধ্যে অন্তত ১টি দেওয়া বাধ্যতামূলক।</p>
       <button @click="submitKyc()" :disabled="kycModal.saving" class="btn-primary">
         <span x-show="kycModal.saving"><i class="fa-solid fa-spinner fa-spin mr-2"></i>জমা হচ্ছে...</span>
         <span x-show="!kycModal.saving"><i class="fa-solid fa-check-circle mr-2"></i>জমা দিন</span>
@@ -981,7 +1046,13 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <template x-if="forgotPw.step===3">
       <div class="space-y-3">
         <p class="text-xs" style="color:var(--fg3)">আপনার Gmail-এ পাঠানো ৬-ডিজিটের কোডটি লিখুন (১০ মিনিটের জন্য কার্যকর)।</p>
-        <input class="dd-input text-center font-display text-lg tracking-widest" maxlength="6" x-model="forgotPw.code" placeholder="------"/>
+        <div class="flex gap-2 justify-center" x-data="{digits:['','','','','','']}" x-init="$watch('digits',v=>forgotPw.code=v.join(''))">
+          <template x-for="(d,i) in digits" :key="i">
+            <input type="tel" inputmode="numeric" maxlength="1" class="otp-box" x-model="digits[i]"
+              @input="digits[i]=$event.target.value.replace(/[^0-9]/g,'').slice(-1);if(digits[i]&&$event.target.nextElementSibling)$event.target.nextElementSibling.focus()"
+              @keydown.backspace="if(!digits[i]&&i>0&&$event.target.previousElementSibling)$event.target.previousElementSibling.focus()"/>
+          </template>
+        </div>
         <p class="text-xs font-bold" style="color:#DC2626" x-show="forgotPw.error" x-text="forgotPw.error"></p>
         <button @click="forgotPwVerifyCode()" class="btn-primary">যাচাই করুন</button>
       </div>
@@ -1090,7 +1161,9 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <div class="hero3d-stage">
       <template x-for="(b,i) in heroSlides" :key="i">
         <div class="hero3d-card" :style="h3(i,a,heroSlides.length)+';background:'+(b.img?'url('+b.img+') center/cover':b.bg)">
-          <div class="hero3d-ov"></div><i class="hero3d-ic fa-solid" :class="b.fa||''"></i>
+          <div class="hero3d-ov"></div>
+          <i x-show="b.img" class="hero3d-ic fa-solid" :class="b.fa||''"></i>
+          <div x-show="!b.img" x-html="heroSvg(b.svgKey||'deal')" style="position:absolute;right:-6px;bottom:0;width:48%;height:92%;pointer-events:none"></div>
           <div class="hero3d-txt"><span class="hero-badge" x-text="b.badge||'হট ডিল'"></span><h3 x-text="b.title"></h3><p x-text="b.sub"></p></div>
         </div>
       </template>
@@ -1126,8 +1199,8 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 
   <!-- ═══ QUICK LINKS ═══ -->
   <div class="px-4 pt-3 grid grid-cols-2 gap-3">
-    <div class="rgb-border"><div class="rgb-inner"><a :href="settings.fbLink||'https://facebook.com'" target="_blank" class="flex items-center justify-center gap-2 py-3 text-sm font-bold text-white" style="background:#1877F2"><i class="fa-brands fa-facebook text-lg"></i> Facebook পেজ</a></div></div>
-    <div class="rgb-border"><div class="rgb-inner"><button @click="activeTab='resell'" class="flex items-center justify-center gap-2 py-3 text-sm font-bold text-white w-full" style="border:none;cursor:pointer;background:var(--accent)"><i class="fa-solid fa-store text-base"></i> রিসেলার হন</button></div></div>
+    <a :href="settings.fbLink||'https://facebook.com'" target="_blank" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="background:#1877F2;border:1.5px solid rgba(255,255,255,.15)"><i class="fa-brands fa-facebook text-sm"></i> Facebook পেজ</a>
+    <button @click="activeTab='resell'" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="border:1.5px solid rgba(255,255,255,.15);cursor:pointer;background:var(--accent)"><i class="fa-solid fa-store text-sm"></i> রিসেলার হন</button>
   </div>
 
   <!-- PROMO STRIP -->
@@ -1138,8 +1211,8 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   </div>
 
   <!-- ═══ CATEGORY CIRCLES ═══ -->
-  <div class="px-4 pt-5 pb-1" x-show="allCategories.length>0" x-cloak>
-    <div class="section-header mb-3">
+  <div class="px-4 pt-3" x-show="allCategories.length>0" x-cloak>
+    <div class="section-header mb-2">
       <p class="section-title">ক্যাটাগরি</p>
       <button @click="activeTab='allproducts'" class="text-xs font-bold" style="color:var(--accent)">সব →</button>
     </div>
@@ -1174,7 +1247,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
           <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
             <div @click="openDetailSheet(p)" style="cursor:pointer">
               <div class="prod-img-wrap"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button>
-                <img :src="p.images?.[0]||p.img||''" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/>
+                <img :src="optImg(p.images?.[0]||p.img||'',380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/>
                 <div class="prod-badge" style="background:#F59E0B"><i class="fa-solid fa-fire" style="font-size:10px"></i></div>
               </div>
             </div>
@@ -1207,7 +1280,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <div class="flex gap-3 overflow-x-auto grp-row">
         <template x-for="p in g.items.slice(0,10)" :key="p.fbKey||p.id">
           <div class="product-card" style="flex:none;width:150px">
-          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
           <div class="p-2.5">
             <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
             <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1236,7 +1309,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
           <div class="grid grid-cols-2 gap-3 px-3 pb-3">
             <template x-for="p in g.items.slice(0,4)" :key="p.fbKey||p.id">
               <div class="product-card">
-                <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                 <div class="p-2.5">
                   <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                   <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1278,7 +1351,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                 <template x-if="(p.images||[]).length>1">
                   <div x-data="{cidx:0,ct:null}" x-init="ct=setInterval(()=>cidx=(cidx+1)%(p.images||[]).length,2800)" class="prod-gallery">
                     <div class="prod-gallery-inner" :style="'transform:translateX(-'+cidx*100+'%)'">
-                      <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="img" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
+                      <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="optImg(img,380)" loading="lazy" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
                     </div>
                     <div class="gallery-dots">
                       <template x-for="(img,ii) in (p.images||[])" :key="ii"><button @click.stop="cidx=ii" class="gallery-dot" :class="cidx===ii?'active':''"></button></template>
@@ -1287,7 +1360,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                   </div>
                 </template>
                 <template x-if="!(p.images||[]).length>1">
-                  <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
+                  <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                 </template>
               </div>
               <div class="p-2.5">
@@ -1308,7 +1381,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                 <template x-if="(p.images||[]).length>1">
                   <div x-data="{cidx:0,ct:null}" x-init="ct=setInterval(()=>cidx=(cidx+1)%(p.images||[]).length,2800)" class="prod-gallery">
                     <div class="prod-gallery-inner" :style="'transform:translateX(-'+cidx*100+'%)'">
-                      <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="img" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
+                      <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="optImg(img,380)" loading="lazy" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
                     </div>
                     <div class="gallery-dots">
                       <template x-for="(img,ii) in (p.images||[])" :key="ii"><button @click.stop="cidx=ii" class="gallery-dot" :class="cidx===ii?'active':''"></button></template>
@@ -1317,7 +1390,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                   </div>
                 </template>
                 <template x-if="!(p.images||[]).length>1">
-                  <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
+                  <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                 </template>
               </div>
               <div class="p-2.5">
@@ -1333,7 +1406,12 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
         </template>
       </template>
     </div>
-    <div class="col-span-full text-center pt-2 pb-4" x-show="!loading&&q===''&&activeCat==='সব'&&10+homeShown<newestProducts.length"><button @click="homeShown+=12" class="btn-primary" style="max-width:220px;margin:0 auto">আরও দেখুন <i class="fa-solid fa-chevron-down ml-1"></i></button></div>
+    <div class="col-span-full text-center pt-2 pb-4" x-show="!loading&&q===''&&activeCat==='সব'&&10+homeShown<newestProducts.length" x-data="{fetching:false}">
+      <button @click="fetching=true;$nextTick(()=>setTimeout(()=>{homeShown+=12;fetching=false},350))" :disabled="fetching" class="btn-primary" style="max-width:220px;margin:0 auto">
+        <span x-show="!fetching">আরও দেখুন <i class="fa-solid fa-chevron-down ml-1"></i></span>
+        <span x-show="fetching"><i class="fa-solid fa-spinner fa-spin"></i></span>
+      </button>
+    </div>
     <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')" class="col-span-full text-center py-16" style="color:var(--fg3)"><div class="text-5xl mb-4 animate-float">📦</div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
     <div x-show="!loading&&allProducts.length===0&&q===''&&activeCat==='সব'" class="text-center py-16" style="color:var(--fg3)"><div class="text-5xl mb-4 animate-float">📦</div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
   </div>
@@ -1402,7 +1480,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <div class="grid gap-3" :class="gridClass">
         <template x-for="p in filteredAllProds" :key="p.fbKey||p.id">
           <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
-            <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+            <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
             <div class="p-2.5">
               <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
               <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1459,13 +1537,13 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                   <template x-if="(p.images||[]).length>1">
                     <div x-data="{cidx:0,ct:null}" x-init="ct=setInterval(()=>cidx=(cidx+1)%(p.images||[]).length,2800)" class="prod-gallery">
                       <div class="prod-gallery-inner" :style="'transform:translateX(-'+cidx*100+'%)'">
-                        <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="img" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
+                        <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="optImg(img,380)" loading="lazy" :alt="p.name" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'"/></div></template>
                       </div>
                       <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
                     </div>
                   </template>
                   <template x-if="!(p.images||[]).length>1">
-                    <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
+                    <div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                   </template>
                 </div>
                 <div class="p-2.5">
@@ -1511,7 +1589,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in filteredMenProds" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1534,7 +1612,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in filteredWomenProds" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1557,7 +1635,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in generalProducts" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1589,7 +1667,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <div x-show="eidProducts.length>0" class="grid gap-3" :class="gridClass">
       <template x-for="p in eidProducts" :key="p.fbKey||p.id">
         <div class="product-card animate-zoom-in" style="border-color:#B8860B">
-          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div class="prod-badge" style="background:#B8860B">🌙 ঈদ</div></div></div>
+          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div class="prod-badge" style="background:#B8860B">🌙 ঈদ</div></div></div>
           <div class="p-2.5">
             <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
             <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -1665,10 +1743,16 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
           <div class="pt-1"><label class="dd-label">ট্রানজেকশন ID *</label><input class="dd-input" x-model="pendingInstallment.trxId" placeholder="TrxID এখানে লিখুন"/></div>
         </div>
       </div>
-      <button @click="placeOrder()" :disabled="placing" class="btn-primary" style="background:#1D4ED8">
-        <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
-        <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>ডাউনপেমেন্ট নিশ্চিত করুন</span>
-      </button>
+      <div class="dp-bar" style="margin:0 -16px">
+        <div class="flex-1 flex flex-col justify-center">
+          <span class="text-xs" style="color:var(--fg3)">আজই দিতে হবে</span>
+          <span class="font-display text-lg" style="color:#1D4ED8" x-text="'৳'+(pendingInstallment.downPayment+shipping).toLocaleString()"></span>
+        </div>
+        <button @click="placeOrder()" :disabled="placing" class="btn-primary" style="flex:1.4;background:#1D4ED8">
+          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
+          <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>ডাউনপেমেন্ট নিশ্চিত করুন</span>
+        </button>
+      </div>
     </div>
   </template>
   <div x-show="!installmentActive">
@@ -1677,7 +1761,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <div class="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-5 text-4xl animate-float" style="background:var(--bg2)">🛍️</div>
     <p class="font-display text-xl mb-1" style="color:var(--fg)">ব্যাগ খালি আছে</p>
     <p class="text-sm mb-6">কেনাকাটা শুরু করুন!</p>
-    <button @click="activeTab='home'" class="btn-primary max-w-xs mx-auto block">পণ্য দেখুন</button>
+    <button @click="activeTab='home'" class="btn-primary max-w-xs mx-auto block">শপিং শুরু করুন</button>
   </div>
   <template x-if="cart.length>0">
     <div class="space-y-4">
@@ -1772,10 +1856,16 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
         </div>
         <p class="text-xs mt-2 font-bold" style="color:#16A34A" x-show="appliedPromo"><i class="fa-solid fa-circle-check mr-1"></i>কোড প্রয়োগ হয়েছে!</p>
       </div>
-      <button @click="placeOrder()" :disabled="placing" class="btn-primary">
-        <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
-        <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>অর্ডার কনফার্ম করুন</span>
-      </button>
+      <div class="dp-bar" style="margin:0 -16px">
+        <div class="flex-1 flex flex-col justify-center">
+          <span class="text-xs" style="color:var(--fg3)">সর্বমোট</span>
+          <span class="font-display text-lg" style="color:var(--accent)" x-text="'৳'+grandTotal.toLocaleString()"></span>
+        </div>
+        <button @click="placeOrder()" :disabled="placing" class="btn-primary" style="flex:1.4">
+          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
+          <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>অর্ডার কনফার্ম করুন</span>
+        </button>
+      </div>
     </div>
   </template>
   </div>
@@ -1844,8 +1934,9 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 
 <!-- ─── PROFILE / ACCOUNT (Noon-style) ─── -->
 <section x-show="activeTab==='profile'" x-cloak class="animate-fade-in">
-  <div class="profile-cover">
-    <img :src="settings.profileCover||'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=480&q=80'" class="profile-cover-img" onerror="this.style.background='var(--hgrad)'"/>
+  <div class="profile-cover" :style="!settings.profileCover?'background:var(--hgrad)':''">
+    <img x-show="settings.profileCover" :src="optImg(settings.profileCover,480)" loading="lazy" class="profile-cover-img" onerror="this.style.display='none'"/>
+    <div x-show="!settings.profileCover" x-html="deliverySvg()" style="position:absolute;right:0;bottom:0;width:55%;height:85%;pointer-events:none"></div>
     <div class="profile-cover-overlay"></div>
     <div class="profile-cover-center">
       <p class="font-display text-2xl text-white leading-tight text-center drop-shadow-lg" x-text="settings.siteName||'Daily Deal'"></p>
@@ -1876,7 +1967,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <button @click="activeTab='wishlist'" class="dd-card p-3 text-left" style="border:none;cursor:pointer">
       <p class="font-bold text-sm mb-2" style="color:var(--fg)" x-text="t('myWishlist')"></p>
       <div class="flex gap-1.5" x-show="wishlistProducts.length">
-        <template x-for="p in wishlistProducts.slice(0,4)" :key="p.fbKey||p.id"><div class="acct-thumb"><img :src="p.images?.[0]||p.img||''" onerror="this.style.opacity=0"/></div></template>
+        <template x-for="p in wishlistProducts.slice(0,4)" :key="p.fbKey||p.id"><div class="acct-thumb"><img :src="optImg(p.images?.[0]||p.img||'',80)" loading="lazy" onerror="this.style.opacity=0"/></div></template>
       </div>
       <p class="text-xs" style="color:var(--fg3)" x-show="!wishlistProducts.length" x-text="t('noItems')"></p>
     </button>
@@ -1946,7 +2037,14 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 
     <div class="dd-card p-4 space-y-3">
       <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-user-pen" style="color:var(--accent)"></i>প্রোফাইল আপডেট</p>
-      <div><label class="dd-label">নাম</label><input class="dd-input" x-model="profile.name" placeholder="আপনার নাম"/></div>
+      <div>
+        <div class="flex items-center justify-between">
+          <label class="dd-label mb-0">নাম</label>
+          <span x-show="profile.nameLockedAt" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-lock"></i>লকড</span>
+        </div>
+        <input class="dd-input" x-model="profile.name" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
+        <button x-show="profile.nameLockedAt" @click="helplineOpen=true" type="button" class="text-xs font-bold mt-1.5" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>তথ্য পরিবর্তনের অনুরোধ করুন</button>
+      </div>
       <div>
         <label class="dd-label">মোবাইল</label>
         <input class="dd-input" type="tel" x-model="profile.phone" placeholder="০১XXXXXXXXX" :disabled="numberLockDaysLeft>0"/>
@@ -1964,17 +2062,54 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <div class="dd-card p-4 space-y-3">
       <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i>একাউন্ট নিরাপত্তা</p>
       <p class="text-xs" style="color:var(--fg3)" x-text="profile.hasPassword?'আপনার একাউন্টে পাসওয়ার্ড সেট করা আছে।':'ঐচ্ছিক: একটি পাসওয়ার্ড সেট করলে ভবিষ্যতে অন্য ডিভাইস থেকেও আপনার তথ্য রিকভার করতে পারবেন।'"></p>
-      <div><label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label><input class="dd-input" type="password" x-model="securityForm.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/></div>
-      <div><label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label><input class="dd-input" type="password" x-model="securityForm.confirmPw" placeholder="আবার লিখুন"/></div>
-      <button @click="setAccountPassword()" class="btn-primary" style="background:var(--fg)"><i class="fa-solid fa-key mr-2"></i><span x-text="profile.hasPassword?'পাসওয়ার্ড আপডেট করুন':'পাসওয়ার্ড সেট করুন'"></span></button>
+      <div x-data="{show:false}">
+        <label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label>
+        <div style="position:relative">
+          <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/>
+          <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
+        </div>
+        <template x-if="securityForm.newPw">
+          <div class="mt-1.5">
+            <div class="rounded-full overflow-hidden" style="height:4px;background:var(--bg3)">
+              <div class="h-full rounded-full transition-all duration-300" :style="'width:'+pwStrength(securityForm.newPw).pct+'%;background:'+pwStrength(securityForm.newPw).color"></div>
+            </div>
+            <p class="text-[11px] font-bold mt-1" :style="'color:'+pwStrength(securityForm.newPw).color" x-text="pwStrength(securityForm.newPw).label"></p>
+            <div class="mt-1.5 space-y-1">
+              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasLen(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasLen(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>কমপক্ষে ৬-৮ ক্যারেক্টার</p>
+              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasNum(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasNum(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা সংখ্যা আছে</p>
+              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasSpecial(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasSpecial(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা স্পেশাল ক্যারেক্টার/বড় অক্ষর আছে</p>
+            </div>
+          </div>
+        </template>
+      </div>
+      <div x-data="{show:false}">
+        <label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label>
+        <div style="position:relative">
+          <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" placeholder="আবার লিখুন"/>
+          <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
+        </div>
+        <template x-if="securityForm.confirmPw">
+          <p class="text-[11px] font-bold mt-1.5 flex items-center gap-1.5" :style="'color:'+(securityForm.newPw===securityForm.confirmPw?'#16A34A':'#DC2626')">
+            <i class="fa-solid" :class="securityForm.newPw===securityForm.confirmPw?'fa-circle-check':'fa-circle-xmark'"></i>
+            <span x-text="securityForm.newPw===securityForm.confirmPw?'পাসওয়ার্ড মিলেছে':'পাসওয়ার্ড মিলছে না'"></span>
+          </p>
+        </template>
+      </div>
+      <button @click="setAccountPassword()" :disabled="securityForm.saving" class="btn-primary" style="background:var(--fg)">
+        <span x-show="!securityForm.saving"><i class="fa-solid fa-key mr-2"></i><span x-text="profile.hasPassword?'পাসওয়ার্ড আপডেট করুন':'পাসওয়ার্ড সেট করুন'"></span></span>
+        <span x-show="securityForm.saving"><i class="fa-solid fa-spinner fa-spin"></i></span>
+      </button>
       <button @click="openForgotPw()" class="w-full text-center text-xs font-bold py-2" style="background:none;border:none;cursor:pointer;color:var(--accent)">পাসওয়ার্ড ভুলে গেছেন? রিসেট করুন</button>
     </div>
 
     <!-- Addresses / Manage cards / Returns / Warranty (Noon-style account rows) -->
     <div class="dd-card overflow-hidden">
-      <div class="acct-row" @click="activeTab='orders'">
+      <div class="acct-row" @click="profile.address?confirmEditAddress():activeTab='orders'">
         <span class="acct-ico"><i class="fa-solid fa-location-dot"></i></span>
-        <span class="flex-1"><b class="text-sm block" x-text="t('addresses')"></b><small style="color:var(--fg3)" x-text="profile.address?(profile.address+(profile.district?' · '+profile.district:'')):t('noAddress')"></small></span>
+        <span class="flex-1">
+          <b class="text-sm flex items-center gap-1.5"><span x-text="t('addresses')"></span><span x-show="profile.address" class="text-[9px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-circle-check"></i> যাচাইকৃত</span></b>
+          <small style="color:var(--fg3)" x-text="profile.address?(profile.address+(profile.district?' · '+profile.district:'')):t('noAddress')"></small>
+        </span>
         <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
       </div>
       <div class="acct-row" @click="comingSoon={open:true,label:t('manageCards')}">
@@ -2051,7 +2186,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   <div class="px-4 pt-3 grid gap-3" :class="gridClass" x-show="wishlistProducts.length>0">
     <template x-for="p in wishlistProducts" :key="p.fbKey||p.id">
       <div class="product-card">
-        <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="(p.images&&p.images.length)?p.images[cidx]:(p.img||'')" class="prod-img" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/></div></div>
+        <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="(p.images||[]).length>1&&setInterval(()=>cidx=(cidx+1)%p.images.length,2500)"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/></div></div>
         <div class="p-2.5">
           <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
           <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span></div>
@@ -2297,7 +2432,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
                     </div>
                     <p class="fb-title" x-text="p.name"></p>
                     <div class="fb-btns"><button @click="openPost(p)"><i class="fa-solid fa-square-caret-down"></i> READ MORE</button><button @click="dlAll(p)"><i class="fa-solid fa-download"></i> IMAGE</button></div>
-                    <div class="fb-photos" @click="openPost(p)"><template x-for="(im,ix) in (p.images||[]).slice(0,6)" :key="ix"><img :src="im" loading="lazy" onerror="this.style.visibility='hidden'"/></template></div>
+                    <div class="fb-photos" @click="openPost(p)"><template x-for="(im,ix) in (p.images||[]).slice(0,6)" :key="ix"><img :src="optImg(im,300)" loading="lazy" onerror="this.style.visibility='hidden'"/></template></div>
                   </div>
                 </template>
               </div>
@@ -2656,9 +2791,6 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 
 </main>
 
-<!-- WhatsApp Float -->
-<a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="wa-float" x-show="settings.wa" x-cloak><i class="fa-brands fa-whatsapp"></i></a>
-
 <!-- Bottom Nav -->
 <!-- POST DETAIL -->
 <div x-show="postView" x-cloak class="pv-wrap">
@@ -2745,7 +2877,7 @@ function App(){return{
   installmentPanel:{open:false,tenure:3},
   installmentActive:false,pendingInstallment:null,
   installmentPayModal:{open:false,order:null,idx:null,trxId:''},
-  kycModal:{open:false,nidFront:'',nidBack:'',selfie:'',emergencyContact1:'',emergencyContact2:'',saving:false},
+  kycModal:{open:false,nidFront:'',nidBack:'',selfie:'',studentId:'',notStudent:false,fatherPhone:'',motherPhone:'',closeContact:'',saving:false},
   customButtons:[],pinnedProductKeys:[],
   notifOpen:false,marqueeText:'',marqueeEnabled:true,
   selectedSizes:{},selectedVar:{},subOpen:{},now:Date.now(),lang:localStorage.getItem('dd_lang')||'bn',country:localStorage.getItem('dd_country')||'BD',langOpen:false,countryOpen:false,fbReviews:[],detailQty:1,activeSub:'',revForm:{rating:5,text:'',name:'',img:''},wish:(()=>{try{return JSON.parse(localStorage.getItem('dd_wish')||'[]')}catch(e){return[]}})(),cart:[],
@@ -2770,12 +2902,34 @@ function App(){return{
   setCountry(c){this.country=c;localStorage.setItem('dd_country',c);this.countryOpen=false},
   h3(i,a,n){let o=((i-a)%n+n)%n;if(o>n/2)o-=n;const f=Math.abs(o);return `transform:translateX(${o*66}%) translateZ(${o?-90:0}px) rotateY(${-o*38}deg) scale(${o?.86:1});opacity:${f>1?0:(o?.7:1)};z-index:${3-f}`},
   get heroSlides(){const cs=(this.banners||[]).filter(b=>b&&(b.img||b.title)).map(b=>({...b,bg:b.bg||'linear-gradient(135deg,#E8320A,#ff7a3d)'}));const n=this.settings.siteName||'Daily Deal';const defs=[
-    {badge:'হট ডিল',fa:'fa-fire',title:n+' — আজকের সেরা অফার',sub:'সীমিত সময়ের বিশেষ ছাড়',bg:'linear-gradient(135deg,#E8320A,#ff7a3d)'},
-    {badge:'স্পেশাল',fa:'fa-moon',title:n+' ঈদ কালেকশন',sub:'সেরা দামে নতুন কালেকশন',bg:'linear-gradient(135deg,#1B1410,#4a3a2e)'},
-    {badge:'রিসেলার',fa:'fa-coins',title:n+' রিসেলার হোন',sub:'ঘরে বসে নিজের লাভে বিক্রি করুন',bg:'linear-gradient(135deg,#FFB800,#ff8a00)'}];return cs.concat(defs.slice(0,Math.max(0,3-cs.length)))},
+    {badge:'হট ডিল',fa:'fa-fire',title:n+' — আজকের সেরা অফার',sub:'সীমিত সময়ের বিশেষ ছাড়',bg:'linear-gradient(135deg,#E8320A,#ff7a3d)',svgKey:'deal'},
+    {badge:'স্পেশাল',fa:'fa-moon',title:n+' ঈদ কালেকশন',sub:'সেরা দামে নতুন কালেকশন',bg:'linear-gradient(135deg,#1B1410,#4a3a2e)',svgKey:'eid'},
+    {badge:'রিসেলার',fa:'fa-coins',title:n+' রিসেলার হোন',sub:'ঘরে বসে নিজের লাভে বিক্রি করুন',bg:'linear-gradient(135deg,#FFB800,#ff8a00)',svgKey:'resell'}];return cs.concat(defs.slice(0,Math.max(0,3-cs.length)))},
+  heroSvg(key){
+    const s='#fff',g='#FFD166';
+    const wrap=(inner)=>'<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+inner+'</svg>';
+    if(key==='eid')return wrap('<circle cx="70" cy="70" r="34" fill="'+s+'" opacity=".95"/><circle cx="82" cy="62" r="30" fill="var(--hero-bg,#1B1410)"/>'+
+      '<g fill="'+g+'"><path d="M150 40l4 10 10 4-10 4-4 10-4-10-10-4 10-4z"/><path d="M170 90l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M40 130l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></g>'+
+      '<g transform="translate(95,120)"><rect x="0" y="0" width="60" height="46" rx="6" fill="'+g+'"/><rect x="0" y="18" width="60" height="8" fill="'+s+'"/><rect x="26" y="0" width="8" height="46" fill="'+s+'"/><path d="M0 0h60l-8-14H8z" fill="'+s+'" opacity=".85"/></g>');
+    if(key==='resell')return wrap('<g fill="'+g+'"><ellipse cx="60" cy="150" rx="34" ry="10"/><ellipse cx="60" cy="138" rx="34" ry="10"/><ellipse cx="60" cy="126" rx="34" ry="10"/><ellipse cx="60" cy="114" rx="34" ry="10" fill="'+s+'"/></g>'+
+      '<text x="60" y="120" font-size="16" font-weight="800" fill="#B8860B" text-anchor="middle">৳</text>'+
+      '<path d="M110 150 L150 90 L140 90 L170 45" stroke="'+s+'" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M156 45h20v20" stroke="'+s+'" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'+
+      '<g transform="translate(120,130)"><rect x="0" y="0" width="46" height="32" rx="5" fill="'+s+'"/><rect x="0" y="8" width="46" height="7" fill="#B8860B"/></g>');
+    return wrap('<g transform="translate(35,90)"><path d="M4 20 L96 20 L88 100 L12 100 Z" fill="'+s+'"/><path d="M24 20 C24 0 76 0 76 20" stroke="'+s+'" stroke-width="9" fill="none"/></g>'+
+      '<circle cx="150" cy="55" r="34" fill="'+g+'"/><text x="150" y="49" font-size="15" font-weight="800" fill="#92400E" text-anchor="middle">৫০%</text><text x="150" y="66" font-size="11" font-weight="700" fill="#92400E" text-anchor="middle">ছাড়</text>'+
+      '<g fill="'+g+'"><path d="M20 15l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M170 130l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M40 150l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g>');
+  },
+  deliverySvg(){
+    const s='#fff',g='#FFD166';
+    return '<svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">'+
+      '<g fill="'+g+'"><path d="M20 30l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M170 40l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/><path d="M30 150l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"/></g>'+
+      '<g transform="translate(90,60)"><rect x="0" y="0" width="52" height="42" rx="6" fill="'+g+'"/><rect x="0" y="16" width="52" height="7" fill="'+s+'"/><rect x="22" y="0" width="7" height="42" fill="'+s+'"/></g>'+
+      '<g transform="translate(50,105)"><rect x="30" y="10" width="90" height="34" rx="6" fill="'+s+'"/><path d="M110 10 L140 10 L155 30 L155 44 L110 44 Z" fill="'+s+'" opacity=".85"/><circle cx="55" cy="52" r="12" fill="#1B1410"/><circle cx="55" cy="52" r="5" fill="'+s+'"/><circle cx="130" cy="52" r="12" fill="#1B1410"/><circle cx="130" cy="52" r="5" fill="'+s+'"/><rect x="0" y="18" width="30" height="8" fill="'+s+'"/></g>'+
+      '</svg>';
+  },
   
-  profile:{name:'',phone:'',email:'',img:'',address:'',district:'',division:'',numberSetAt:0,hasPassword:false},
-  securityForm:{newPw:'',confirmPw:''},
+  profile:{name:'',phone:'',email:'',img:'',address:'',district:'',division:'',numberSetAt:0,hasPassword:false,nameLockedAt:0},
+  securityForm:{newPw:'',confirmPw:'',saving:false},
   // ══ AUTH (phone+PIN, NEW) ══
   // ══ RESELLER PORTAL AUTH — separate from normal profile (NEW) ══
   resellSession:'',resellAuthMode:'signup',resellAuthError:'',
@@ -3340,10 +3494,12 @@ function App(){return{
     }
     if(!prev||!prev.phone||prev.phone!==this.profile.phone){this.profile.numberSetAt=Date.now();}
     else{this.profile.numberSetAt=prev.numberSetAt||Date.now();}
+    if(prev&&prev.nameLockedAt)this.profile.nameLockedAt=prev.nameLockedAt;
+    if(!this.profile.nameLockedAt&&this.profile.name&&this.profile.name.trim())this.profile.nameLockedAt=Date.now();
     localStorage.setItem('dd_profile',JSON.stringify(this.profile));
     this.form.name=this.profile.name;this.form.phone=this.profile.phone;
     if(this.profile.phone&&window.$db){
-      window.$db.updateUser(this.profile.phone,{name:this.profile.name||'',email:this.profile.email||'',numberSetAt:this.profile.numberSetAt}).catch(()=>{});
+      window.$db.updateUser(this.profile.phone,{name:this.profile.name||'',email:this.profile.email||'',numberSetAt:this.profile.numberSetAt,nameLockedAt:this.profile.nameLockedAt}).catch(()=>{});
     }
     this.showToast('প্রোফাইল সেভ হয়েছে!','success');
   },
@@ -3359,19 +3515,31 @@ function App(){return{
       return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
     }catch(e){return 'p_'+text.length+'_'+text.split('').reduce((s,c)=>s+c.charCodeAt(0),0);}
   },
+  pwHasLen(pw){return (pw||'').length>=6},
+  pwHasNum(pw){return /[0-9]/.test(pw||'')},
+  pwHasSpecial(pw){return /[^A-Za-z0-9]/.test(pw||'')||/[A-Z]/.test(pw||'')},
+  pwStrength(pw){
+    pw=pw||'';
+    if(pw.length<6)return{label:'দুর্বল',color:'#DC2626',pct:pw.length?28:0};
+    const hasNum=/[0-9]/.test(pw),hasUpper=/[A-Z]/.test(pw),hasLower=/[a-z]/.test(pw),hasSpecial=/[^A-Za-z0-9]/.test(pw);
+    if(pw.length>=8&&hasNum&&hasUpper&&hasLower&&hasSpecial)return{label:'শক্তিশালী',color:'#16A34A',pct:100};
+    if(pw.length>=6&&hasNum)return{label:'মাঝারি',color:'#EA9A0C',pct:62};
+    return{label:'দুর্বল',color:'#DC2626',pct:35};
+  },
   async setAccountPassword(){
     const f=this.securityForm;
     if(!this.profile.phone)return this.showToast('আগে মোবাইল নম্বর ও প্রোফাইল সেভ করুন!','error');
     if(!f.newPw||f.newPw.length<4)return this.showToast('কমপক্ষে ৪ ডিজিট/অক্ষরের পাসওয়ার্ড দিন!','error');
     if(f.newPw!==f.confirmPw)return this.showToast('পাসওয়ার্ড মিলছে না!','error');
+    f.saving=true;
     const hash=await this._sha256(f.newPw+':'+this.profile.phone);
     try{
       await window.$db.updateUser(this.profile.phone,{passwordHash:hash,email:this.profile.email||''});
       this.profile.hasPassword=true;
       localStorage.setItem('dd_profile',JSON.stringify(this.profile));
-      this.securityForm={newPw:'',confirmPw:''};
+      this.securityForm={newPw:'',confirmPw:'',saving:false};
       this.showToast('পাসওয়ার্ড সেট হয়েছে! ✅','success');
-    }catch(e){this.showToast('সেভ ব্যর্থ হয়েছে!','error')}
+    }catch(e){f.saving=false;this.showToast('সেভ ব্যর্থ হয়েছে!','error')}
   },
 
   // ══════════ FORGET PASSWORD FLOW ══════════
@@ -3735,6 +3903,8 @@ function App(){return{
     return{downPayment,feeAmt,total,monthly,remaining,tenure:t};
   },
   installmentEligible(p){return!!(p&&p.installmentSettings&&p.installmentSettings.enabled&&(p.price||0)>=(p.installmentSettings.minOrderAmount||0))},
+  optImg(url,width){return window.$db.optImg(url,width)},
+  confirmEditAddress(){if(confirm('এই ঠিকানাটি এডিট করলে আগের ডেলিভারি তথ্যের সাথে অমিল হতে পারে, নিশ্চিত?'))this.activeTab='orders';},
   installmentPreviewMonthly(p){
     if(!p||!p.installmentSettings)return'0';
     const opts=(p.installmentSettings.tenureOptions&&p.installmentSettings.tenureOptions.length)?p.installmentSettings.tenureOptions:[3];
@@ -3762,7 +3932,7 @@ function App(){return{
   cancelInstallmentCheckout(){this.installmentActive=false;this.pendingInstallment=null},
   get kycRecord(){const u=localStorage.getItem('dd_uid');return this.fbKyc.find(k=>k.uid===u)||null},
   get kycRequiredForPending(){if(!this.pendingInstallment)return false;return this.pendingInstallment.total>=(this._num(this.settings?.kycThreshold)||5000)},
-  openKycModal(){this.kycModal={open:true,nidFront:'',nidBack:'',selfie:'',emergencyContact1:'',emergencyContact2:'',saving:false}},
+  openKycModal(){this.kycModal={open:true,nidFront:'',nidBack:'',selfie:'',studentId:'',notStudent:false,fatherPhone:'',motherPhone:'',closeContact:'',saving:false}},
   _cloudinary(file,cloudName,preset,onProgress){
     return new Promise((res,rej)=>{
       const fd=new FormData();fd.append('file',file);fd.append('upload_preset',preset);
@@ -3791,11 +3961,11 @@ function App(){return{
     if(!m.nidFront||m.nidFront==='UPLOADING')return this.showToast('NID-এর সামনের ছবি দিন!','error');
     if(!m.nidBack||m.nidBack==='UPLOADING')return this.showToast('NID-এর পেছনের ছবি দিন!','error');
     if(!m.selfie||m.selfie==='UPLOADING')return this.showToast('একটি সেলফি দিন!','error');
-    if(!m.emergencyContact1.trim())return this.showToast('অন্তত ১টি ইমার্জেন্সি যোগাযোগ নম্বর দিন!','error');
+    if(!m.fatherPhone.trim()&&!m.motherPhone.trim()&&!m.closeContact.trim())return this.showToast('বাবা/মা/ঘনিষ্ঠ বন্ধুর মধ্যে অন্তত ১টি নম্বর দিন!','error');
     m.saving=true;
     try{
       const u=localStorage.getItem('dd_uid');
-      await window.$db.saveKyc(u,{uid:u,phone:this.form.phone||this.profile.phone||'',nidFront:m.nidFront,nidBack:m.nidBack,selfie:m.selfie,emergencyContact1:m.emergencyContact1.trim(),emergencyContact2:(m.emergencyContact2||'').trim(),status:'pending',submittedAt:Date.now()});
+      await window.$db.saveKyc(u,{uid:u,phone:this.form.phone||this.profile.phone||'',nidFront:m.nidFront,nidBack:m.nidBack,selfie:m.selfie,studentId:m.studentId||'',notStudent:!!m.notStudent,fatherPhone:m.fatherPhone.trim(),motherPhone:m.motherPhone.trim(),closeContact:m.closeContact.trim(),emergencyContact1:(m.fatherPhone||m.motherPhone||m.closeContact).trim(),emergencyContact2:(m.motherPhone||m.closeContact||'').trim(),status:'pending',submittedAt:Date.now()});
       this.kycModal.open=false;
       this.showToast('KYC জমা হয়েছে ✅ যাচাই সম্পন্ন হলে কিস্তিতে অর্ডার করতে পারবেন','success');
     }catch(e){this.showToast('জমা দিতে ব্যর্থ, আবার চেষ্টা করুন!','error')}
