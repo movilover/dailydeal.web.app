@@ -101,6 +101,11 @@ window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d)
   // ══ Deposit requests (NEW) ══
   pushDeposit:async(data)=>{const r=push(ref(db,'deposits'));await set(r,data);return r.key},
   listenDeposits:(cb)=>onValue(ref(db,'deposits'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  // ══ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ══
+  pushSavingsWallet:async(data)=>{const r=push(ref(db,'savingsWallets'));await set(r,data);return r.key},
+  updateSavingsWallet:async(key,data)=>update(ref(db,'savingsWallets/'+key),data),
+  pushSavingsContribution:async(walletKey,data)=>{const r=push(ref(db,'savingsWallets/'+walletKey+'/contributions'));await set(r,data);return r.key},
+  listenSavingsWallets:(cb)=>onValue(ref(db,'savingsWallets'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d,contributions:d.contributions?Object.entries(d.contributions).map(([ck,cd])=>({ckey:ck,...cd})):[]})):[])},{onlyOnce:false}),
 };
 window.dispatchEvent(new Event('firebase-ready'));
 </script>
@@ -349,6 +354,12 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .pv-imgs{display:flex;gap:8px;overflow-x:auto;padding:12px 14px 0;scroll-snap-type:x mandatory}.pv-img{position:relative;flex:none;width:78%;scroll-snap-align:center}.pv-img img{width:100%;height:340px;object-fit:cover;border-radius:12px;background:var(--bg2)}
 .pv-img button{position:absolute;right:8px;bottom:8px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;cursor:pointer}
 .pv-dl{width:100%;padding:11px;border-radius:10px;border:1.5px solid #16A34A;background:var(--card);color:#16A34A;font:700 13px 'Hind Siliguri',sans-serif;cursor:pointer}
+/* ═══ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ═══ */
+.savings-badge{display:flex;align-items:center;gap:8px;width:100%;padding:11px 14px;border-radius:14px;background:var(--accentL);border:1.5px solid var(--accent);color:var(--accent);font:800 12.5px 'Hind Siliguri',sans-serif;cursor:pointer;text-align:left}
+.savings-badge span:first-child{font-size:16px}
+.savings-track{width:100%;height:9px;border-radius:20px;background:var(--bg2);overflow:hidden}
+.savings-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s cubic-bezier(.22,.68,0,1.2)}
+.savings-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:12px;box-shadow:0 2px 12px var(--shadow)}
 .pv-card{margin:12px 14px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px}
 .pv-chip{background:var(--bg2);border-radius:8px;padding:9px}
 .pv-size{min-width:46px;padding:8px 12px;border-radius:9px;border:1.5px solid var(--border);background:var(--card);color:var(--fg);font:700 13px 'Hind Siliguri',sans-serif;cursor:pointer}.pv-size.on{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -549,6 +560,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <span class="text-xs font-bold" style="color:#92400E">কোড <span class="font-mono" x-text="detailSheet.prod.promoCode"></span> — <span x-text="detailSheet.prod.promoDesc||(detailSheet.prod.promoDiscountPct+'% ছাড়')"></span></span>
     </div>
     <p class="text-xs mt-1" style="color:var(--fg3)" x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="'আপনি সাশ্রয় করছেন ৳'+(detailSheet.prod.oldPrice-detailSheet.prod.price)"></p>
+    <button type="button" @click="openSavingsGoal(detailSheet.prod)" class="savings-badge mt-3"><span>🐖</span><span>সঞ্চয় করে কিনুন — ধাপে ধাপে জমা দিয়ে অর্ডার করুন</span></button>
   </div>
   <template x-if="dpImgs.length>1">
     <div class="dp-box"><p class="dp-h">কালার / ডিজাইন বেছে নিন</p>
@@ -583,6 +595,72 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
   </div>
 </div></template>
 </div>
+</div>
+
+<!-- ════════ সঞ্চয় ওয়ালেট মডাল (NEW) ════════ -->
+<div x-show="savingsModal.open" x-cloak class="sheet-overlay" @click.self="closeSavingsModal()" style="z-index:260">
+  <div class="notif-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between px-5 pt-4 pb-3">
+      <p class="font-display text-lg" style="color:var(--fg)">🐖 সঞ্চয় করে কিনুন</p>
+      <button @click="closeSavingsModal()" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <template x-if="savingsModal.product">
+    <div class="px-5 pb-6">
+      <div class="flex items-center gap-3 mb-4 p-3 rounded-2xl" style="background:var(--bg2)">
+        <img :src="(savingsModal.product.images&&savingsModal.product.images[0])||savingsModal.product.img" class="w-14 h-14 rounded-xl object-cover flex-shrink-0" onerror="this.style.opacity=0"/>
+        <div class="min-w-0"><p class="text-sm font-bold truncate" style="color:var(--fg)" x-text="savingsModal.product.name"></p><p class="text-xs font-mono font-bold mt-0.5" style="color:var(--accent)" x-text="'লক্ষ্য: ৳'+Number(savingsModal.product.price||savingsModal.wallet?.targetAmount||0).toLocaleString()"></p></div>
+      </div>
+
+      <template x-if="savingsModal.step==='create'">
+        <div>
+          <p class="text-sm mb-4" style="color:var(--fg2);line-height:1.75">প্রথমে একটা সঞ্চয় গোল তৈরি করুন। এরপর ৳৫, ৳১০, ৳৫০, ৳১০০ বা যেকোনো পরিমাণ, যতবার খুশি জমা দিতে পারবেন। ১০০% জমা হলেই আপনার অর্ডার প্রসেসিং শুরু হয়ে যাবে।</p>
+          <button @click="confirmCreateSavingsGoal()" class="btn-primary">সঞ্চয় গোল শুরু করুন</button>
+        </div>
+      </template>
+
+      <template x-if="savingsModal.step==='contribute'&&savingsModal.wallet">
+        <div>
+          <div class="mb-4">
+            <div class="flex justify-between text-xs font-bold mb-1.5"><span style="color:var(--fg2)">জমা হয়েছে ৳<span x-text="Number(savingsModal.wallet.currentAmount||0).toLocaleString()"></span></span><span style="color:var(--accent)" x-text="savingsProgressPct(savingsModal.wallet)+'%'"></span></div>
+            <div class="savings-track"><div class="savings-fill" :style="'width:'+savingsProgressPct(savingsModal.wallet)+'%'"></div></div>
+            <p class="text-xs mt-2" style="color:var(--fg3)" x-show="savingsModal.wallet.status==='completed'||savingsModal.wallet.status==='shipped'">🎉 আপনার সঞ্চয় সম্পূর্ণ! অর্ডার প্রসেসিং চলছে।</p>
+          </div>
+          <template x-if="savingsModal.wallet.status==='saving'">
+          <div>
+            <p class="dp-h mb-2">পরিমাণ বেছে নিন</p>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <template x-for="n in [5,10,50,100,200,500]" :key="n"><button type="button" @click="savingsModal.amount=n" class="size-chip" :class="Number(savingsModal.amount)===n?'active':''" x-text="'৳'+n"></button></template>
+            </div>
+            <input class="dd-input mb-3" type="number" inputmode="numeric" x-model="savingsModal.amount" placeholder="নিজে পরিমাণ লিখুন"/>
+            <p class="dp-h mb-2">পেমেন্ট মেথড</p>
+            <div class="flex gap-2 mb-3">
+              <button type="button" @click="savingsModal.method='bkash'" class="size-chip" :class="savingsModal.method==='bkash'?'active':''">bKash</button>
+              <button type="button" @click="savingsModal.method='nagad'" class="size-chip" :class="savingsModal.method==='nagad'?'active':''">Nagad</button>
+            </div>
+            <p class="text-xs mb-3" style="color:var(--fg3)" x-show="settings.bkash||settings.nagad">এই নম্বরে টাকা পাঠিয়ে ট্রানজেকশন আইডি নিচে লিখুন — <span class="font-mono font-bold" style="color:var(--fg)" x-text="savingsModal.method==='bkash'?settings.bkash:settings.nagad"></span></p>
+            <input class="dd-input mb-4" x-model="savingsModal.trxId" placeholder="ট্রানজেকশন আইডি"/>
+            <button @click="submitSavingsContribution()" class="btn-primary">জমা দেওয়ার অনুরোধ পাঠান</button>
+          </div>
+          </template>
+          <template x-if="(savingsModal.wallet.contributions||[]).length>0">
+            <div class="mt-5">
+              <p class="dp-h mb-2">জমার ইতিহাস</p>
+              <div class="space-y-2">
+                <template x-for="c in [...(savingsModal.wallet.contributions||[])].sort((a,b)=>(b.date||0)-(a.date||0))" :key="c.ckey">
+                  <div class="flex items-center justify-between text-xs px-3 py-2 rounded-xl" style="background:var(--bg2)">
+                    <span style="color:var(--fg2)" x-text="'৳'+Number(c.amount||0).toLocaleString()+' · '+(c.method==='bkash'?'bKash':'Nagad')"></span>
+                    <span class="font-bold" :style="c.status==='paid'?'color:#16A34A':(c.status==='rejected'?'color:#DC2626':'color:#B45309')" x-text="c.status==='paid'?'যাচাইকৃত ✓':(c.status==='rejected'?'বাতিল':'পেন্ডিং')"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+    </template>
+  </div>
 </div>
 
 <!-- ════════ NOTIFICATIONS DRAWER ════════ -->
@@ -1617,6 +1695,26 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
     <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--accent)" x-text="cart.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">কার্টে</p></div>
   </div>
 
+  <template x-if="mySavingsWallets.length>0">
+  <div class="mx-4 mb-4">
+    <p class="font-bold text-sm mb-2 px-1" style="color:var(--fg)">🐖 আমার সঞ্চয়</p>
+    <div class="space-y-2">
+      <template x-for="w in mySavingsWallets" :key="w.fbKey">
+        <button type="button" @click="openSavingsWalletFromProfile(w)" class="savings-card w-full text-left" style="border:1px solid var(--border);cursor:pointer">
+          <div class="flex items-center gap-3">
+            <img :src="w.productImg" class="w-11 h-11 rounded-xl object-cover flex-shrink-0" onerror="this.style.opacity=0"/>
+            <div class="flex-1 min-w-0">
+              <p class="text-xs font-bold truncate" style="color:var(--fg)" x-text="w.productName"></p>
+              <div class="savings-track mt-1.5"><div class="savings-fill" :style="'width:'+savingsProgressPct(w)+'%'"></div></div>
+            </div>
+            <span class="text-xs font-bold flex-shrink-0" style="color:var(--accent)" x-text="savingsProgressPct(w)+'%'"></span>
+          </div>
+        </button>
+      </template>
+    </div>
+  </div>
+  </template>
+
   <div class="px-4 space-y-3">
     <button @click="activeTab='resell'" x-show="resellSession&&resellStatus==='approved'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-white" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer">
       <i class="fa-solid fa-store text-lg"></i>
@@ -2360,6 +2458,8 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
       <div class="grid grid-cols-2 gap-2 mt-3 text-sm text-center"><div class="pv-chip">প্রাইসঃ <b style="color:var(--accent)" x-text="'৳'+postView.resellerPrice"></b></div><div class="pv-chip">স্টকঃ <b style="color:#16A34A">আছে</b></div></div>
       <p class="text-sm mt-3" x-show="postView.marketPrice>0">মার্কেট প্রাইসঃ <b x-text="'৳'+postView.marketPrice"></b> — সাজেস্টেড বিক্রয়মূল্য সর্বোচ্চ <b style="color:var(--accent)" x-text="'৳'+postView.marketPrice"></b> টাকা।</p>
       <p class="text-xs mt-2" style="color:var(--fg3)">SKU: <span x-text="postView.sku||String(postView.id||'').slice(-6)"></span></p>
+      <button type="button" @click="shareResellerLink(postView)" class="pv-dl mt-3" style="border-color:var(--accent);color:var(--accent)"><i class="fa-solid fa-link"></i> আমার প্রোডাক্ট লিংক শেয়ার করুন</button>
+      <p class="text-xs mt-1.5" style="color:var(--fg3)">এই লিংকে কাস্টমার সরাসরি সাইটে অর্ডার করলে ৩০ দিনের মধ্যে আপনার কমিশন যোগ হবে।</p>
       <div class="mt-3" x-show="postView.sizes&&postView.sizes.length>0"><p class="text-sm font-bold mb-2">সাইজ</p><div class="flex flex-wrap gap-2"><template x-for="s in (postView.sizes||[])" :key="s"><button @click="pvSize=s" class="pv-size" :class="pvSize===s?'on':''" x-text="s"></button></template></div></div>
       <div class="flex items-center justify-between mt-4"><p class="text-sm font-bold">পরিমাণ/পিস</p><div class="pv-qty"><button @click="pvQty=Math.max(1,pvQty-1)">−</button><b x-text="pvQty"></b><button @click="pvQty++">+</button></div></div>
       <div class="mt-3" x-show="(postView.images||[]).length>1"><p class="text-sm font-bold mb-2">ছবি বেছে নিন</p><div class="dp-vars"><template x-for="(im,i) in (postView.images||[])" :key="i"><button @click="pvColor=i" class="dp-var" :class="(Number(pvColor)||0)===i?'on':''"><img :src="im" alt=""/></button></template></div></div>
@@ -2423,6 +2523,9 @@ function App(){return{
   placing:false,loading:true,
   activeTheme:'light',
   fbProducts:[],myOrders:[],fbCategories:[],fbSections:[],notifications:[],unreadNotifs:0,
+  // ══ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ══
+  fbSavingsWallets:[],
+  savingsModal:{open:false,step:'create',product:null,wallet:null,amount:'',method:'bkash',trxId:''},
   customButtons:[],pinnedProductKeys:[],
   notifOpen:false,marqueeText:'',marqueeEnabled:true,
   selectedSizes:{},selectedVar:{},subOpen:{},now:Date.now(),lang:localStorage.getItem('dd_lang')||'bn',country:localStorage.getItem('dd_country')||'BD',langOpen:false,countryOpen:false,fbReviews:[],detailQty:1,activeSub:'',revForm:{rating:5,text:'',name:'',img:''},wish:(()=>{try{return JSON.parse(localStorage.getItem('dd_wish')||'[]')}catch(e){return[]}})(),cart:[],
@@ -2739,6 +2842,15 @@ function App(){return{
       window.$db.listenWalletTx(txs=>this.fbWalletTx=txs);
       window.$db.listenSupportTickets(ts=>this.fbSupportTickets=ts);
       window.$db.listenDeposits(ds=>this.fbDeposits=ds);
+      window.$db.listenSavingsWallets(ws=>{
+        const uidNow=localStorage.getItem('dd_uid');
+        ws.filter(w=>w.uid===uidNow).forEach(w=>{
+          const prev=this.fbSavingsWallets.find(x=>x.fbKey===w.fbKey);
+          if(prev&&prev.status==='saving'&&w.status!=='saving')this.showToast('🎉 আপনার সঞ্চয় গোল সম্পূর্ণ! অর্ডার প্রসেসিং শুরু হয়েছে','success');
+        });
+        this.fbSavingsWallets=ws;
+      });
+      this._captureReferral();
       window.$db.listenProducts(prods=>{
         this.fbProducts=prods.map(p=>p?({...p,sizes:this.splitList(p.sizes,true),colors:[]}):p)
           .filter(p=>p&&typeof p.name==='string'&&p.name.trim())
@@ -2923,6 +3035,11 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
+    const ar=this.activeReferral;
+    if(ar&&ar.ref){
+      const owner=this.fbAllResellers.find(r=>(r.myReferralCode||'').toUpperCase()===ar.ref&&r.status==='approved');
+      if(owner){order.orderType='referral';order.resellerPhone=owner.fbKey;}
+    }
     try{if(window.$db)await window.$db.saveOrder(order)}catch(e){console.warn('Firebase save failed',e)}
     this._autoSaveCustomerAccount(order);
     this.myOrders.unshift(order);
@@ -3321,6 +3438,65 @@ function App(){return{
     }catch{this.showToast('ব্যর্থ!','error')}
   },
   copyReferralCode(){navigator.clipboard?.writeText(this.reseller?.myReferralCode||'');this.showToast('কোড কপি হয়েছে! 📋','success')},
+
+  // ══════════ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ══════════
+  get mySavingsWallets(){const u=localStorage.getItem('dd_uid');return this.fbSavingsWallets.filter(w=>w.uid===u).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))},
+  savingsProgressPct(w){return w&&w.targetAmount?Math.min(100,Math.round(((w.currentAmount||0)/w.targetAmount)*100)):0},
+  openSavingsGoal(p){
+    if(!p||!(p.price>0))return;
+    const u=localStorage.getItem('dd_uid');
+    const existing=this.fbSavingsWallets.find(w=>w.uid===u&&w.productId===(p.fbKey||p.id)&&w.status==='saving');
+    if(existing)this.savingsModal={open:true,step:'contribute',product:p,wallet:existing,amount:'',method:'bkash',trxId:''};
+    else this.savingsModal={open:true,step:'create',product:p,wallet:null,amount:'',method:'bkash',trxId:''};
+  },
+  closeSavingsModal(){this.savingsModal.open=false},
+  async confirmCreateSavingsGoal(){
+    const p=this.savingsModal.product;if(!p)return;
+    const data={uid:localStorage.getItem('dd_uid'),phone:this.profile.phone||'',
+      productId:p.fbKey||p.id||'',productName:p.name||'',productImg:(p.images&&p.images[0])||p.img||'',
+      targetAmount:p.price,currentAmount:0,status:'saving',createdAt:Date.now(),contributions:{}};
+    try{
+      const key=await window.$db.pushSavingsWallet(data);
+      this.showToast('সঞ্চয় গোল তৈরি হয়েছে! এখন জমা দেওয়া শুরু করুন 🐖','success');
+      this.savingsModal={open:true,step:'contribute',product:p,wallet:{...data,fbKey:key,contributions:[]},amount:'',method:'bkash',trxId:''};
+    }catch(e){this.showToast('গোল তৈরি করতে ব্যর্থ, আবার চেষ্টা করুন!','error')}
+  },
+  openSavingsWalletFromProfile(w){
+    const p=this.allProducts.find(x=>(x.fbKey||x.id)===w.productId)||{name:w.productName,img:w.productImg,images:[w.productImg],price:w.targetAmount,fbKey:w.productId};
+    this.savingsModal={open:true,step:'contribute',product:p,wallet:w,amount:'',method:'bkash',trxId:''};
+  },
+  async submitSavingsContribution(){
+    const m=this.savingsModal,amt=this._num(m.amount);
+    if(amt<=0)return this.showToast('সঠিক পরিমাণ লিখুন!','error');
+    if(!m.trxId.trim())return this.showToast('ট্রানজেকশন আইডি দিন!','error');
+    try{
+      await window.$db.pushSavingsContribution(m.wallet.fbKey,{amount:amt,method:m.method,trxId:m.trxId.trim(),status:'pending',date:Date.now()});
+      this.showToast('জমার অনুরোধ পাঠানো হয়েছে, যাচাইয়ের পর যোগ হবে ✅','success');
+      this.savingsModal.open=false;
+    }catch(e){this.showToast('ব্যর্থ হয়েছে, আবার চেষ্টা করুন!','error')}
+  },
+
+  // ══════════ রিসেলার ডাইনামিক প্রোমো লিংক ও অ্যাট্রিবিউশন (NEW) ══════════
+  _captureReferral(){
+    try{
+      const sp=new URLSearchParams(location.search);
+      const ref=sp.get('ref');
+      if(ref)localStorage.setItem('dd_refAttr',JSON.stringify({ref:ref.trim().toUpperCase(),pid:sp.get('pid')||'',expiresAt:Date.now()+30*86400000}));
+    }catch(e){}
+  },
+  get activeReferral(){
+    try{const r=JSON.parse(localStorage.getItem('dd_refAttr')||'null');if(r&&r.expiresAt>Date.now())return r;}catch(e){}
+    return null;
+  },
+  shareResellerLink(p){
+    if(!p)return;
+    const code=this.reseller?.myReferralCode;
+    if(!code)return this.showToast('আগে আপনার রেফারেল কোড লোড হওয়ার অপেক্ষা করুন','error');
+    const url=location.origin+location.pathname+'?ref='+encodeURIComponent(code)+'&pid='+encodeURIComponent(p.fbKey||p.id||'');
+    if(navigator.share){navigator.share({title:p.name||'',url}).catch(()=>{});}
+    else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>this.showToast('প্রোডাক্ট লিংক কপি হয়েছে! 🔗','success')).catch(()=>this.showToast(url,'success'));}
+    else this.showToast(url,'success');
+  },
   resellMenuClick(m){
     this.resellSidebarOpen=false;
     switch(m.action){
