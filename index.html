@@ -46,10 +46,14 @@ tailwind.config={
 }
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://www.gstatic.com"/>
+<link rel="preconnect" href="https://daily-deal-online-shopping-default-rtdb.firebaseio.com"/>
+<link rel="preconnect" href="https://res.cloudinary.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- Firebase -->
 <script type="module">
@@ -141,7 +145,7 @@ window.dispatchEvent(new Event('firebase-ready'));
    Desktop-mode-on-mobile) miscompute the scrollable area and freeze scroll
    entirely. The "app frame" look now lives on <body> only; <html> stays a
    normal, full-width, freely scrollable root. */
-html{font-family:'Hind Siliguri',sans-serif;min-height:100%;overflow-x:hidden;overflow-y:auto;scroll-behavior:smooth}
+html{font-family:'Hind Siliguri',sans-serif;min-height:100%;overflow-x:hidden;overflow-y:auto;scroll-behavior:smooth;background:#0F0D0A}
 body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:auto;background:var(--header)}
 /* ══ টাচ/স্ক্রল স্মুথনেস ফিক্স (site-wide) ══ — মোবাইলে জমে যাওয়া/জ্যাম স্ক্রল ও সাইড-সোয়াইপ ফিক্স */
 html,body{touch-action:pan-y;-webkit-overflow-scrolling:touch}
@@ -497,10 +501,14 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 </style>
 <style>
 /* ── Footer / bottom-nav clearance fix ── */
-.footer-safe-spacer{height:calc(70px + env(safe-area-inset-bottom,0px));background:var(--bg)}
-.ed-foot{padding-top:18px!important;padding-bottom:14px!important;margin-top:20px!important}
+.footer-safe-spacer{height:calc(var(--nav-h,70px) + env(safe-area-inset-bottom,0px) + 14px);background:var(--header);margin-top:-1px}
+.ed-foot{padding-top:14px!important;padding-bottom:10px!important;margin-top:14px!important;margin-bottom:-1px!important;text-align:center}
 .ed-foot .font-display.text-xl{font-size:1.05rem}
 .ed-foot p.pt-5{padding-top:12px!important;margin-top:10px!important}
+.ed-foot .ed-foot-name{font-family:'Noto Serif Bengali','Playfair Display',serif;font-weight:800;font-size:1.15rem;letter-spacing:.2px}
+.ed-foot .ed-foot-tag{letter-spacing:.4px}
+.ed-foot .ed-foot-info{display:flex;align-items:center;justify-content:center;gap:6px}
+.ed-foot .ed-foot-social{justify-content:center}
 .bottom-nav{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important}
 
 /* ── Helpline popup ── */
@@ -1512,21 +1520,21 @@ html,body,main,header,footer,#app,.bottom-nav{
   </div>
   <div class="pb-28" x-show="activeCat!=='সব'||q!==''"></div>
   <footer x-show="activeCat==='সব'&&q===''" class="ed-foot px-4" style="background:var(--header);color:#FAF6F0">
-    <p class="font-display" x-text="settings.siteName||'Daily Deal'"></p>
-    <p class="text-xs mt-1 mb-3" style="opacity:.7">সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি</p>
+    <p class="ed-foot-name" x-text="settings.siteName||'Daily Deal'"></p>
+    <p class="text-xs mt-1 mb-3 ed-foot-tag" style="opacity:.7">সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি</p>
     <div class="text-xs space-y-1.5" style="opacity:.9">
-      <p x-show="settings.shopAddress"><i class="fa-solid fa-location-dot mr-2" style="color:var(--accent2)"></i><span x-text="settings.shopAddress"></span></p>
-      <p x-show="settings.shopPhone"><i class="fa-solid fa-phone mr-2" style="color:var(--accent2)"></i><span x-text="settings.shopPhone"></span></p>
-      <p><i class="fa-solid fa-wallet mr-2" style="color:var(--accent2)"></i>পেমেন্ট: bKash · Nagad</p>
+      <p x-show="settings.shopAddress" class="ed-foot-info"><i class="fa-solid fa-location-dot" style="color:var(--accent2)"></i><span x-text="settings.shopAddress"></span></p>
+      <p x-show="settings.shopPhone" class="ed-foot-info"><i class="fa-solid fa-phone" style="color:var(--accent2)"></i><span x-text="settings.shopPhone"></span></p>
+      <p class="ed-foot-info"><i class="fa-solid fa-wallet" style="color:var(--accent2)"></i>পেমেন্ট: bKash · Nagad</p>
     </div>
-    <div class="flex items-center gap-2 mt-3 flex-wrap">
+    <div class="flex items-center gap-2 mt-3 flex-wrap ed-foot-social">
       <a x-show="settings.fbLink" :href="settings.fbLink" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff"><i class="fa-brands fa-facebook"></i> Facebook পেজ</a>
       <a x-show="settings.telegramLink" :href="settings.telegramLink" target="_blank" rel="noopener" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff"><i class="fa-brands fa-telegram"></i> Telegram</a>
       <button @click="helplineOpen=true" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-headset"></i> সাপোর্ট</button>
     </div>
     <p class="pt-3 text-xs" style="opacity:.6;border-top:1px solid rgba(255,255,255,.15);margin-top:12px">© ২০২৬ <span x-text="settings.siteName||'Daily Deal'"></span> · সর্বস্বত্ব সংরক্ষিত</p>
   </footer>
-  <div class="footer-safe-spacer" x-show="activeCat==='সব'&&q===''" :style="(activeCat==='সব'&&q==='')?'background:var(--header)':''"></div>
+  <div class="footer-safe-spacer" x-show="activeCat==='সব'&&q===''"></div>
 </section>
 
 <!-- ─── ALL PRODUCTS PAGE (Organized by Sections) ─── -->
@@ -3315,7 +3323,10 @@ function App(){return{
        of Alpine entirely, right after the skeleton markup in <body> — that
        one is the real guarantee if Alpine itself fails to load; this is the
        in-app backup for the normal case where Alpine did load fine.) */
-    setTimeout(()=>{this.loading=false},2000);
+    setTimeout(()=>{this.loading=false},1200);
+    /* দ্রুত প্রথম পেইন্ট: আগের ভিজিটে ক্যাশ করা প্রোডাক্ট থাকলে সঙ্গে সঙ্গে দেখানো হয়,
+       নেটওয়ার্ক রেসপন্স আসা পর্যন্ত অপেক্ষা না করেই — Firebase রেসপন্স এলে সাইলেন্টলি আপডেট হয়ে যাবে। */
+    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;}}}catch(e){}
     this._initHistoryNav();
     const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
     if(this.profile.phone&&window.$db){
@@ -3378,6 +3389,7 @@ function App(){return{
           .map(p=>({...p,price:this._num(p.price),oldPrice:this._num(p.oldPrice),resellerPrice:this._num(p.resellerPrice)}))
           .filter(p=>p.price>0).sort((a,b)=>this._ts(b)-this._ts(a));
         this.loading=false;
+        try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}
       });
       window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false)});
@@ -3409,7 +3421,7 @@ function App(){return{
         this.notifications=notifs.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
         if(notifs.length>prev&&prev>0)this.unreadNotifs+=(notifs.length-prev);
       });
-      setTimeout(()=>{if(this.loading)this.loading=false},1800);
+      setTimeout(()=>{if(this.loading)this.loading=false},1200);
     },{once:true});
   },
 
@@ -4310,12 +4322,22 @@ window.addEventListener('load',run)})();</script>
       }
     });
   }
+  function syncNavHeight(){
+    var nav=document.querySelector('.bottom-nav');
+    if(!nav) return;
+    var cs=getComputedStyle(nav);
+    if(cs.display==='none') return; // desktop layout: spacer is hidden too, nothing to sync
+    var h=nav.offsetHeight;
+    if(h>0) document.documentElement.style.setProperty('--nav-h',h+'px');
+  }
   function run(){
     freeElement(document.documentElement,'<html>');
     freeElement(document.body,'<body>');
+    syncNavHeight();
   }
   run();
   window.addEventListener('load',function(){run();checkOverlays()});
+  window.addEventListener('resize',syncNavHeight);
   setInterval(function(){run();},2000);
 })();
 </script>
