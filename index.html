@@ -580,10 +580,29 @@ body{overflow-y:auto!important}
    on every top-level structural container, with !important, so nothing else
    in the cascade — a theme class, a third-party CDN script's injected style,
    a browser extension, etc. — can silently re-lock scrolling on these. */
+/* মূল স্ক্রল ফিক্স:
+   আগে এই রুলে main/header/footer/#app/.bottom-nav সবগুলোতে overflow-x:hidden
+   বসানো ছিল। CSS স্পেক অনুযায়ী overflow-x আর overflow-y-এর একটা 'visible' না
+   হলে ব্রাউজার automatically অন্যটাকেও (এখানে overflow-y) 'auto' বানিয়ে ফেলে —
+   এমনকি overflow-y:visible লিখে দিলেও এই আচরণ থামানো যায় না, এটা স্পেকেরই
+   নিয়ম। ফলে <header> (যেটা sticky, পেজের উপরে) আর <main> (পুরো প্রোডাক্ট
+   লিস্ট) নিজে নিজেই আলাদা scroll container হয়ে যাচ্ছিল। মোবাইলে ইউজার
+   হেডার/উপরের এরিয়া থেকে সোয়াইপ করে নিচে স্ক্রল করার চেষ্টা করলে, সেই touch
+   gesture-টা এই ভুয়া scroll container নিজেই ধরে রাখছিল এবং মূল পেজ
+   (html/body) পর্যন্ত পৌঁছাচ্ছিল না — এই কারণেই স্ক্রল "আটকে" আছে মনে হচ্ছিল,
+   অথচ position:fixed বটম-ন্যাভ বাটনগুলো (যেগুলোর ভিতরে দেখানোর মতো বাড়তি
+   কনটেন্ট নেই) ঠিকই কাজ করছিল।
+   সমাধান: horizontal clipping শুধু html/body-তেই দরকার (পুরো পেজের সাইড-
+   স্ক্রল আটকাতে) — main/header/footer/#app/.bottom-nav-এ overflow-x:hidden
+   বসানোর দরকারই নেই, তাই সেগুলো এখান থেকে বাদ দেওয়া হলো। ফলে ওই এলিমেন্টগুলোর
+   overflow-y সত্যিকারের 'visible' থাকবে, নিজে নিজে scroll container হবে না,
+   আর সব টাচ/হুইল স্ক্রল স্বাভাবিকভাবে <html>/<body>-তে গিয়ে পড়বে। */
+html,body{
+  overflow-x:hidden!important;
+}
 html,body,main,header,footer,#app,.bottom-nav{
   touch-action:pan-y!important;
   pointer-events:auto!important;
-  overflow-x:hidden;
 }
 </style>
 </head>
