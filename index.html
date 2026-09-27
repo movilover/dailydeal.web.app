@@ -131,8 +131,14 @@ window.dispatchEvent(new Event('firebase-ready'));
 <style>
 [x-cloak]{display:none!important}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:contain;background:var(--header)}
-html{scroll-behavior:smooth}
+/* FIX: max-width/margin were previously on the <html> (root) element itself.
+   The root element is the browser's scrolling element — constraining its width
+   and centering it with auto margins made several browsers/WebViews (and
+   Desktop-mode-on-mobile) miscompute the scrollable area and freeze scroll
+   entirely. The "app frame" look now lives on <body> only; <html> stays a
+   normal, full-width, freely scrollable root. */
+html{font-family:'Hind Siliguri',sans-serif;min-height:100%;overflow-x:hidden;overflow-y:auto;scroll-behavior:smooth}
+body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:contain;background:var(--header)}
 /* ══ টাচ/স্ক্রল স্মুথনেস ফিক্স (site-wide) ══ — মোবাইলে জমে যাওয়া/জ্যাম স্ক্রল ও সাইড-সোয়াইপ ফিক্স */
 html,body{touch-action:pan-y;-webkit-overflow-scrolling:touch}
 *{-webkit-tap-highlight-color:transparent}
@@ -548,7 +554,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 
 /* ── Desktop responsive mode ── */
 @media(min-width:768px){
-  html,body{max-width:1180px;background:var(--bg2)}
+  body{max-width:1180px;background:var(--bg2)}
   body{box-shadow:0 0 60px rgba(0,0,0,.08)}
   .bottom-nav{display:none !important}
   .footer-safe-spacer{display:none}
@@ -565,6 +571,19 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 .allprod-sidebar{display:none}
 @media(max-width:767px){
   .desk-topnav{display:none !important}
+}
+/* SAFETY NET: guarantee the page can always be scrolled, regardless of any
+   other rule above (theme classes, future edits, etc.) */
+html{overflow-y:auto!important;height:auto!important}
+body{overflow-y:auto!important}
+/* HARDENING (requested audit item): explicitly force touch/pointer behaviour
+   on every top-level structural container, with !important, so nothing else
+   in the cascade — a theme class, a third-party CDN script's injected style,
+   a browser extension, etc. — can silently re-lock scrolling on these. */
+html,body,main,header,footer,#app,.bottom-nav{
+  touch-action:pan-y!important;
+  pointer-events:auto!important;
+  overflow-x:hidden;
 }
 </style>
 </head>
@@ -3227,6 +3246,14 @@ function App(){return{
   },
 
   boot(){
+    /* SAFETY NET: the full-page skeleton (fixed, inset:0) only hides once
+       `loading` is set to false, which normally happens inside the Firebase
+       'firebase-ready' → listenProducts callback. If Firebase is slow,
+       blocked, or misconfigured on this device/network, that callback may
+       never fire, leaving the full-screen overlay up forever and blocking
+       every scroll/tap on the real page underneath. This forces it to clear
+       after 8s no matter what, so the page is never permanently frozen. */
+    setTimeout(()=>{this.loading=false},8000);
     this._initHistoryNav();
     const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
     if(this.profile.phone&&window.$db){
@@ -4179,5 +4206,57 @@ function App(){return{
 <script>(function(){var t,run=function(){try{if(!window.twemoji)return;twemoji.parse(document.body,{folder:'svg',ext:'.svg',className:'emoji'});document.querySelectorAll('option img.emoji,textarea img.emoji').forEach(function(i){i.replaceWith(i.alt)})}catch(e){}};
 new MutationObserver(function(rs){if(rs.some(function(r){var el=r.target.nodeType===1?r.target:r.target.parentElement;return el&&!el.closest('option,textarea')})){clearTimeout(t);t=setTimeout(run,150)}}).observe(document.body,{childList:true,subtree:true,characterData:true});
 window.addEventListener('load',run)})();</script>
+<script>
+/* ══ SCROLL WATCHDOG ══
+   Runs continuously in the background. If anything (a future edit, a
+   third-party script, a stray inline style set by a bug elsewhere) ever
+   sets an overflow/height/touch-action/pointer-events value on <html> or
+   <body> that would freeze scrolling, this detects it, forcibly clears it,
+   and logs exactly what was found + fixed to the console — so if the page
+   is ever reported frozen again, opening the console immediately shows the
+   real cause instead of guessing blind.
+*/
+(function(){
+  function freeElement(el,label){
+    if(!el) return;
+    var cs=getComputedStyle(el);
+    var bad={};
+    if(cs.overflowY==='hidden') bad.overflowY=cs.overflowY;
+    if(cs.overflow==='hidden') bad.overflow=cs.overflow;
+    if(cs.touchAction==='none'||cs.touchAction==='pan-x') bad.touchAction=cs.touchAction;
+    if(cs.pointerEvents==='none') bad.pointerEvents=cs.pointerEvents;
+    if((cs.height==='100vh'||cs.maxHeight==='100vh')&&cs.overflowY==='hidden') bad.heightLock=cs.height+'/'+cs.maxHeight;
+    if(Object.keys(bad).length){
+      console.warn('[scroll-watchdog] blocking style found on',label,bad,'— clearing it now.');
+      el.style.setProperty('overflow-y','auto','important');
+      el.style.setProperty('touch-action','pan-y','important');
+      el.style.setProperty('pointer-events','auto','important');
+      el.style.removeProperty('height');
+      el.style.removeProperty('max-height');
+    }
+  }
+  function checkOverlays(){
+    // Any element covering the full viewport (fixed/absolute, inset~0, real size)
+    // that is NOT the intentionally-visible loading skeleton / an open modal,
+    // and that still intercepts pointer events, is a bug — flag it loudly.
+    document.querySelectorAll('body *').forEach(function(el){
+      var cs=getComputedStyle(el);
+      if((cs.position==='fixed'||cs.position==='absolute')&&cs.pointerEvents!=='none'){
+        var r=el.getBoundingClientRect();
+        if(r.width>=window.innerWidth*0.95&&r.height>=window.innerHeight*0.95&&cs.display!=='none'&&cs.visibility!=='hidden'&&parseFloat(cs.opacity||'1')>0.05){
+          console.warn('[scroll-watchdog] full-screen overlay currently capturing touch/scroll:',el);
+        }
+      }
+    });
+  }
+  function run(){
+    freeElement(document.documentElement,'<html>');
+    freeElement(document.body,'<body>');
+  }
+  run();
+  window.addEventListener('load',function(){run();checkOverlays()});
+  setInterval(function(){run();},2000);
+})();
+</script>
 </body>
 </html>
