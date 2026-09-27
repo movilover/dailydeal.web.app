@@ -134,10 +134,10 @@ window.dispatchEvent(new Event('firebase-ready'));
 html,body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:contain;background:var(--header)}
 html{scroll-behavior:smooth}
 /* ══ টাচ/স্ক্রল স্মুথনেস ফিক্স (site-wide) ══ — মোবাইলে জমে যাওয়া/জ্যাম স্ক্রল ও সাইড-সোয়াইপ ফিক্স */
-html,body{touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior-x:none}
+html,body{touch-action:pan-y;-webkit-overflow-scrolling:touch}
 *{-webkit-tap-highlight-color:transparent}
 a,button,.nav-btn,.product-card,.prod-img-wrap,.big-action-btn,.dp-var,.size-chip,.tenure-pill{touch-action:manipulation}
-.cat-scroll-wrap,.sub-cat-scroll,.pill-scroll,.dp-colors,.dp-vars,.pv-imgs,.acct-strip,.grp-row,.checkout-promo-scroll{-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scroll-behavior:smooth}
+.cat-scroll-wrap,.sub-cat-scroll,.pill-scroll,.dp-colors,.dp-vars,.pv-imgs,.acct-strip,.grp-row,.checkout-promo-scroll{-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;overscroll-behavior-x:contain;scroll-behavior:smooth}
 .sheet-body,.detail-modal,.notif-sheet,.pv-wrap,.dlg,.acc-b>div{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
 .hero-banner-wrap,.hero3d-stage{touch-action:pan-y}
 
