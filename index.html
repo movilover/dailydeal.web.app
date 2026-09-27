@@ -438,7 +438,7 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .detail-modal{width:100%!important;max-width:none!important;height:100%!important;max-height:none!important;border-radius:0!important;overflow-y:auto!important}
 .detail-gallery{height:58vh!important;background:#111}.detail-gallery-slide img{object-fit:contain!important;background:#111}
 .detail-actions{position:sticky;bottom:0;background:var(--card);padding:12px 0 14px;z-index:5}
-.pm-logo{width:46px;height:46px;border-radius:12px;background:#fff;border:1px solid var(--border);display:grid;place-items:center;flex:none;overflow:hidden}.pm-logo img{max-width:82%;max-height:82%;object-fit:contain}.pm-logo b{width:100%;height:100%;display:grid;place-items:center;color:#fff;font-size:18px}
+.pm-logo{width:46px;height:46px;border-radius:14px;background:#fff;border:1px solid var(--border);box-shadow:0 3px 10px var(--shadow);display:grid;place-items:center;flex:none;overflow:hidden}.pm-logo img{max-width:82%;max-height:82%;object-fit:contain}.pm-logo b{width:100%;height:100%;display:grid;place-items:center;color:#fff;font-size:18px;font-weight:800}
 .dp{background:var(--bg)!important}
 .dp-top{position:sticky;top:0;z-index:20;display:flex;gap:8px;padding:12px 14px;margin-bottom:-58px}
 .dp-ic{width:42px;height:42px;border-radius:50%;background:var(--card);border:1px solid var(--border);display:grid;place-items:center;cursor:pointer;color:var(--fg);box-shadow:0 2px 8px rgba(0,0,0,.12)}
@@ -494,9 +494,10 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 @media(prefers-reduced-motion:reduce){.acc-b{transition:none}}
 </style>
 <style>
-.acct-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;background:none;border:0;width:100%;text-align:left;font-family:inherit;color:var(--fg)}
+.acct-row{display:flex;align-items:center;gap:12px;padding:13px 14px;cursor:pointer;background:none;border:0;width:100%;text-align:left;font-family:inherit;color:var(--fg);transition:background .15s}
+.acct-row:active{background:var(--bg2)}
 .acct-row+.acct-row{border-top:1px solid var(--border)}
-.acct-ico{width:34px;height:34px;border-radius:10px;background:var(--bg2);display:grid;place-items:center;color:var(--accent);flex-shrink:0}
+.acct-ico{width:38px;height:38px;border-radius:12px;background:var(--accentL);display:grid;place-items:center;color:var(--accent);flex-shrink:0;font-size:15px}
 .acct-strip{display:flex;gap:8px;overflow-x:auto;padding:0 14px 12px}
 .acct-thumb{flex:none;width:52px;height:52px;border-radius:12px;overflow:hidden;background:var(--bg2);border:1px solid var(--border)}
 .acct-thumb img{width:100%;height:100%;object-fit:cover}
@@ -504,8 +505,9 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 .lang-pill{display:flex;gap:4px;background:var(--bg2);border-radius:99px;padding:3px}
 .lang-pill button{padding:5px 11px;border-radius:99px;border:0;background:none;font-size:11px;font-weight:700;color:var(--fg3);cursor:pointer;font-family:inherit}
 .lang-pill button.on{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
-.country-row{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;border-radius:12px}
-.country-row:hover,.country-row.on{background:var(--bg2)}
+.country-row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;border-radius:14px;border:1px solid var(--border);margin-bottom:2px;transition:all .15s}
+.country-row:active{transform:scale(.98)}
+.country-row:hover,.country-row.on{background:var(--accentL);border-color:var(--accent)}
 </style>
 <style>
 /* ── Footer / bottom-nav clearance fix ── */
@@ -816,11 +818,16 @@ html,body,main,header,footer,#app,.bottom-nav{
             </div>
             <input class="dd-input mb-3" type="number" inputmode="numeric" x-model="savingsModal.amount" placeholder="নিজে পরিমাণ লিখুন"/>
             <p class="dp-h mb-2">পেমেন্ট মেথড</p>
-            <div class="flex gap-2 mb-3">
-              <button type="button" @click="savingsModal.method='bkash'" class="size-chip" :class="savingsModal.method==='bkash'?'active':''">bKash</button>
-              <button type="button" @click="savingsModal.method='nagad'" class="size-chip" :class="savingsModal.method==='nagad'?'active':''">Nagad</button>
+            <div class="flex flex-wrap gap-2 mb-3">
+              <template x-for="pm in payMethods" :key="pm.id">
+                <button type="button" @click="savingsModal.method=pm.id" class="flex items-center gap-2 px-3 py-2 rounded-xl border-2 transition-all" :style="savingsModal.method===pm.id?'border-color:'+pm.c+';background:'+pm.c+'14':'border-color:var(--border);background:transparent'">
+                  <span class="pm-logo" style="width:26px;height:26px;border-radius:8px"><img x-show="pm.logo" :src="pm.logo" alt=""/><b x-show="!pm.logo" :style="'background:'+pm.c+';font-size:12px'" x-text="pm.label.slice(0,1)"></b></span>
+                  <span class="text-xs font-bold" :style="savingsModal.method===pm.id?'color:'+pm.c:'color:var(--fg2)'" x-text="pm.label"></span>
+                </button>
+              </template>
+              <p x-show="!payMethods.length" class="text-xs" style="color:var(--fg3)">এই মুহূর্তে কোনো পেমেন্ট পদ্ধতি চালু নেই।</p>
             </div>
-            <p class="text-xs mb-3" style="color:var(--fg3)" x-show="settings.bkash||settings.nagad">এই নম্বরে টাকা পাঠিয়ে ট্রানজেকশন আইডি নিচে লিখুন — <span class="font-mono font-bold" style="color:var(--fg)" x-text="savingsModal.method==='bkash'?settings.bkash:settings.nagad"></span></p>
+            <p class="text-xs mb-3" style="color:var(--fg3)" x-show="paymentMethodNumber(savingsModal.method)">এই নম্বরে টাকা পাঠিয়ে ট্রানজেকশন আইডি নিচে লিখুন — <span class="font-mono font-bold" style="color:var(--fg)" x-text="paymentMethodNumber(savingsModal.method)"></span></p>
             <input class="dd-input mb-4" x-model="savingsModal.trxId" placeholder="ট্রানজেকশন আইডি"/>
             <button @click="submitSavingsContribution()" class="btn-primary">জমা দেওয়ার অনুরোধ পাঠান</button>
           </div>
@@ -831,7 +838,7 @@ html,body,main,header,footer,#app,.bottom-nav{
               <div class="space-y-2">
                 <template x-for="c in [...(savingsModal.wallet.contributions||[])].sort((a,b)=>(b.date||0)-(a.date||0))" :key="c.ckey">
                   <div class="flex items-center justify-between text-xs px-3 py-2 rounded-xl" style="background:var(--bg2)">
-                    <span style="color:var(--fg2)" x-text="'৳'+Number(c.amount||0).toLocaleString()+' · '+(c.method==='bkash'?'bKash':'Nagad')"></span>
+                    <span style="color:var(--fg2)" x-text="'৳'+Number(c.amount||0).toLocaleString()+' · '+paymentMethodLabel(c.method)"></span>
                     <span class="font-bold" :style="c.status==='paid'?'color:#16A34A':(c.status==='rejected'?'color:#DC2626':'color:#B45309')" x-text="c.status==='paid'?'যাচাইকৃত ✓':(c.status==='rejected'?'বাতিল':'পেন্ডিং')"></span>
                   </div>
                 </template>
@@ -882,18 +889,19 @@ html,body,main,header,footer,#app,.bottom-nav{
 
 <!-- ════════ KYC MODAL (NEW) ════════ -->
 <div x-show="kycModal.open" x-cloak class="sheet-overlay" @click.self="kycModal.open=false" style="z-index:270">
-  <div class="notif-sheet" style="max-height:90vh;overflow-y:auto">
-    <div class="sheet-handle"></div>
-    <div class="flex flex-col items-center pt-4 pb-1">
-      <span class="brand-mark" style="width:40px;height:40px;font-size:16px"><i class="fa-solid fa-bag-shopping"></i></span>
-      <p class="text-xs font-bold mt-1.5" style="color:var(--fg)" x-text="settings.siteName||'Daily Deal'"></p>
+  <div class="notif-sheet" style="max-height:90vh;overflow-y:auto;position:relative">
+    <div class="sheet-handle" style="position:relative;z-index:2"></div>
+    <div class="px-5 pt-5 pb-4 text-center" style="background:linear-gradient(135deg,#1D4ED8,#3B82F6);border-radius:28px 28px 0 0;margin:-1px -1px 0">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2" style="background:rgba(255,255,255,.18)"><i class="fa-solid fa-shield-halved text-2xl" style="color:#fff"></i></div>
+      <p class="font-display text-lg" style="color:#fff">পরিচয় ভেরিফিকেশন (KYC)</p>
+      <p class="text-xs mt-1" style="color:rgba(255,255,255,.85)">কিস্তিতে কেনাকাটা করতে একবার ভেরিফাই করুন</p>
     </div>
-    <div class="flex items-center justify-between px-5 pt-2 pb-3">
-      <p class="font-display text-lg" style="color:var(--fg)">🪪 KYC ভেরিফিকেশন</p>
-      <button @click="kycModal.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
-    </div>
-    <div class="px-5 pb-6 space-y-4">
-      <p class="text-xs" style="color:var(--fg3);line-height:1.7">বড় অংকের কিস্তি অর্ডারের জন্য এই তথ্য প্রয়োজন। আপনার তথ্য নিরাপদে রাখা হবে এবং শুধু ভেরিফিকেশনের জন্য ব্যবহার হবে।</p>
+    <button @click="kycModal.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="position:absolute;top:14px;right:20px;background:rgba(255,255,255,.2);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    <div class="px-5 pt-4 pb-6 space-y-4">
+      <div class="rounded-2xl p-3.5 flex items-start gap-2.5" style="background:var(--accentL);border:1px solid var(--accent)">
+        <i class="fa-solid fa-circle-info mt-0.5" style="color:var(--accent)"></i>
+        <p class="text-xs" style="color:var(--fg2);line-height:1.7">কিস্তিতে যেকোনো পণ্য অর্ডার বা কিস্তি জমা দেওয়ার আগে এই ভেরিফিকেশন সম্পূর্ণ করতে হবে। আপনার তথ্য নিরাপদে রাখা হবে এবং শুধু ভেরিফিকেশনের জন্য ব্যবহার হবে।</p>
+      </div>
       <div>
         <p class="dp-h mb-2">NID কার্ডের সামনের ছবি *</p>
         <label class="flex items-center justify-center rounded-xl cursor-pointer overflow-hidden" style="height:110px;background:var(--bg2);border:1.5px dashed var(--border)">
@@ -1113,39 +1121,46 @@ html,body,main,header,footer,#app,.bottom-nav{
 
 <!-- ═══ HELPLINE / SUPPORT POPUP ═══ -->
 <button @click="helplineOpen=true" class="help-fab" x-show="!helplineOpen"><i class="fa-solid fa-headset"></i></button>
-<div x-show="helplineOpen" x-cloak class="modal-overlay-c" @click.self="helplineOpen=false" style="z-index:310;position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)">
-  <div class="dd-card help-modal-body p-5" style="max-width:340px;width:92%;margin:0 auto">
-    <div class="flex items-center justify-between mb-4">
-      <p class="font-display text-lg" style="color:var(--fg)">🙋 হেল্পলাইন ও সাপোর্ট</p>
-      <button @click="helplineOpen=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+<div x-show="helplineOpen" x-cloak class="sheet-overlay" @click.self="helplineOpen=false" style="z-index:310">
+  <div class="notif-sheet" style="max-height:85vh;overflow-y:auto;position:relative">
+    <div class="sheet-handle"></div>
+    <div class="px-5 pt-4 pb-4 text-center" style="background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:28px 28px 0 0;margin:-1px -1px 0">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-2" style="background:rgba(255,255,255,.2)"><i class="fa-solid fa-headset text-2xl" style="color:#fff"></i></div>
+      <p class="font-display text-lg" style="color:#fff">হেল্পলাইন ও সাপোর্ট</p>
+      <p class="text-xs mt-1" style="color:rgba(255,255,255,.85)">যেকোনো সমস্যায় আমাদের সাথে যোগাযোগ করুন</p>
     </div>
-    <div class="help-card" x-show="settings.supportPhone||settings.shopPhone">
-      <div class="help-ic" style="background:#DCFCE7;color:#16A34A">📞</div>
-      <div class="flex-1 min-w-0"><p class="text-xs" style="color:var(--fg3)">সাপোর্ট নম্বর</p><p class="font-display text-base" style="color:var(--fg)" x-text="settings.supportPhone||settings.shopPhone"></p></div>
-      <button @click="copySupportPhone()" class="text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-regular fa-copy mr-1"></i>কপি</button>
+    <button @click="helplineOpen=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="position:absolute;top:14px;right:20px;background:rgba(255,255,255,.22);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    <div class="px-5 pt-4 pb-6 space-y-2.5">
+      <div class="help-card" x-show="settings.supportPhone||settings.shopPhone">
+        <div class="help-ic" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-phone"></i></div>
+        <div class="flex-1 min-w-0"><p class="text-xs" style="color:var(--fg3)">সাপোর্ট নম্বর</p><p class="font-display text-base" style="color:var(--fg)" x-text="settings.supportPhone||settings.shopPhone"></p></div>
+        <a :href="'tel:'+(settings.supportPhone||settings.shopPhone)" class="text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0" style="background:#16A34A;color:#fff;text-decoration:none"><i class="fa-solid fa-phone mr-1"></i>কল করুন</a>
+        <button @click="copySupportPhone()" class="text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-regular fa-copy"></i></button>
+      </div>
+      <a class="help-card" x-show="settings.wa" :href="'https://wa.me/'+String(settings.wa||'').replace(/[^0-9]/g,'')" target="_blank" rel="noopener" style="text-decoration:none">
+        <div class="help-ic" style="background:#DCFCE7;color:#25D366"><i class="fa-brands fa-whatsapp"></i></div>
+        <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">হোয়াটসঅ্যাপ</p><p class="font-bold text-sm" style="color:var(--fg)">এখনই মেসেজ করুন</p></div>
+        <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
+      </a>
+      <a class="help-card" x-show="settings.fbLink" :href="settings.fbLink" target="_blank" rel="noopener" style="text-decoration:none">
+        <div class="help-ic" style="background:#DBEAFE;color:#1D4ED8"><i class="fa-brands fa-facebook"></i></div>
+        <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">ফেসবুক পেজ</p><p class="font-bold text-sm" style="color:var(--fg)">পেজে মেসেজ পাঠান</p></div>
+        <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
+      </a>
+      <a class="help-card" x-show="settings.telegramLink" :href="settings.telegramLink" target="_blank" rel="noopener" style="text-decoration:none">
+        <div class="help-ic" style="background:#E0F2FE;color:#0EA5E9"><i class="fa-brands fa-telegram"></i></div>
+        <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">টেলিগ্রাম সাপোর্ট</p><p class="font-bold text-sm" style="color:var(--fg)">চ্যাট শুরু করুন</p></div>
+        <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
+      </a>
+      <p class="text-xs text-center mt-2" style="color:var(--fg3)" x-show="!settings.supportPhone&&!settings.shopPhone&&!settings.wa&&!settings.fbLink&&!settings.telegramLink">সাপোর্ট তথ্য শীঘ্রই যুক্ত হবে।</p>
     </div>
-    <a class="help-card" x-show="settings.wa" :href="'https://wa.me/'+String(settings.wa||'').replace(/[^0-9]/g,'')" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="help-ic" style="background:#DCFCE7;color:#25D366">💬</div>
-      <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">হোয়াটসঅ্যাপ</p><p class="font-bold text-sm" style="color:var(--fg)">এখনই মেসেজ করুন</p></div>
-      <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
-    </a>
-    <a class="help-card" x-show="settings.fbLink" :href="settings.fbLink" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="help-ic" style="background:#DBEAFE;color:#1D4ED8">📘</div>
-      <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">ফেসবুক পেজ</p><p class="font-bold text-sm" style="color:var(--fg)">পেজে মেসেজ পাঠান</p></div>
-      <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
-    </a>
-    <a class="help-card" x-show="settings.telegramLink" :href="settings.telegramLink" target="_blank" rel="noopener" style="text-decoration:none">
-      <div class="help-ic" style="background:#E0F2FE;color:#0EA5E9">✈️</div>
-      <div class="flex-1"><p class="text-xs" style="color:var(--fg3)">টেলিগ্রাম সাপোর্ট</p><p class="font-bold text-sm" style="color:var(--fg)">চ্যাট শুরু করুন</p></div>
-      <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
-    </a>
-    <p class="text-xs text-center mt-2" style="color:var(--fg3)" x-show="!settings.supportPhone&&!settings.shopPhone&&!settings.wa&&!settings.fbLink&&!settings.telegramLink">সাপোর্ট তথ্য শীঘ্রই যুক্ত হবে।</p>
   </div>
 </div>
 
 <!-- ═══ FORGET PASSWORD MODAL ═══ -->
-<div x-show="forgotPw.open" x-cloak class="modal-overlay-c" @click.self="forgotPw.open=false" style="z-index:320;position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55)">
-  <div class="dd-card help-modal-body p-5" style="max-width:340px;width:92%;margin:0 auto">
+<div x-show="forgotPw.open" x-cloak class="sheet-overlay" @click.self="forgotPw.open=false" style="z-index:320">
+  <div class="notif-sheet p-5" style="max-height:85vh;overflow-y:auto">
+    <div class="sheet-handle mb-2"></div>
     <div class="flex items-center justify-between mb-4">
       <p class="font-display text-lg" style="color:var(--fg)">🔑 পাসওয়ার্ড রিসেট</p>
       <button @click="forgotPw.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
@@ -1207,9 +1222,9 @@ html,body,main,header,footer,#app,.bottom-nav{
 </div>
 
 <!-- ═══ COMING SOON MODAL (NEW) ═══ -->
-<div x-show="comingSoon.open" x-cloak class="modal-overlay-c" @click.self="comingSoon.open=false" style="z-index:300;position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)">
-  <div class="dd-card p-6 text-center" style="max-width:300px;margin:0 16px">
-    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl" style="background:var(--accentL)">🚀</div>
+<div x-show="comingSoon.open" x-cloak class="sheet-overlay" @click.self="comingSoon.open=false" style="z-index:300;align-items:center">
+  <div class="dd-card p-6 text-center animate-fade-in" style="max-width:300px;width:88%;margin:0 auto">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl" style="background:linear-gradient(135deg,var(--accent),var(--accent2))">🚀</div>
     <p class="font-display text-lg mb-1" style="color:var(--fg)" x-text="comingSoon.label"></p>
     <p class="text-sm mb-4" style="color:var(--fg3)">এই ফিচারটি শীঘ্রই যুক্ত হচ্ছে। একটু অপেক্ষা করুন!</p>
     <button @click="comingSoon.open=false" class="btn-primary w-full" style="justify-content:center">বুঝেছি</button>
@@ -1867,24 +1882,30 @@ html,body,main,header,footer,#app,.bottom-nav{
         <div class="flex justify-between mt-3 pt-3" style="border-top:2px solid var(--border)"><span class="font-bold" style="color:var(--fg)">আজই দিতে হবে (ডাউনপেমেন্ট+ডেলিভারি)</span><span class="font-display text-xl" style="color:#1D4ED8" x-text="'৳'+(pendingInstallment.downPayment+shipping).toLocaleString()"></span></div>
       </div>
       <!-- KYC NOTICE -->
-      <div x-show="kycRequiredForPending" x-cloak class="rounded-xl p-3.5 text-xs" style="background:#FFFBEB;border:1px dashed #B45309;color:#92400E">
-        <p class="font-bold mb-1"><i class="fa-solid fa-id-card mr-1"></i>এই মূল্যের কিস্তি অর্ডারের জন্য KYC ভেরিফিকেশন প্রয়োজন</p>
-        <template x-if="!kycRecord"><button type="button" @click="openKycModal()" class="underline font-bold">এখনই KYC জমা দিন →</button></template>
-        <template x-if="kycRecord?.status==='pending'"><p>আপনার KYC যাচাইয়ের অপেক্ষায় আছে।</p></template>
-        <template x-if="kycRecord?.status==='rejected'||kycRecord?.status==='reupload'"><div><p x-text="'কারণ: '+(kycRecord.note||'')"></p><button type="button" @click="openKycModal()" class="underline font-bold mt-1">আবার জমা দিন →</button></div></template>
-        <template x-if="kycRecord?.status==='approved'"><p class="font-bold" style="color:#15803D"><i class="fa-solid fa-circle-check mr-1"></i>KYC অনুমোদিত — এগিয়ে যান</p></template>
+      <div x-show="kycRequiredForPending" x-cloak class="dd-card overflow-hidden">
+        <div class="p-3.5 flex items-center gap-3" :style="kycRecord?.status==='approved'?'background:linear-gradient(135deg,#16A34A15,transparent)':'background:linear-gradient(135deg,#1D4ED815,transparent)'">
+          <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" :style="kycRecord?.status==='approved'?'background:#DCFCE7;color:#16A34A':'background:#DBEAFE;color:#1D4ED8'"><i class="fa-solid" :class="kycRecord?.status==='approved'?'fa-circle-check':'fa-shield-halved'"></i></div>
+          <div class="flex-1 min-w-0">
+            <template x-if="!kycRecord"><div><p class="text-sm font-bold" style="color:var(--fg)">কিস্তি অর্ডারের জন্য পরিচয় ভেরিফিকেশন প্রয়োজন</p><button type="button" @click="openKycModal()" class="text-xs font-bold mt-1" style="color:#1D4ED8;background:none;border:none;cursor:pointer">এখনই ভেরিফাই করুন →</button></div></template>
+            <template x-if="kycRecord?.status==='pending'"><div><p class="text-sm font-bold" style="color:var(--fg)">KYC যাচাইয়ের অপেক্ষায়</p><p class="text-xs mt-0.5" style="color:var(--fg3)">অনুমোদন হলে আপনি অর্ডার সম্পন্ন করতে পারবেন</p></div></template>
+            <template x-if="kycRecord?.status==='rejected'||kycRecord?.status==='reupload'"><div><p class="text-sm font-bold" style="color:#DC2626">KYC বাতিল হয়েছে</p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="'কারণ: '+(kycRecord.note||'')"></p><button type="button" @click="openKycModal()" class="text-xs font-bold mt-1" style="color:#1D4ED8;background:none;border:none;cursor:pointer">আবার জমা দিন →</button></div></template>
+            <template x-if="kycRecord?.status==='approved'"><p class="text-sm font-bold" style="color:#15803D"><i class="fa-solid fa-circle-check mr-1.5"></i>KYC অনুমোদিত — এগিয়ে যান</p></template>
+          </div>
+        </div>
       </div>
       <!-- DOWNPAYMENT -->
       <div class="dd-card overflow-hidden">
         <div class="px-4 py-3.5" style="background:var(--header)"><p class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-credit-card" style="color:var(--accent)"></i>ডাউনপেমেন্ট পাঠান</p></div>
         <div class="p-4 space-y-2">
-          <template x-for="pm in [{id:'bkash',n:'bKash',num:settings.bkash},{id:'nagad',n:'Nagad',num:settings.nagad}]" :key="pm.id">
+          <template x-for="pm in payMethods" :key="pm.id">
             <label class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all" :style="pendingInstallment.payMethod===pm.id?'border-color:#1D4ED8;background:#EFF6FF':'border-color:var(--border);background:transparent'">
               <input type="radio" :value="pm.id" x-model="pendingInstallment.payMethod" class="sr-only"/>
               <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0" :style="pendingInstallment.payMethod===pm.id?'border-color:#1D4ED8':'border-color:var(--fg3)'"><div x-show="pendingInstallment.payMethod===pm.id" class="w-2.5 h-2.5 rounded-full" style="background:#1D4ED8"></div></div>
-              <div class="flex-1"><p class="text-sm font-bold" style="color:var(--fg)" x-text="pm.n"></p><p class="text-xs" style="color:var(--fg3)" x-text="pm.num||'নম্বর শীঘ্রই যোগ হবে'"></p></div>
+              <span class="pm-logo"><img x-show="pm.logo" :src="pm.logo" alt=""/><b x-show="!pm.logo" :style="'background:linear-gradient(135deg,'+pm.c+',color-mix(in srgb,'+pm.c+' 70%,#000 15%))'" x-text="pm.label.slice(0,1)"></b></span>
+              <div class="flex-1"><p class="text-sm font-bold" style="color:var(--fg)" x-text="pm.label"></p><p class="text-xs" style="color:var(--fg3)" x-text="pm.num||'নম্বর শীঘ্রই যোগ হবে'"></p></div>
             </label>
           </template>
+          <div x-show="!payMethods.length" x-cloak class="text-xs p-3 rounded-xl text-center" style="background:var(--bg2);color:var(--fg3)">এই মুহূর্তে কোনো পেমেন্ট পদ্ধতি চালু নেই।</div>
           <div class="pt-1"><label class="dd-label">ট্রানজেকশন ID *</label><input class="dd-input" x-model="pendingInstallment.trxId" placeholder="TrxID এখানে লিখুন"/></div>
         </div>
       </div>
@@ -1959,7 +1980,7 @@ html,body,main,header,footer,#app,.bottom-nav{
           <label x-show="codOn" x-cloak for="pm-cod" class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all" :style="form.pay==='cod'?'border-color:var(--accent);background:var(--accentL)':'border-color:var(--border);background:transparent'">
             <input type="radio" id="pm-cod" value="cod" x-model="form.pay" class="sr-only"/>
             <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0" :style="form.pay==='cod'?'border-color:var(--accent)':'border-color:var(--fg3)'"><div x-show="form.pay==='cod'" class="w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></div></div>
-            <span class="pm-logo"><b style="background:#334155">৳</b></span>
+            <span class="pm-logo"><b style="background:linear-gradient(135deg,#334155,#1E293B)"><i class="fa-solid fa-money-bill-wave" style="font-size:15px"></i></b></span>
             <div class="flex-1"><p class="text-sm font-bold" style="color:var(--fg)">ক্যাশ অন ডেলিভারি</p><p class="text-xs" style="color:var(--fg3)">পণ্য হাতে পেয়ে টাকা দিন</p></div>
           </label>
           <!-- Prepaid options -->
@@ -1968,7 +1989,7 @@ html,body,main,header,footer,#app,.bottom-nav{
               <label :for="'pm-'+pm.id" class="flex items-center gap-3 p-3 rounded-2xl border-2 cursor-pointer transition-all" :style="form.pay===pm.id?'border-color:var(--accent);background:var(--accentL)':'border-color:var(--border);background:transparent'">
                 <input type="radio" :id="'pm-'+pm.id" :value="pm.id" x-model="form.pay" class="sr-only"/>
                 <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0" :style="form.pay===pm.id?'border-color:var(--accent)':'border-color:var(--fg3)'"><div x-show="form.pay===pm.id" class="w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></div></div>
-                <span class="pm-logo"><img x-show="pm.logo" :src="pm.logo" alt=""/><b x-show="!pm.logo" :style="'background:'+pm.c" x-text="pm.label.slice(0,1)"></b></span>
+                <span class="pm-logo"><img x-show="pm.logo" :src="pm.logo" alt=""/><b x-show="!pm.logo" :style="'background:linear-gradient(135deg,'+pm.c+',color-mix(in srgb,'+pm.c+' 70%,#000 15%))'" x-text="pm.label.slice(0,1)"></b></span>
                 <div class="flex-1"><p class="text-sm font-bold flex items-center gap-1.5" style="color:var(--fg)"><span x-text="pm.label"></span><span x-show="pm.pct>0" class="text-[10px] font-bold px-1.5 py-0.5 rounded-full" style="background:#16A34A;color:#fff" x-text="pm.pct+'% ছাড়'"></span></p><p class="text-xs" style="color:var(--fg3)" x-text="pm.num||'নম্বর শীঘ্রই যোগ হবে'"></p></div>
               </label>
             </template>
@@ -2414,10 +2435,14 @@ html,body,main,header,footer,#app,.bottom-nav{
 </section>
 
 <!-- ─── COUNTRY PICKER MODAL ─── -->
-<div x-show="countryOpen" x-cloak class="modal-overlay-c" @click.self="countryOpen=false" style="z-index:300;position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5)">
-  <div class="dd-card p-5" style="max-width:340px;width:92%;margin:0 16px">
-    <p class="font-display text-lg mb-3" style="color:var(--fg)" x-text="t('selectCountry')"></p>
-    <div class="space-y-1">
+<div x-show="countryOpen" x-cloak class="sheet-overlay" @click.self="countryOpen=false" style="z-index:300">
+  <div class="notif-sheet" style="max-height:80vh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between px-5 pt-4 pb-2">
+      <p class="font-display text-lg" style="color:var(--fg)" x-text="t('selectCountry')"></p>
+      <button @click="countryOpen=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="px-5 pb-6 space-y-1.5">
       <template x-for="c in countries" :key="c.c">
         <div class="country-row" :class="country===c.c?'on':''" @click="setCountry(c.c)">
           <span class="text-xl" x-text="c.f"></span><span class="text-sm font-semibold flex-1" style="color:var(--fg)" x-text="c.n"></span>
@@ -3250,6 +3275,8 @@ function App(){return{
     if(l.length)return l;
     // legacy fallback if paymentMethods not configured yet
     return [{id:'bkash',label:'bKash',num:s.bkash,logo:s.bkashLogo,c:'#E2136E',pct:0,enabled:true},{id:'nagad',label:'Nagad',num:s.nagad,logo:s.nagadLogo,c:'#F6921E',pct:0,enabled:true}].filter(m=>m.num)},
+  paymentMethodLabel(id){if(id==='cod')return'ক্যাশ অন ডেলিভারি';const pm=(this.settings?.paymentMethods||{})[id];if(pm)return pm.label||id;const found=this.payMethods.find(m=>m.id===id);return found?found.label:(id==='bkash'?'bKash':id==='nagad'?'Nagad':id)},
+  paymentMethodNumber(id){const pm=(this.settings?.paymentMethods||{})[id];if(pm)return pm.number||'';const s=this.settings||{};return s[id]||''},
   get codOn(){return this.settings?.paymentOptions?.codEnabled!==false},
   get prepaidOn(){return this.settings?.paymentOptions?.prepaidEnabled!==false},
   get activePromoBanners(){return (this.settings?.checkoutPromoBanners||[]).filter(b=>b.active)},
@@ -4092,7 +4119,7 @@ function App(){return{
     return{total,paid,remaining:Math.max(0,total-paid)};
   },
   savingsProgressPct(w){return w&&w.targetAmount?Math.min(100,Math.round(((w.currentAmount||0)/w.targetAmount)*100)):0},
-  kycRequiredForWallet(w){return(w?.targetAmount||0)>=(this._num(this.settings?.kycThreshold)||5000)},
+  kycRequiredForWallet(w){return!!w},
   // পণ্য ডিটেইল থেকে "কিস্তিতে কিনুন" ক্লিক — নতুন হলে নীতিমালা মডাল দেখায়, আগে থেকে থাকলে সরাসরি হাব-এ নিয়ে যায়
   openSavingsGoal(p){
     if(!p||!(p.price>0))return;
@@ -4104,7 +4131,7 @@ function App(){return{
       this.showToast('এই পণ্যটি ইতিমধ্যে আপনার কিস্তি তালিকায় আছে','success');
       return;
     }
-    this.savingsModal={open:true,step:'create',product:p,wallet:null,amount:'',method:'bkash',trxId:'',phone:this.profile.phone||''};
+    this.savingsModal={open:true,step:'create',product:p,wallet:null,amount:'',method:this.payMethods[0]?.id||'bkash',trxId:'',phone:this.profile.phone||''};
   },
   closeSavingsModal(){this.savingsModal.open=false},
   // "হ্যাঁ, আমি কিস্তিতে নিতে চাই" — গোল তৈরি করে কিস্তি হাবে পাঠায়
@@ -4126,12 +4153,12 @@ function App(){return{
   },
   openSavingsWalletFromProfile(w){
     const p=this.allProducts.find(x=>(x.fbKey||x.id)===w.productId)||{name:w.productName,img:w.productImg,images:[w.productImg],price:w.targetAmount,fbKey:w.productId};
-    this.savingsModal={open:true,step:'contribute',product:p,wallet:w,amount:'',method:'bkash',trxId:''};
+    this.savingsModal={open:true,step:'contribute',product:p,wallet:w,amount:'',method:this.payMethods[0]?.id||'bkash',trxId:''};
   },
   // কিস্তি হাব থেকে "কিস্তি জমা দিন" — বড় অংকের কিস্তির ক্ষেত্রে NID ভেরিফিকেশন বাধ্যতামূলক
   openInstallmentContribution(w){
     if(this.kycRequiredForWallet(w)&&this.kycRecord?.status!=='approved'){
-      this.showToast('এই মূল্যের কিস্তির জন্য প্রথমে NID ভেরিফিকেশন সম্পন্ন করুন','error');
+      this.showToast('কিস্তিতে টাকা জমা দেওয়ার আগে NID ভেরিফিকেশন সম্পন্ন করুন','error');
       this.openKycModal();
       return;
     }
@@ -4181,7 +4208,7 @@ function App(){return{
     const opts=(p.installmentSettings.tenureOptions&&p.installmentSettings.tenureOptions.length)?p.installmentSettings.tenureOptions:[3];
     const tenure=this.installmentPanel.tenure||opts[0];
     const calc=this.computeInstallmentNumbers(p,tenure);
-    this.pendingInstallment={product:p,tenure,downPayment:calc.downPayment,feeAmt:calc.feeAmt,total:calc.total,monthly:calc.monthly,payMethod:'bkash',trxId:''};
+    this.pendingInstallment={product:p,tenure,downPayment:calc.downPayment,feeAmt:calc.feeAmt,total:calc.total,monthly:calc.monthly,payMethod:this.payMethods[0]?.id||'bkash',trxId:''};
     this.installmentActive=true;
     this.detailSheet.open=false;
     this.installmentPanel.open=false;
@@ -4190,7 +4217,7 @@ function App(){return{
   },
   cancelInstallmentCheckout(){this.installmentActive=false;this.pendingInstallment=null},
   get kycRecord(){const u=localStorage.getItem('dd_uid');return this.fbKyc.find(k=>k.uid===u)||null},
-  get kycRequiredForPending(){if(!this.pendingInstallment)return false;return this.pendingInstallment.total>=(this._num(this.settings?.kycThreshold)||5000)},
+  get kycRequiredForPending(){return!!this.pendingInstallment},
   openKycModal(){this.kycModal={open:true,nidFront:'',nidBack:'',selfie:'',studentId:'',notStudent:false,fatherPhone:'',motherPhone:'',closeContact:'',saving:false}},
   _cloudinary(file,cloudName,preset,onProgress){
     return new Promise((res,rej)=>{
@@ -4240,7 +4267,7 @@ function App(){return{
     if(!pi.trxId.trim())return this.showToast('ডাউনপেমেন্টের ট্রানজেকশন ID দিন!','error');
     if(this.kycRequiredForPending&&this.kycRecord?.status!=='approved'){
       this.openKycModal();
-      return this.showToast('এই মূল্যের কিস্তি অর্ডারের জন্য KYC ভেরিফিকেশন প্রয়োজন, নিচের ফর্মটি পূরণ করুন','error');
+      return this.showToast('কিস্তি অর্ডারের জন্য KYC ভেরিফিকেশন প্রয়োজন, নিচের ফর্মটি পূরণ করুন','error');
     }
     this.placing=true;
     const p=pi.product,uid=localStorage.getItem('dd_uid')||'';
@@ -4252,7 +4279,7 @@ function App(){return{
       status:'পেন্ডিং',uid,
       customerName:this.form.name,phone:this.form.phone,
       division:this.form.division,district:this.form.district,address:this.form.address,
-      payMethod:'কিস্তি — '+(pi.payMethod==='bkash'?'bKash':'Nagad'),payType:'installment',trxId:pi.trxId,
+      payMethod:'কিস্তি — '+this.paymentMethodLabel(pi.payMethod),payType:'installment',trxId:pi.trxId,
       items:[{id:p.fbKey||p.id,name:p.name,price:pi.total,qty:1,size:'',variantImg:(p.images&&p.images[0])||p.img||'',img:(p.images&&p.images[0])||p.img||''}],
       subtotal:pi.total,shipping,codExtraCharge:0,prepaidDiscount:0,advanceShipDiscount:0,
       promoCode:null,promoDiscount:0,
