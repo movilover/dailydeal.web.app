@@ -308,10 +308,15 @@ body{background:var(--bg);color:var(--fg)}
 .nav-btn span{font-size:9px;font-weight:700}
 
 /* ═══ BTN PRIMARY ═══ */
-.btn-primary{width:100%;padding:14px;border-radius:14px;background:var(--accent);color:#fff;font-weight:800;font-size:14px;border:none;cursor:pointer;box-shadow:0 6px 20px color-mix(in srgb,var(--accent) 30%,transparent);transition:all .2s;font-family:'Hind Siliguri',sans-serif}
-.btn-primary:hover{opacity:.92;transform:translateY(-1px)}
-.btn-primary:active{transform:scale(.98)}
-.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-primary{width:100%;padding:14px;border-radius:14px;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 78%,#fff 22%));color:#fff;font-weight:800;font-size:14px;letter-spacing:.2px;border:none;cursor:pointer;box-shadow:0 8px 22px color-mix(in srgb,var(--accent) 35%,transparent);transition:all .2s;font-family:'Hind Siliguri',sans-serif}
+.btn-primary:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 10px 26px color-mix(in srgb,var(--accent) 40%,transparent)}
+.btn-primary:active{transform:scale(.98);filter:brightness(.97)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+/* ══ প্রফেশনাল বাটন — সাইট জুড়ে সেকেন্ডারি/আউটলাইন বাটনের কমন লুক ══ */
+.btn-secondary{width:100%;padding:13px;border-radius:14px;background:var(--bg2);color:var(--fg2);font-weight:800;font-size:13.5px;border:1.5px solid var(--border);cursor:pointer;transition:all .2s;font-family:'Hind Siliguri',sans-serif}
+.btn-secondary:hover{background:var(--bg3)}
+.btn-secondary:active{transform:scale(.98)}
+button{-webkit-tap-highlight-color:transparent}
 
 /* ═══ STATUS CHIPS ═══ */
 .chip-pending{background:#FFF7ED;color:#C2410C;border:1px solid #FED7AA}
@@ -390,7 +395,8 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .fb-title{font-size:14px;color:var(--fg);margin:6px 0;line-height:1.5}
 .fb-btns{display:flex;gap:8px;margin-bottom:10px}.fb-btns button{font:700 11px 'Hind Siliguri',sans-serif;letter-spacing:.4px;background:var(--bg2);border:0;color:#15803D;padding:6px 10px;border-radius:6px;cursor:pointer}
 .fb-photos{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;cursor:pointer}.fb-photos img{width:100%;aspect-ratio:1/1.25;object-fit:cover;border-radius:4px;background:var(--bg2)}
-.sell-bar{position:fixed;left:14px;right:14px;bottom:86px;z-index:70;background:var(--accent);color:#fff;border-radius:12px;padding:12px 16px;display:flex;justify-content:space-between;font-weight:700;font-size:13px;box-shadow:0 8px 20px rgba(0,0,0,.25);cursor:pointer}
+.sell-bar{position:fixed;left:14px;right:14px;bottom:86px;z-index:70;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 78%,#fff 22%));color:#fff;border-radius:14px;padding:13px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:13px;box-shadow:0 10px 24px color-mix(in srgb,var(--accent) 40%,transparent);cursor:pointer;transition:transform .15s}
+.sell-bar:active{transform:scale(.98)}
 .pv-wrap{position:fixed;inset:0;z-index:90;background:var(--bg);overflow-y:auto}
 .pv-top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--card);border-bottom:1px solid var(--border)}
 .pv-imgs{display:flex;gap:8px;overflow-x:auto;padding:12px 14px 0;scroll-snap-type:x mandatory}.pv-img{position:relative;flex:none;width:78%;scroll-snap-align:center}.pv-img img{width:100%;height:340px;object-fit:cover;border-radius:12px;background:var(--bg2)}
@@ -402,7 +408,7 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .installment-cta{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,#1D4ED8,#3B82F6);color:#fff;font:800 13.5px 'Hind Siliguri',sans-serif;border:none;cursor:pointer;margin-top:12px;box-shadow:0 8px 20px rgba(29,78,216,.35);transition:transform .15s,box-shadow .2s}
 .installment-cta:active{transform:scale(.97)}
 .installment-cta i{font-size:16px}
-.installment-cta small{display:block;font-weight:600;font-size:10.5px;opacity:.85;margin-top:1px}
+.installment-cta small{display:block;font-weight:600;font-size:11px;opacity:.97;margin-top:2px;color:#fff}
 .savings-ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:12px;flex:none;box-shadow:0 3px 10px color-mix(in srgb,var(--accent) 35%,transparent)}
 .savings-badge span:first-child{font-size:16px}
 .savings-track{width:100%;height:9px;border-radius:20px;background:var(--bg2);overflow:hidden}
@@ -457,7 +463,9 @@ body.theme-light .section-title{font-family:'Noto Serif Bengali','Playfair Displ
 .dp-bar{position:sticky;left:0;right:0;bottom:0;z-index:30;display:flex;gap:10px;align-items:stretch;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--border)}
 .dp-qty{width:96px;border:1.5px solid var(--border);border-radius:14px;text-align:center;padding:4px 2px}.dp-qty small{display:block;font-size:10px;color:var(--fg3);font-weight:700}.dp-qty div{display:flex;justify-content:space-between;align-items:center;padding:0 6px}.dp-qty button{background:none;border:0;font-size:18px;cursor:pointer;color:var(--fg)}
 .dp-buy,.dp-add{flex:1;border:0;border-radius:14px;color:#fff;font:800 14px 'Hind Siliguri',sans-serif;cursor:pointer}.dp-buy{background:var(--header)}.dp-add{background:var(--accent)}
-.dp-inst{flex:0 0 auto;width:52px;border:0;border-radius:14px;background:#1D4ED8;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.dp-inst{flex:0 0 auto;width:60px;border:0;border-radius:14px;background:linear-gradient(135deg,#1D4ED8,#3B82F6);color:#fff;font-size:16px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 6px 16px rgba(29,78,216,.32)}
+.dp-inst span{font-size:9px;font-weight:800;letter-spacing:.1px;line-height:1}
+.dp-inst:active{transform:scale(.95)}
 .sub-chip{flex:none;display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:99px;background:var(--card);border:1px solid var(--border);color:var(--fg);font:600 12px 'Hind Siliguri',sans-serif;cursor:pointer}.sub-chip.on{background:var(--accent);border-color:var(--accent);color:#fff}.sub-chip img{width:20px;height:20px;border-radius:50%;object-fit:cover}
 .grp-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:18px;flex:none;border:2px solid rgba(15,13,10,.85)}
 .grp-row{scrollbar-width:none;padding:2px 8px 10px 2px}.grp-row::-webkit-scrollbar{display:none}
@@ -509,6 +517,12 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 .ed-foot .ed-foot-tag{letter-spacing:.4px}
 .ed-foot .ed-foot-info{display:flex;align-items:center;justify-content:center;gap:6px}
 .ed-foot .ed-foot-social{justify-content:center}
+.ed-foot-trust{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px;padding-top:16px;border-top:1px solid rgba(255,255,255,.12)}
+.ed-foot-trust>div{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10.5px;font-weight:600;letter-spacing:.1px;line-height:1.3;color:#fff;opacity:.97;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:12px 6px 10px}
+.ed-foot-trust>div>i{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));font-size:14px;color:#fff!important;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.ed-foot-social a,.ed-foot-social button{border:1px solid rgba(255,255,255,.18)!important}
+.ed-foot-top{width:100%;margin-top:16px;background:transparent;border:1px solid rgba(255,255,255,.25);color:inherit;border-radius:12px;padding:9px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;transition:background .15s}
+.ed-foot-top:active{background:rgba(255,255,255,.1)}
 .bottom-nav{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important}
 
 /* ── Helpline popup ── */
@@ -719,6 +733,7 @@ html,body,main,header,footer,#app,.bottom-nav{
     </div>
     <p class="text-xs mt-1" style="color:var(--fg3)" x-show="detailSheet.prod.oldPrice>detailSheet.prod.price" x-text="'আপনি সাশ্রয় করছেন ৳'+(detailSheet.prod.oldPrice-detailSheet.prod.price)"></p>
     <button type="button" @click="openSavingsGoal(detailSheet.prod)" class="installment-cta"><i class="fa-solid fa-calendar-days"></i><span>কিস্তিতে কিনুন<small>৫, ১০, ১৫ টাকা করে ধাপে ধাপে জমা দিন</small></span></button>
+    <button type="button" x-show="detailSheet.prod.installmentSettings&&detailSheet.prod.installmentSettings.tenureOptions&&detailSheet.prod.installmentSettings.tenureOptions.length" @click="toggleInstallmentPanel(detailSheet.prod)" class="installment-cta" style="background:transparent;border:2px solid #1D4ED8;color:#1D4ED8;box-shadow:none"><i class="fa-solid fa-credit-card"></i><span>কিস্তিতে অর্ডার করুন (EMI)<small style="color:#1D4ED8">ডাউনপেমেন্ট এখন, বাকিটা প্রতি মাসে</small></span></button>
   </div>
   <template x-if="dpImgs.length>1">
     <div class="dp-box"><p class="dp-h">কালার / ডিজাইন বেছে নিন</p>
@@ -748,7 +763,7 @@ html,body,main,header,footer,#app,.bottom-nav{
   </div>
   <div class="dp-bar">
     <div class="dp-qty"><small>পরিমাণ</small><div><button @click="detailQty=Math.max(1,detailQty-1)">−</button><b x-text="detailQty"></b><button @click="detailQty++">+</button></div></div>
-    <button type="button" class="dp-inst" title="কিস্তিতে কিনুন" @click="openSavingsGoal(detailSheet.prod)"><i class="fa-solid fa-calendar-days"></i></button>
+    <button type="button" class="dp-inst" title="কিস্তিতে কিনুন" @click="openSavingsGoal(detailSheet.prod)"><i class="fa-solid fa-calendar-days"></i><span>কিস্তি</span></button>
     <button class="dp-buy" @click="detailAdd(true)" x-text="t('buyNow')"></button>
     <button class="dp-add" @click="detailAdd(false)" x-text="t('addToCart')"></button>
   </div>
@@ -825,6 +840,41 @@ html,body,main,header,footer,#app,.bottom-nav{
           </template>
         </div>
       </template>
+    </div>
+    </template>
+  </div>
+</div>
+
+<!-- ════════ EMI INSTALLMENT PANEL (wired up) ════════ -->
+<div x-show="installmentPanel.open" x-cloak class="sheet-overlay" @click.self="installmentPanel.open=false" style="z-index:261">
+  <div class="notif-sheet" style="max-height:88vh;overflow-y:auto">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between px-5 pt-4 pb-3">
+      <p class="font-display text-lg" style="color:var(--fg)">💳 কিস্তিতে অর্ডার করুন</p>
+      <button @click="installmentPanel.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <template x-if="installmentPanel.open&&detailSheet.prod">
+    <div class="px-5 pb-6">
+      <div class="flex items-center gap-3 mb-4 p-3 rounded-2xl" style="background:var(--bg2)">
+        <img :src="(detailSheet.prod.images&&detailSheet.prod.images[0])||detailSheet.prod.img" class="w-14 h-14 rounded-xl object-cover flex-shrink-0" onerror="this.style.opacity=0"/>
+        <div class="min-w-0"><p class="text-sm font-bold truncate" style="color:var(--fg)" x-text="detailSheet.prod.name"></p><p class="text-xs font-mono font-bold mt-0.5" style="color:#1D4ED8" x-text="'পণ্যের মূল্য: ৳'+Number(detailSheet.prod.price||0).toLocaleString()"></p></div>
+      </div>
+      <p class="dp-h mb-2">কিস্তির মেয়াদ বেছে নিন</p>
+      <div class="grid grid-cols-3 gap-2 mb-4">
+        <template x-for="opt in (detailSheet.prod.installmentSettings.tenureOptions||[3])" :key="opt">
+          <button type="button" @click="installmentPanel.tenure=opt" class="py-2.5 rounded-xl text-sm font-bold border-2 transition-all" :style="installmentPanel.tenure===opt?'border-color:#1D4ED8;background:#EFF6FF;color:#1D4ED8':'border-color:var(--border);background:transparent;color:var(--fg2)'" x-text="opt+' মাস'"></button>
+        </template>
+      </div>
+      <div class="rounded-2xl p-3.5 space-y-1.5 mb-4" style="background:var(--bg2)">
+        <div class="installment-row"><span>ডাউনপেমেন্ট (আজই)</span><b x-text="'৳'+installmentCalc(detailSheet.prod).downPayment.toLocaleString()"></b></div>
+        <div class="installment-row" x-show="installmentCalc(detailSheet.prod).feeAmt>0"><span>প্রসেসিং ফি</span><b x-text="'৳'+installmentCalc(detailSheet.prod).feeAmt.toLocaleString()"></b></div>
+        <div class="installment-row" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:8px"><span x-text="installmentPanel.tenure+' মাসে মাসিক কিস্তি'"></span><b x-text="'৳'+installmentCalc(detailSheet.prod).monthly.toLocaleString()+'/মাস'"></b></div>
+      </div>
+      <p class="text-xs mb-4" style="color:var(--fg3)"><i class="fa-solid fa-circle-info mr-1" style="color:#1D4ED8"></i>ডাউনপেমেন্ট এখন দিতে হবে, বাকি টাকা প্রতি মাসে সমান কিস্তিতে পরিশোধ করবেন।</p>
+      <div class="flex gap-2">
+        <button type="button" @click="installmentPanel.open=false" class="text-sm font-bold px-4 rounded-xl" style="background:var(--bg2);color:var(--fg2);border:none;cursor:pointer">না, থাক</button>
+        <button @click="startInstallmentOrder(detailSheet.prod)" class="btn-primary flex-1" style="background:#1D4ED8"><i class="fa-solid fa-check mr-2"></i>হ্যাঁ, কিস্তিতে নিন</button>
+      </div>
     </div>
     </template>
   </div>
@@ -1363,14 +1413,17 @@ html,body,main,header,footer,#app,.bottom-nav{
         </div>
         <button @click="activeTab='allproducts'" class="text-xs font-bold" style="color:var(--accent);background:none;border:none;cursor:pointer">সব দেখুন <i class="fa-solid fa-arrow-right"></i></button>
       </div>
-      <div class="flex gap-3 overflow-x-auto grp-row">
-        <template x-for="p in g.items.slice(0,10)" :key="p.fbKey||p.id">
-          <div class="product-card" style="flex:none;width:150px">
+      <div class="grid gap-2 grid-4">
+        <template x-for="p in g.items.slice(0,4)" :key="p.fbKey||p.id">
+          <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
           <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0}" x-init="if((p.images||[]).length>1){let _t=setInterval(()=>cidx=(cidx+1)%p.images.length,2500);$cleanup(()=>clearInterval(_t))}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.src='https://placehold.co/300x300/eee/aaa?text=পণ্য'" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
           <div class="p-2.5">
             <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
             <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
-            <button @click="quickAdd(p)" class="w-full py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus mr-1" style="font-size:10px"></i><span x-text="t('addToCart')"></span></button>
+            <div class="grid grid-cols-2 gap-1">
+              <button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button>
+              <button @click="quickAdd(p)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button>
+            </div>
           </div></div>
         </template>
       </div>
@@ -1533,6 +1586,12 @@ html,body,main,header,footer,#app,.bottom-nav{
       <button @click="helplineOpen=true" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.12);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-headset"></i> সাপোর্ট</button>
     </div>
     <p class="pt-3 text-xs" style="opacity:.6;border-top:1px solid rgba(255,255,255,.15);margin-top:12px">© ২০২৬ <span x-text="settings.siteName||'Daily Deal'"></span> · সর্বস্বত্ব সংরক্ষিত</p>
+    <div class="ed-foot-trust">
+      <div><i class="fa-solid fa-truck-fast"></i><span>ক্যাশ অন ডেলিভারি</span></div>
+      <div><i class="fa-solid fa-certificate"></i><span>১০০% অরিজিনাল</span></div>
+      <div><i class="fa-solid fa-rotate-left"></i><span>৭ দিন রিটার্ন</span></div>
+    </div>
+    <button type="button" @click="window.scrollTo({top:0,behavior:'smooth'})" class="ed-foot-top"><i class="fa-solid fa-arrow-up"></i>উপরে ফিরুন</button>
   </footer>
   <div class="footer-safe-spacer" x-show="activeCat==='সব'&&q===''"></div>
 </section>
@@ -2101,11 +2160,11 @@ html,body,main,header,footer,#app,.bottom-nav{
       <p class="text-white text-xs mt-1 opacity-70 text-center tracking-widest uppercase">বিশ্বস্ত · দ্রুত · সাশ্রয়ী</p>
     </div>
   </div>
-  <div class="mx-4 -mt-8 relative z-10 dd-card p-3.5 flex items-center gap-3 mb-4">
+  <div class="mx-4 -mt-8 relative z-10 dd-card p-3.5 flex items-center gap-3 mb-4" style="box-shadow:0 12px 30px var(--shadow)">
     <div class="relative flex-shrink-0">
-      <img x-show="profile.img" :src="profile.img" class="w-14 h-14 rounded-2xl object-cover" style="border:2.5px solid var(--card)"/>
-      <div x-show="!profile.img" class="w-14 h-14 rounded-2xl flex items-center justify-center font-display text-lg" style="border:2.5px solid var(--card);background:var(--accentL);color:var(--accent)" x-text="(profile.name||'?').trim().charAt(0).toUpperCase()"></div>
-      <label class="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center cursor-pointer" style="background:var(--accent)"><i class="fa-solid fa-camera text-white" style="font-size:8px"></i><input type="file" accept="image/*" @change="uploadPic" class="hidden"/></label>
+      <img x-show="profile.img" :src="profile.img" class="w-14 h-14 rounded-2xl object-cover" style="border:2.5px solid var(--card);box-shadow:0 0 0 2px var(--accent)"/>
+      <div x-show="!profile.img" class="w-14 h-14 rounded-2xl flex items-center justify-center font-display text-lg" style="border:2.5px solid var(--card);background:var(--accentL);color:var(--accent);box-shadow:0 0 0 2px var(--accent)" x-text="(profile.name||'?').trim().charAt(0).toUpperCase()"></div>
+      <label class="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg flex items-center justify-center cursor-pointer" style="background:var(--accent);box-shadow:0 2px 6px rgba(0,0,0,.3)"><i class="fa-solid fa-camera text-white" style="font-size:8px"></i><input type="file" accept="image/*" @change="uploadPic" class="hidden"/></label>
     </div>
     <div class="flex-1 min-w-0">
       <p class="font-display text-base leading-tight truncate" style="color:var(--fg)" x-text="profile.name||'গেস্ট ইউজার'"></p>
@@ -2134,13 +2193,13 @@ html,body,main,header,footer,#app,.bottom-nav{
   </div>
 
   <div class="mx-4 grid grid-cols-3 gap-3 mb-4">
-    <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--fg)" x-text="myOrders.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">অর্ডার</p></div>
-    <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--fg)" x-text="myOrders.filter(o=>o.status==='ডেলিভার্ড').length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">ডেলিভার্ড</p></div>
-    <div class="dd-card p-3 text-center"><p class="font-display text-2xl" style="color:var(--accent)" x-text="cart.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">কার্টে</p></div>
+    <div class="dd-card p-3 text-center" style="border-top:2.5px solid var(--accent)"><i class="fa-solid fa-bag-shopping" style="color:var(--accent);font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--fg)" x-text="myOrders.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">অর্ডার</p></div>
+    <div class="dd-card p-3 text-center" style="border-top:2.5px solid #16A34A"><i class="fa-solid fa-truck-fast" style="color:#16A34A;font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--fg)" x-text="myOrders.filter(o=>o.status==='ডেলিভার্ড').length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">ডেলিভার্ড</p></div>
+    <div class="dd-card p-3 text-center" style="border-top:2.5px solid var(--accent2)"><i class="fa-solid fa-cart-shopping" style="color:var(--accent2);font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--accent)" x-text="cart.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">কার্টে</p></div>
   </div>
 
   <div class="px-4 space-y-3">
-    <button @click="activeTab='resell'" x-show="resellSession&&resellStatus==='approved'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-white" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer">
+    <button @click="activeTab='resell'" x-show="resellSession&&resellStatus==='approved'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-white" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer;box-shadow:0 8px 22px rgba(184,134,11,.35);transition:transform .15s" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">
       <i class="fa-solid fa-store text-lg"></i>
       <span class="flex-1 text-left"><p class="text-sm font-bold">রিসেলার প্যানেল</p><p class="text-xs opacity-80" x-text="'ওয়ালেট: ৳'+(reseller?.walletBalance||0).toLocaleString()"></p></span>
       <i class="fa-solid fa-chevron-right text-xs"></i>
@@ -2154,70 +2213,105 @@ html,body,main,header,footer,#app,.bottom-nav{
       <i class="fa-solid fa-download text-lg opacity-60"></i>
     </a>
 
-    <div class="dd-card p-4 space-y-3">
-      <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-user-pen" style="color:var(--accent)"></i>প্রোফাইল আপডেট</p>
-      <div>
-        <div class="flex items-center justify-between">
-          <label class="dd-label mb-0">নাম</label>
-          <span x-show="profile.nameLockedAt" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-lock"></i>লকড</span>
+    <div class="dd-card p-4 space-y-3" x-data="{editMode:!profile.phone}">
+      <div class="flex items-center justify-between">
+        <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-user-pen" style="color:var(--accent)"></i>প্রোফাইল আপডেট</p>
+        <button x-show="!editMode" type="button" @click="editMode=true" class="text-xs font-bold flex-shrink-0" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>এডিট করুন</button>
+      </div>
+
+      <template x-if="!editMode">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-sm"><span style="color:var(--fg3)">নাম</span><span class="font-bold" style="color:var(--fg)" x-text="profile.name||'—'"></span></div>
+          <div class="flex items-center justify-between text-sm"><span style="color:var(--fg3)">মোবাইল</span><span class="font-bold flex items-center gap-1.5" style="color:var(--fg)"><i class="fa-solid fa-circle-check" style="color:#16A34A;font-size:11px"></i><span x-text="profile.phone"></span></span></div>
+          <div class="flex items-center justify-between text-sm" x-show="profile.email"><span style="color:var(--fg3)">ইমেইল</span><span class="font-bold" style="color:var(--fg)" x-text="profile.email"></span></div>
         </div>
-        <input class="dd-input" x-model="profile.name" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
-        <button x-show="profile.nameLockedAt" @click="helplineOpen=true" type="button" class="text-xs font-bold mt-1.5" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>তথ্য পরিবর্তনের অনুরোধ করুন</button>
-      </div>
-      <div>
-        <label class="dd-label">মোবাইল</label>
-        <input class="dd-input" type="tel" x-model="profile.phone" placeholder="০১XXXXXXXXX" :disabled="numberLockDaysLeft>0"/>
-        <p class="lock-note" x-show="numberLockDaysLeft>0"><i class="fa-solid fa-lock"></i><span x-text="'নম্বর পরিবর্তনযোগ্য নয় — আরও '+numberLockDaysLeft+' দিন অপেক্ষা করুন (নিরাপত্তার জন্য ৭ দিনের লক)'"></span></p>
-      </div>
-      <div>
-        <label class="dd-label" x-text="t('emailOpt')"></label>
-        <input class="dd-input" type="email" x-model="profile.email" placeholder="you@gmail.com"/>
-        <p class="text-xs mt-1" style="color:var(--fg3)"><i class="fa-solid fa-circle-info mr-1" style="color:var(--accent)"></i>Gmail যুক্ত থাকলে পাসওয়ার্ড ভুলে গেলে সহজে রিসেট করতে পারবেন — নিরাপত্তার জন্য সুপারিশকৃত।</p>
-      </div>
-      <button @click="saveProfile()" class="btn-primary"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
+      </template>
+
+      <template x-if="editMode">
+        <div class="space-y-3">
+          <div>
+            <div class="flex items-center justify-between">
+              <label class="dd-label mb-0">নাম</label>
+              <span x-show="profile.nameLockedAt" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-lock"></i>লকড</span>
+            </div>
+            <input class="dd-input" x-model="profile.name" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
+            <button x-show="profile.nameLockedAt" @click="helplineOpen=true" type="button" class="text-xs font-bold mt-1.5" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>তথ্য পরিবর্তনের অনুরোধ করুন</button>
+          </div>
+          <div>
+            <label class="dd-label">মোবাইল</label>
+            <input class="dd-input" type="tel" x-model="profile.phone" placeholder="০১XXXXXXXXX" :disabled="numberLockDaysLeft>0"/>
+            <p class="lock-note" x-show="numberLockDaysLeft>0"><i class="fa-solid fa-lock"></i><span x-text="'নম্বর পরিবর্তনযোগ্য নয় — আরও '+numberLockDaysLeft+' দিন অপেক্ষা করুন (নিরাপত্তার জন্য ৭ দিনের লক)'"></span></p>
+          </div>
+          <div>
+            <label class="dd-label" x-text="t('emailOpt')"></label>
+            <input class="dd-input" type="email" x-model="profile.email" placeholder="you@gmail.com"/>
+            <p class="text-xs mt-1" style="color:var(--fg3)"><i class="fa-solid fa-circle-info mr-1" style="color:var(--accent)"></i>Gmail যুক্ত থাকলে পাসওয়ার্ড ভুলে গেলে সহজে রিসেট করতে পারবেন — নিরাপত্তার জন্য সুপারিশকৃত।</p>
+          </div>
+          <div class="flex gap-2">
+            <button x-show="profile.phone" type="button" @click="editMode=false" class="text-xs font-bold px-4 rounded-xl" style="background:var(--bg2);color:var(--fg2);border:none;cursor:pointer">বাতিল</button>
+            <button @click="saveProfile();if(profile.phone)editMode=false" class="btn-primary flex-1"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
+          </div>
+        </div>
+      </template>
     </div>
 
     <!-- Account security: optional password + forget-password -->
-    <div class="dd-card p-4 space-y-3">
+    <div class="dd-card p-4 space-y-3" x-data="{editPw:false}">
       <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i>একাউন্ট নিরাপত্তা</p>
-      <p class="text-xs" style="color:var(--fg3)" x-text="profile.hasPassword?'আপনার একাউন্টে পাসওয়ার্ড সেট করা আছে।':'ঐচ্ছিক: একটি পাসওয়ার্ড সেট করলে ভবিষ্যতে অন্য ডিভাইস থেকেও আপনার তথ্য রিকভার করতে পারবেন।'"></p>
-      <div x-data="{show:false}">
-        <label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label>
-        <div style="position:relative">
-          <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/>
-          <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
+
+      <template x-if="profile.hasPassword && !editPw">
+        <div class="flex items-center justify-between">
+          <p class="text-xs flex items-center gap-1.5" style="color:var(--fg3)"><i class="fa-solid fa-circle-check" style="color:#16A34A"></i>পাসওয়ার্ড সেট করা আছে</p>
+          <button type="button" @click="editPw=true" class="text-xs font-bold flex-shrink-0" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>পরিবর্তন করুন</button>
         </div>
-        <template x-if="securityForm.newPw">
-          <div class="mt-1.5">
-            <div class="rounded-full overflow-hidden" style="height:4px;background:var(--bg3)">
-              <div class="h-full rounded-full transition-all duration-300" :style="'width:'+pwStrength(securityForm.newPw).pct+'%;background:'+pwStrength(securityForm.newPw).color"></div>
+      </template>
+
+      <template x-if="!profile.hasPassword || editPw">
+        <div class="space-y-3">
+          <p class="text-xs" style="color:var(--fg3)" x-show="!profile.hasPassword">ঐচ্ছিক: একটি পাসওয়ার্ড সেট করলে ভবিষ্যতে অন্য ডিভাইস থেকেও আপনার তথ্য রিকভার করতে পারবেন।</p>
+          <div x-data="{show:false}">
+            <label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label>
+            <div style="position:relative">
+              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/>
+              <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
             </div>
-            <p class="text-[11px] font-bold mt-1" :style="'color:'+pwStrength(securityForm.newPw).color" x-text="pwStrength(securityForm.newPw).label"></p>
-            <div class="mt-1.5 space-y-1">
-              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasLen(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasLen(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>কমপক্ষে ৬-৮ ক্যারেক্টার</p>
-              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasNum(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasNum(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা সংখ্যা আছে</p>
-              <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasSpecial(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasSpecial(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা স্পেশাল ক্যারেক্টার/বড় অক্ষর আছে</p>
-            </div>
+            <template x-if="securityForm.newPw">
+              <div class="mt-1.5">
+                <div class="rounded-full overflow-hidden" style="height:4px;background:var(--bg3)">
+                  <div class="h-full rounded-full transition-all duration-300" :style="'width:'+pwStrength(securityForm.newPw).pct+'%;background:'+pwStrength(securityForm.newPw).color"></div>
+                </div>
+                <p class="text-[11px] font-bold mt-1" :style="'color:'+pwStrength(securityForm.newPw).color" x-text="pwStrength(securityForm.newPw).label"></p>
+                <div class="mt-1.5 space-y-1">
+                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasLen(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasLen(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>কমপক্ষে ৬-৮ ক্যারেক্টার</p>
+                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasNum(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasNum(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা সংখ্যা আছে</p>
+                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasSpecial(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasSpecial(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা স্পেশাল ক্যারেক্টার/বড় অক্ষর আছে</p>
+                </div>
+              </div>
+            </template>
           </div>
-        </template>
-      </div>
-      <div x-data="{show:false}">
-        <label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label>
-        <div style="position:relative">
-          <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" placeholder="আবার লিখুন"/>
-          <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
+          <div x-data="{show:false}">
+            <label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label>
+            <div style="position:relative">
+              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" placeholder="আবার লিখুন"/>
+              <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
+            </div>
+            <template x-if="securityForm.confirmPw">
+              <p class="text-[11px] font-bold mt-1.5 flex items-center gap-1.5" :style="'color:'+(securityForm.newPw===securityForm.confirmPw?'#16A34A':'#DC2626')">
+                <i class="fa-solid" :class="securityForm.newPw===securityForm.confirmPw?'fa-circle-check':'fa-circle-xmark'"></i>
+                <span x-text="securityForm.newPw===securityForm.confirmPw?'পাসওয়ার্ড মিলেছে':'পাসওয়ার্ড মিলছে না'"></span>
+              </p>
+            </template>
+          </div>
+          <div class="flex gap-2">
+            <button x-show="profile.hasPassword" type="button" @click="editPw=false;securityForm={newPw:'',confirmPw:'',saving:false}" class="text-xs font-bold px-4 rounded-xl" style="background:var(--bg2);color:var(--fg2);border:none;cursor:pointer">বাতিল</button>
+            <button @click="setAccountPassword().then(()=>{if(!securityForm.newPw)editPw=false})" :disabled="securityForm.saving" class="btn-primary flex-1" style="background:var(--fg)">
+              <span x-show="!securityForm.saving"><i class="fa-solid fa-key mr-2"></i><span x-text="profile.hasPassword?'পাসওয়ার্ড আপডেট করুন':'পাসওয়ার্ড সেট করুন'"></span></span>
+              <span x-show="securityForm.saving"><i class="fa-solid fa-spinner fa-spin"></i></span>
+            </button>
+          </div>
         </div>
-        <template x-if="securityForm.confirmPw">
-          <p class="text-[11px] font-bold mt-1.5 flex items-center gap-1.5" :style="'color:'+(securityForm.newPw===securityForm.confirmPw?'#16A34A':'#DC2626')">
-            <i class="fa-solid" :class="securityForm.newPw===securityForm.confirmPw?'fa-circle-check':'fa-circle-xmark'"></i>
-            <span x-text="securityForm.newPw===securityForm.confirmPw?'পাসওয়ার্ড মিলেছে':'পাসওয়ার্ড মিলছে না'"></span>
-          </p>
-        </template>
-      </div>
-      <button @click="setAccountPassword()" :disabled="securityForm.saving" class="btn-primary" style="background:var(--fg)">
-        <span x-show="!securityForm.saving"><i class="fa-solid fa-key mr-2"></i><span x-text="profile.hasPassword?'পাসওয়ার্ড আপডেট করুন':'পাসওয়ার্ড সেট করুন'"></span></span>
-        <span x-show="securityForm.saving"><i class="fa-solid fa-spinner fa-spin"></i></span>
-      </button>
+      </template>
+
       <button @click="openForgotPw()" class="w-full text-center text-xs font-bold py-2" style="background:none;border:none;cursor:pointer;color:var(--accent)">পাসওয়ার্ড ভুলে গেছেন? রিসেট করুন</button>
     </div>
 
