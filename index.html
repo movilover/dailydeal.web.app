@@ -590,7 +590,7 @@ html,body,main,header,footer,#app,.bottom-nav{
 <body :class="'theme-'+activeTheme" class="theme-light">
 
 <!-- ════════ FULL-PAGE SKELETON (first load) ════════ -->
-<div x-show="loading" x-transition:leave="transition-opacity duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[400]" style="background:var(--bg);max-width:480px;margin:0 auto;overflow:hidden" x-cloak>
+<div id="app-skeleton" x-show="loading" x-transition:leave="transition-opacity duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-[400]" style="background:var(--bg);max-width:480px;margin:0 auto;overflow-y:auto;touch-action:pan-y" x-cloak>
   <div class="shimmer" style="height:56px"></div>
   <div class="shimmer" style="height:188px;margin-top:2px"></div>
   <div class="flex gap-3 px-4 pt-5 pb-1">
@@ -614,6 +614,41 @@ html,body,main,header,footer,#app,.bottom-nav{
     </template>
   </div>
 </div>
+<!-- ══ HARD KILL-SWITCH — plain JS, zero dependency on Alpine or Firebase ══
+     Does not wait for boot(), the 'firebase-ready' event, or any framework
+     to initialize. This is an ordinary inline script the browser executes
+     the instant it's parsed (right after the skeleton markup above), so
+     even if the Alpine bundle from jsdelivr or the Firebase module never
+     loads at all (blocked script, dead CDN, offline, ad-blocker, slow 2G),
+     this timer still fires 2 seconds after THIS POINT in the HTML was
+     parsed and force-removes the skeleton + force-restores scrolling. -->
+<script>
+(function(){
+  function killSkeleton(){
+    var el=document.getElementById('app-skeleton');
+    if(el){
+      el.style.setProperty('display','none','important');
+      el.setAttribute('aria-hidden','true');
+    }
+    var html=document.documentElement,body=document.body;
+    [html,body].forEach(function(n){
+      if(!n)return;
+      n.style.setProperty('overflow-y','auto','important');
+      n.style.setProperty('touch-action','pan-y','important');
+      n.style.setProperty('pointer-events','auto','important');
+      n.style.removeProperty('height');
+      n.style.removeProperty('max-height');
+    });
+  }
+  // Absolute guarantee: fires 2s after this point in the page, no matter
+  // what else does or doesn't load.
+  setTimeout(killSkeleton,2000);
+  // Belt-and-suspenders: also run once the window 'load' event fires
+  // (all sub-resources settled), in case something re-applied a blocking
+  // style right around the 2s mark.
+  window.addEventListener('load',function(){setTimeout(killSkeleton,300)});
+})();
+</script>
 
 <!-- ════════ TOP MARQUEE ════════ -->
 <div x-show="marqueeText&&marqueeEnabled" x-cloak class="sticky top-0 z-[60] py-1.5 px-3 flex items-center gap-2" style="background:var(--accent)">
@@ -3252,8 +3287,12 @@ function App(){return{
        blocked, or misconfigured on this device/network, that callback may
        never fire, leaving the full-screen overlay up forever and blocking
        every scroll/tap on the real page underneath. This forces it to clear
-       after 8s no matter what, so the page is never permanently frozen. */
-    setTimeout(()=>{this.loading=false},8000);
+       after 2s no matter what, so the page is never held hostage waiting
+       on a network call. (There is also a plain-JS kill-switch, independent
+       of Alpine entirely, right after the skeleton markup in <body> — that
+       one is the real guarantee if Alpine itself fails to load; this is the
+       in-app backup for the normal case where Alpine did load fine.) */
+    setTimeout(()=>{this.loading=false},2000);
     this._initHistoryNav();
     const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
     if(this.profile.phone&&window.$db){
