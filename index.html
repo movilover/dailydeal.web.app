@@ -89,6 +89,7 @@ window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d)
   },
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
+  listenIntlCats:(cb)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenNotifications:(cb)=>onValue(ref(db,'notifications'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -1829,6 +1830,16 @@ img.dd-ok{opacity:1!important}
     <div class="ml-auto text-right"><p class="text-xs font-bold" style="color:var(--fg3)">৭ দিনে</p><p class="text-xs font-bold" style="color:var(--accent)">রিটার্ন</p></div>
   </div>
 
+  <!-- ═══ INTERNATIONAL BUTTON ═══ -->
+  <div class="px-4 pt-3">
+    <button @click="activeTab='intl';intlCat='সব'" class="w-full rounded-2xl p-4 flex items-center gap-3 text-left" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 8px 24px rgba(30,58,138,.35);border:1px solid rgba(255,255,255,.15)">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:rgba(255,255,255,.14);backdrop-filter:blur(6px)">🌍</div>
+      <div class="flex-1"><p class="text-sm font-extrabold text-white tracking-wide">Global Store · ইন্টারন্যাশনাল</p>
+        <p class="text-xs" style="color:rgba(255,255,255,.75)">বিশ্বের সেরা পণ্য — প্রবাসে পাঠানোর সুবিধা সহ</p></div>
+      <i class="fa-solid fa-arrow-right text-white text-sm"></i>
+    </button>
+  </div>
+
   <!-- ═══ CATEGORY CIRCLES ═══ -->
   <div class="px-4 pt-3" x-show="allCategories.length>0" x-cloak>
     <div class="section-header mb-2">
@@ -2080,6 +2091,35 @@ img.dd-ok{opacity:1!important}
 </section>
 
 <!-- ─── ALL PRODUCTS PAGE (Organized by Sections) ─── -->
+<!-- ═══ INTERNATIONAL / GLOBAL STORE ═══ -->
+<section x-show="activeTab==='intl'" x-cloak class="animate-fade-in pb-24">
+  <div class="px-4 pt-4 pb-3 flex items-center gap-3">
+    <button @click="activeTab='home'" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--card);border:1px solid var(--border)"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+    <div><p class="font-extrabold text-base">🌍 Global Store</p><p class="text-xs" style="color:var(--fg3)">ইন্টারন্যাশনাল ক্যাটাগরি</p></div>
+  </div>
+  <div class="px-4 grid grid-cols-4 gap-3">
+    <template x-for="c in intlCatsActive" :key="c.fbKey">
+      <div @click="intlCat=(intlCat===c.name?'সব':c.name)" class="text-center cursor-pointer">
+        <div class="aspect-square rounded-2xl flex items-center justify-center overflow-hidden" :style="'background:linear-gradient(160deg,#E0F2FE,#EDE9FE);border:2px solid '+(intlCat===c.name?'var(--accent)':'transparent')">
+          <img x-show="c.img" :src="c.img" class="w-full h-full object-cover" onerror="this.style.display='none'"/>
+          <span x-show="!c.img" class="text-3xl" x-text="c.emoji||'📦'"></span>
+        </div>
+        <p class="text-xs font-semibold mt-1 leading-tight" x-text="c.name"></p>
+      </div>
+    </template>
+  </div>
+  <p x-show="!intlCatsActive.length" class="text-center text-sm py-12" style="color:var(--fg3)">শীঘ্রই আসছে...</p>
+  <div class="px-4 mt-5 grid grid-cols-2 gap-3">
+    <template x-for="p in intlFiltered" :key="p.fbKey">
+      <div class="rounded-2xl overflow-hidden" style="background:var(--card);border:1px solid var(--border)" @click="openDetailSheet(p)">
+        <img :src="optImg(p.images?.[0]||p.img||'',380)" class="w-full aspect-square object-cover" loading="lazy" onerror="this.onerror=null;this.src=DD_PH"/>
+        <div class="p-2.5"><p class="text-xs font-semibold" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name"></p>
+          <div class="flex items-center gap-1.5 mt-1"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice>p.price" class="price-old" x-text="'৳'+p.oldPrice.toLocaleString()"></span></div></div>
+      </div>
+    </template>
+  </div>
+</section>
+
 <section x-show="activeTab==='allproducts'" x-cloak class="animate-fade-in">
   <div class="px-4 pt-4 pb-3 flex items-center gap-3" style="background:var(--header)">
     <button @click="activeTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.12);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-arrow-left"></i></button>
@@ -3735,7 +3775,7 @@ img.dd-ok{opacity:1!important}
 
 <script>
 function App(){return{
-  activeTab:'home',q:'',allProdsQ:'',allProdsSort:'newest',activeCat:'সব',oFilt:'সব',
+  activeTab:'home',intlCats:[],intlCat:'সব',q:'',allProdsQ:'',allProdsSort:'newest',activeCat:'সব',oFilt:'সব',
   menCatFilter:'',womenCatFilter:'',
   sectionCatFilters:{},
   placing:false,loading:true,
@@ -3940,7 +3980,10 @@ function App(){return{
   get allCategories(){return this.fbCategories.filter(c=>c&&c.name).sort((a,b)=>(a.order??99)-(b.order??99))},
   get menCategories(){return this.allCategories.filter(c=>c.gender==='men')},
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
-  get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0)},
+  get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl)},
+  get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
+  get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
+  get intlFiltered(){return this.intlCat==='সব'?this.intlProducts:this.intlProducts.filter(p=>p.intlCat===this.intlCat)},
   get allSections(){return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>(a.order||99)-(b.order||99))},
   get menProducts(){return this.allProducts.filter(p=>p.gender==='men')},
   get womenProducts(){return this.allProducts.filter(p=>p.gender==='women')},
@@ -4156,7 +4199,7 @@ function App(){return{
         this.loading=false;
         try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}
       });
-      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenReviews(r=>{this.fbReviews=r});
+      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false)});
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false)});
       window.$db.listenPinnedProducts(pins=>{this.pinnedProductKeys=pins.map(p=>p.productKey||p.fbKey).filter(Boolean)});
