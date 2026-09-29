@@ -59,7 +59,8 @@ tailwind.config={
 <!-- Firebase -->
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getDatabase,ref,push,set,update,onValue,query,orderByChild,limitToLast,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,push,set,update,onValue,get,query,orderByChild,equalTo,limitToLast,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getAuth,signInAnonymously,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const cfg={
   apiKey:"AIzaSyCQVlbjApQYtyc86ZTVPsBjOZ3J-RHv_vI",
   authDomain:"daily-deal-online-shopping.firebaseapp.com",
@@ -71,8 +72,42 @@ const cfg={
 };
 const app=initializeApp(cfg);
 const db=getDatabase(app);
+const auth=getAuth(app);
+const RESELLER_DOMAIN='@r.dailydeal.world';
+const derivePw=(pinHash,phone)=>String(pinHash).slice(0,24)+'Dd@'+String(phone);
+let _authReadyResolve;const authReady=new Promise(r=>{_authReadyResolve=r});
+onAuthStateChanged(auth,async(u)=>{
+  if(u){
+    if(!u.email){ // অ্যানোনিমাস (সাধারণ ভিজিটর) — এই ব্রাউজারের স্থায়ী dd_uid-কে auth.uid-এর সাথে যুক্ত করা হয়
+      try{const mref=ref(db,'uidMap/'+u.uid);const snap=await get(mref);if(!snap.exists())await set(mref,uid());}catch(e){}
+    }
+    _authReadyResolve(u);
+  }else{
+    try{await signInAnonymously(auth)}catch(e){_authReadyResolve(null)}
+  }
+});
+window.$auth={auth,authReady,RESELLER_DOMAIN,
+  resellerEmail:(phone)=>phone+RESELLER_DOMAIN,
+  derivePw,
+  resellerSignIn:(phone,pinHash)=>signInWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
+  resellerCreate:(phone,pinHash)=>createUserWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
+  resellerSignOut:()=>signOut(auth),
+};
+
 const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+'_'+Math.random().toString(36).slice(2);localStorage.setItem('dd_uid',id);}return id;};
 window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d);return r.key},listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])}),
+  getOnce:(path)=>new Promise(async(res)=>{try{const s=await get(ref(db,path));res(s.exists()?s.val():null)}catch(e){res(null)}}),
+  lookupReferralOwner:async(code)=>{if(!code)return null;const v=await window.$db.getOnce('referralCodes/'+code);return v&&v.resellerPhone?{fbKey:v.resellerPhone}:null},
+  listenMyOrders:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMyResellOrders:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  getOrdersByPhone:async(phone)=>{try{const s=await get(query(ref(db,'orders'),orderByChild('phone'),equalTo(phone)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){return[]}},
+  listenMyWithdrawals:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'withdrawals'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMyDeposits:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'deposits'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMyWalletTx:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'walletTx'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMyResellerMessages:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'resellerMessages'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMySupportTickets:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'supportTickets'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMySavings:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'savingsWallets'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   saveOrder:async(data)=>{const r=push(ref(db,'orders'));await set(r,data);return r.key},
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   listenProducts:(cb)=>{
@@ -3387,15 +3422,15 @@ img.dd-ok{opacity:1!important}
                 <div class="p-4 space-y-3">
                   <div><label class="dd-label">কাস্টমারের নাম *</label><input class="dd-input" x-model="sellForm.customerName" placeholder="কাস্টমারের নাম"/></div>
 <div><label class="dd-label">মোবাইল নম্বর *</label>
-                    <div class="flex gap-2"><input class="dd-input" type="tel" x-model="sellForm.phone" @input="custChecked=false" placeholder="০১XXXXXXXXX"/><button type="button" @click="custChecked=true" class="px-3 rounded-xl text-xs font-bold text-white flex-shrink-0" style="background:var(--accent);border:none;cursor:pointer">চেক করুন</button></div>
-                    <template x-if="custChecked&&custReport"><div class="cust-rep mt-2">
-                      <p class="text-xs font-bold" :style="'color:'+custReport.color" x-text="custReport.label"></p>
+                    <div class="flex gap-2"><input class="dd-input" type="tel" x-model="sellForm.phone" @input="custChecked=false" placeholder="০১XXXXXXXXX"/><button type="button" @click="checkCustReport()" class="px-3 rounded-xl text-xs font-bold text-white flex-shrink-0" style="background:var(--accent);border:none;cursor:pointer">চেক করুন</button></div>
+                    <template x-if="custChecked&&custReportData"><div class="cust-rep mt-2">
+                      <p class="text-xs font-bold" :style="'color:'+custReportData.color" x-text="custReportData.label"></p>
                       <div class="grid grid-cols-3 gap-2 mt-2 text-center">
-                        <div><b x-text="custReport.total"></b><span>মোট অর্ডার</span></div>
-                        <div><b style="color:#16A34A" x-text="custReport.delivered"></b><span>ডেলিভারড</span></div>
-                        <div><b style="color:#DC2626" x-text="custReport.bad"></b><span>বাতিল/রিটার্ন</span></div>
+                        <div><b x-text="custReportData.total"></b><span>মোট অর্ডার</span></div>
+                        <div><b style="color:#16A34A" x-text="custReportData.delivered"></b><span>ডেলিভারড</span></div>
+                        <div><b style="color:#DC2626" x-text="custReportData.bad"></b><span>বাতিল/রিটার্ন</span></div>
                       </div>
-                      <p class="text-xs mt-2" style="color:var(--fg3)" x-text="custReport.last"></p>
+                      <p class="text-xs mt-2" style="color:var(--fg3)" x-text="custReportData.last"></p>
                     </div></template>
                   </div>
                   <div><label class="dd-label">বিভাগ *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="sellForm.division" @change="sellForm.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select></div></div>
@@ -3851,7 +3886,7 @@ function App(){return{
   resellLoginForm:{phone:'',pin:''},
   resellSignupForm:{name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false},
   // ══ RESELLER / MLM (NEW) ══
-  reseller:null,fbAllResellers:[],fbAllOrders:[],fbWithdrawals:[],
+  reseller:null,fbMyOrders:[],fbMyResellOrders:[],fbWithdrawals:[],custReportData:null,
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
   resellSidebarOpen:false,
@@ -4081,7 +4116,7 @@ function App(){return{
   get sellCartCost(){return this.sellCart.reduce((s,i)=>s+(i.resellerPrice||0)*i.qty,0)},
   get sellCartTotal(){return this.sellCart.reduce((s,i)=>s+(Number(i.resellerSellPrice)||0)*i.qty,0)},
   get sellCartProfit(){return this.sellCartTotal-this.sellCartCost},
-  get myResellOrders(){return this.fbAllOrders.filter(o=>o.resellerPhone===this.resellSession).sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0))},
+  get myResellOrders(){return (this.fbMyResellOrders||[]).slice().sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0))},
   get myWithdrawals(){return this.fbWithdrawals.filter(w=>w.resellerPhone===this.resellSession).sort((a,b)=>(b.requestedAt||0)-(a.requestedAt||0))},
   get myWalletTxLabel(){return{bonus:'🎁 সাইনআপ বোনাস',commission:'👥 রেফারেল কমিশন',profit:'💰 বিক্রয় প্রফিট',withdrawal:'🏧 উইথড্র'}},
   get invBrandName(){return(this.inv.order&&this.inv.order.orderType==='reseller')?(this.inv.order.resellerShopName||this.settings.siteName||'Daily Deal'):(this.settings.siteName||'Daily Deal')},
@@ -4149,13 +4184,8 @@ function App(){return{
       if(rp){
         this.resellSession=rp;
         this._listenMyReseller();
+        this._attachResellerListeners(rp);
       }
-      window.$db.listenAllResellers(rs=>this.fbAllResellers=rs);
-      window.$db.listenAllWithdrawals(ws=>this.fbWithdrawals=ws);
-      window.$db.listenResellerMessages(ms=>this.fbResellerMessages=ms);
-      window.$db.listenWalletTx(txs=>this.fbWalletTx=txs);
-      window.$db.listenSupportTickets(ts=>this.fbSupportTickets=ts);
-      window.$db.listenDeposits(ds=>this.fbDeposits=ds);
       window.$db.listenSavingsWallets(ws=>{
         const uidNow=localStorage.getItem('dd_uid');
         ws.filter(w=>w.uid===uidNow).forEach(w=>{
@@ -4203,17 +4233,20 @@ function App(){return{
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false)});
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false)});
       window.$db.listenPinnedProducts(pins=>{this.pinnedProductKeys=pins.map(p=>p.productKey||p.fbKey).filter(Boolean)});
-      window.$db.listenOrders(orders=>{
-        this.fbAllOrders=orders;
-        orders.forEach(fbOrder=>{
-          const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
-          if(localIdx>-1){
-            const prev=this.myOrders[localIdx];
-            if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
-            this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,trackingLink:fbOrder.trackingLink||null};
-          }
+      window.$auth.authReady.then(()=>{
+        const myUid=localStorage.getItem('dd_uid')||'';
+        window.$db.listenMyOrders(myUid,orders=>{
+          this.fbMyOrders=orders;
+          orders.forEach(fbOrder=>{
+            const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
+            if(localIdx>-1){
+              const prev=this.myOrders[localIdx];
+              if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
+              this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,trackingLink:fbOrder.trackingLink||null};
+            }
+          });
+          localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
         });
-        localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
       });
       window.$db.listenSettings(s=>{
         if(s.settings)Object.assign(this.settings,s.settings);
@@ -4377,7 +4410,7 @@ function App(){return{
   async cancelMyOrder(o){
     if(o.status!=='পেন্ডিং')return;
     if(!confirm('আপনি কি নিশ্চিত এই অর্ডারটি বাতিল করতে চান?'))return;
-    const fbOrder=(this.fbAllOrders||[]).find(fo=>String(fo.id)===String(o.id));
+    const fbOrder=(this.fbMyOrders||[]).find(fo=>String(fo.id)===String(o.id));
     if(!fbOrder||!fbOrder.fbKey)return this.showToast('অর্ডার খুঁজে পাওয়া যায়নি, একটু পরে চেষ্টা করুন!','error');
     try{
       await window.$db.updateOrder(fbOrder.fbKey,{status:'বাতিল'});
@@ -4431,7 +4464,7 @@ function App(){return{
     };
     const ar=this.activeReferral;
     if(ar&&ar.ref){
-      const owner=this.fbAllResellers.find(r=>(r.myReferralCode||'').toUpperCase()===ar.ref&&r.status==='approved');
+      const owner=await window.$db.lookupReferralOwner(ar.ref);
       if(owner){order.orderType='referral';order.resellerPhone=owner.fbKey;}
     }
     try{if(window.$db)await window.$db.saveOrder(order)}catch(e){console.warn('Firebase save failed',e)}
@@ -4651,20 +4684,21 @@ function App(){return{
       let referredBy=null,codeValid=false;
       const code=(f.referralCode||'').trim().toUpperCase();
       if(code){
-        const owner=this.fbAllResellers.find(r=>(r.myReferralCode||'').toUpperCase()===code&&r.status==='approved');
+        const owner=await window.$db.lookupReferralOwner(code);
         if(!owner){this.resellAuthError='সঠিক রেফারেল/প্রমো কোড দিন, অথবা খালি রেখে দিন।';return;}
         referredBy=owner.fbKey;codeValid=true;
       }
       const pinHash=await this._hash(f.pin);
+      await window.$auth.resellerCreate(f.phone,pinHash); // ফায়ারবেস অথেনটিকেশন অ্যাকাউন্ট তৈরি
       await window.$db.saveResellerApp(f.phone,{
-        name:f.name.trim(),shopName:f.shopName.trim(),phone:f.phone,pin:pinHash,
+        name:f.name.trim(),shopName:f.shopName.trim(),phone:f.phone,pin:pinHash,authMigrated:true,
         referredBy,referralCodeUsed:codeValid,
         status:'pending',walletBalance:0,createdAt:Date.now(),
       });
       this._resellLoginSuccess(f.phone);
       this.resellSignupForm={name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false};
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
-    }catch(e){this.resellAuthError='সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    }catch(e){this.resellAuthError=(e&&e.code==='auth/email-already-in-use')?'এই নম্বরে আগে থেকে অ্যাকাউন্ট আছে, লগইন করুন।':'সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
   },
   async resellDoLogin(){
     this.resellAuthError='';
@@ -4672,24 +4706,43 @@ function App(){return{
     if(!/^01[0-9]{9}$/.test(f.phone))return this.resellAuthError='সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন!';
     if(!f.pin)return this.resellAuthError='পিন দিন!';
     try{
-      const r=await this._getResellerOnce(f.phone);
-      if(!r){this.resellAuthError='এই নম্বরে কোনো রিসেলার অ্যাকাউন্ট নেই। সাইনআপ করুন।';return;}
       const pinHash=await this._hash(f.pin);
-      if(r.pin!==pinHash){this.resellAuthError='পিন সঠিক নয়!';return;}
+      try{
+        // ধাপ ১: আগে থেকেই ফায়ারবেস অথেনটিকেশনে মাইগ্রেট করা থাকলে সরাসরি লগইন
+        await window.$auth.resellerSignIn(f.phone,pinHash);
+      }catch(authErr){
+        // ধাপ ২: পুরনো (পিন-ভিত্তিক) অ্যাকাউন্ট — পিন যাচাই করে ফায়ারবেস অথেনটিকেশনে মাইগ্রেট করা হচ্ছে
+        const r=await this._getResellerOnce(f.phone);
+        if(!r){this.resellAuthError='এই নম্বরে কোনো রিসেলার অ্যাকাউন্ট নেই। সাইনআপ করুন।';return;}
+        if(r.pin!==pinHash){this.resellAuthError='পিন সঠিক নয়!';return;}
+        if(r.authMigrated){this.resellAuthError='সমস্যা হয়েছে, আবার চেষ্টা করুন।';return;}
+        await window.$auth.resellerCreate(f.phone,pinHash);
+        await window.$db.saveReseller({authMigrated:true,migrateProof:pinHash},f.phone);
+      }
       this._resellLoginSuccess(f.phone);
       this.resellLoginForm={phone:'',pin:''};
-    }catch(e){this.resellAuthError='সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    }catch(e){this.resellAuthError='পিন সঠিক নয় অথবা সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
   },
   _resellLoginSuccess(phone){
     this.resellSession=phone;
     localStorage.setItem('dd_reseller_session',phone);
     this._listenMyReseller();
+    this._attachResellerListeners(phone);
     this.showToast('স্বাগতম! ✅','success');
   },
-  resellLogout(){
+  _attachResellerListeners(phone){
+    window.$db.listenMyWithdrawals(phone,ws=>this.fbWithdrawals=ws);
+    window.$db.listenMyResellerMessages(phone,ms=>this.fbResellerMessages=ms);
+    window.$db.listenMyWalletTx(phone,txs=>this.fbWalletTx=txs);
+    window.$db.listenMySupportTickets(phone,ts=>this.fbSupportTickets=ts);
+    window.$db.listenMyDeposits(phone,ds=>this.fbDeposits=ds);
+    window.$db.listenMyResellOrders(phone,os=>this.fbMyResellOrders=os);
+  },
+  async resellLogout(){
     if(!confirm('রিসেলার একাউন্ট থেকে লগআউট করবেন?'))return;
     this.resellSession='';this.reseller=null;
     localStorage.removeItem('dd_reseller_session');
+    try{await window.$auth.resellerSignOut()}catch(e){}
     this.showToast('লগআউট হয়েছে','success');
   },
 
@@ -4703,7 +4756,7 @@ function App(){return{
     let referredBy=null,codeValid=false;
     const code=(this.resellApply.referralCode||'').trim().toUpperCase();
     if(code){
-      const owner=this.fbAllResellers.find(r=>(r.myReferralCode||'').toUpperCase()===code&&r.status==='approved');
+      const owner=await window.$db.lookupReferralOwner(code);
       if(!owner){this.resellApplyError='সঠিক রেফারেল/প্রমো কোড দিন, অথবা খালি রেখে দিন।';return;}
       referredBy=owner.fbKey;codeValid=true;
     }
@@ -4719,13 +4772,16 @@ function App(){return{
 
   // ══════════ RESELLER — SELL TO CUSTOMER (NEW) ══════════
   get feedList(){return this.resellSearchQuery?this.resellSearchResults:this.resellFilteredProducts},
-  get custReport(){const ph=String(this.sellForm.phone||'').replace(/\D/g,'').slice(-11);if(ph.length<11)return null;
-    const os=(this.fbAllOrders||[]).filter(o=>String(o.phone||'').replace(/\D/g,'').slice(-11)===ph);
+  async checkCustReport(){
+    this.custChecked=true;this.custReportData=null;
+    const ph=String(this.sellForm.phone||'').replace(/\D/g,'').slice(-11);if(ph.length<11)return;
+    const os=await window.$db.getOrdersByPhone(ph);
     const d=os.filter(o=>o.status==='ডেলিভার্ড').length,bd=os.filter(o=>o.status==='বাতিল'||/রিটার্ন|ফেরত/.test(o.status||'')).length;
     const last=os.reduce((m,o)=>Math.max(m,o.createdAt||o.timestamp||0),0),m30=os.filter(o=>Date.now()-(o.createdAt||o.timestamp||0)<2592000000).length;
     const rate=d+bd?d/(d+bd):null;
     const label=!os.length?'নতুন কাস্টমার — আগে কোনো অর্ডার নেই':rate===null?'অর্ডার আছে, এখনো ডেলিভারি/রিটার্ন হয়নি':rate>=.8?'ভালো কাস্টমার':rate>=.5?'মাঝারি — কল করে কনফার্ম করুন':'ঝুঁকিপূর্ণ — অগ্রিম চার্জ নিয়ে পাঠানো ভালো';
-    return {total:os.length,delivered:d,bad:bd,label,color:!os.length?'#2563EB':rate===null?'#B45309':rate>=.8?'#16A34A':rate>=.5?'#B45309':'#DC2626',last:os.length?('শেষ অর্ডার: '+(last?new Date(last).toLocaleDateString('bn-BD'):'—')+' · গত ৩০ দিনে '+m30+'টি'):''}},
+    this.custReportData={total:os.length,delivered:d,bad:bd,label,color:!os.length?'#2563EB':rate===null?'#B45309':rate>=.8?'#16A34A':rate>=.5?'#B45309':'#DC2626',last:os.length?('শেষ অর্ডার: '+(last?new Date(last).toLocaleDateString('bn-BD'):'—')+' · গত ৩০ দিনে '+m30+'টি'):''};
+  },
   _ts(p){const t=Number(p.createdAt||p.timestamp);if(t>1e12)return t;const k=String(p.fbKey||''),C='-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';if(k.length<8)return 0;let n=0;for(let i=0;i<8;i++)n=n*64+C.indexOf(k[i]);return n},
   ago(p){const t=this._ts(p);if(!t)return '';const s=Math.max(0,Math.floor((this.now-t)/1000));if(s<60)return 'এইমাত্র';if(s<3600)return Math.floor(s/60)+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';return Math.floor(s/2592000)+' মাস আগে'},
   timeAgo(ts){if(!ts)return '';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'এইমাত্র';if(s<3600)return Math.max(1,Math.floor(s/60))+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';if(s<31536000)return Math.floor(s/2592000)+' মাস আগে';return Math.floor(s/31536000)+' বছর আগে'},
@@ -5027,7 +5083,7 @@ function App(){return{
     };
     const ar=this.activeReferral;
     if(ar&&ar.ref){
-      const owner=this.fbAllResellers.find(r=>(r.myReferralCode||'').toUpperCase()===ar.ref&&r.status==='approved');
+      const owner=await window.$db.lookupReferralOwner(ar.ref);
       if(owner){order.orderType='installment';order.resellerPhone=owner.fbKey;}
     }
     try{
