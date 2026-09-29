@@ -1151,6 +1151,78 @@ img.dd-ok{opacity:1!important}
 .nav-btn.active .nav-icon-wrap{background:linear-gradient(135deg,var(--accentL),color-mix(in srgb,var(--accent) 14%,var(--accentL)));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 22%,transparent)}
 </style>
 
+<style id="dd-v3">
+#app-cart-x{}
+.dd-hub{margin:14px 14px 4px;padding:6px 0 12px;border:2px solid #111;border-radius:24px;background:#fff;box-shadow:0 10px 26px rgba(0,0,0,.1);position:relative;overflow:hidden}
+.dd-hub::after{content:"\f290";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;right:-14px;bottom:-22px;font-size:120px;color:#000;opacity:.045;pointer-events:none}
+.dd-hub>div{padding-left:10px!important;padding-right:10px!important;position:relative;z-index:1}
+.dd-hub .big-action-btn{min-height:0!important;height:78px!important;border-radius:16px}
+.dd-hub .big-action-btn .btn-label{font-size:14px!important}
+.dd-hub .big-action-btn .btn-sub{font-size:10px!important}
+.dd-hub .big-action-btn .btn-icon{font-size:26px!important;opacity:.35}
+.dd-hub .btn-arrow{transform:scale(.8)}
+.dd-hub a,.dd-hub button.flex{padding-top:8px!important;padding-bottom:8px!important;font-size:11.5px!important}
+.dd-hub>div[class*="mx-4"]{margin-left:10px!important;margin-right:10px!important}
+.dd-global{padding:11px 14px!important;border-radius:16px!important;position:relative;overflow:hidden;background:linear-gradient(120deg,#0b1020,#1b1f4a 55%,#3b1d7a)!important;border:1.5px solid transparent!important;background-clip:padding-box;box-shadow:0 0 0 1.5px #d4af37,0 10px 24px rgba(59,29,122,.4)!important}
+.dd-global::before{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-20deg);animation:ddsh 3.6s infinite}
+@keyframes ddsh{to{left:130%}}
+.dd-global>div:first-child{width:38px!important;height:38px!important;font-size:18px!important;background:linear-gradient(135deg,#f5d77a,#b8860b)!important;color:#1b1f4a!important;border-radius:12px!important}
+.dd-global p:first-of-type{background:linear-gradient(90deg,#fff,#f5d77a);-webkit-background-clip:text;color:transparent!important;font-size:13.5px!important}
+.dd-global p+p{font-size:10.5px!important}
+/* checkout compact */
+section[x-show*="'cart'"] .dd-input{padding:9px 12px;font-size:13px;border-radius:11px}
+section[x-show*="'cart'"] .dd-label{font-size:11px;margin-bottom:3px}
+section[x-show*="'cart'"] .p-4.space-y-3{padding:12px;display:grid;gap:9px}
+section[x-show*="'cart'"] .p-4.space-y-3>*{margin:0!important}
+section[x-show*="'cart'"] .pm-card{padding:8px 10px!important;gap:10px!important;border-radius:14px!important}
+section[x-show*="'cart'"] .pm-card .pm-logo{width:38px!important;height:38px!important;border-radius:12px!important}
+section[x-show*="'cart'"] .pm-card .pm-logo img{object-fit:contain;padding:3px}
+section[x-show*="'cart'"] .pm-name{font-size:13px!important}
+section[x-show*="'cart'"] .pm-num,section[x-show*="'cart'"] .pm-sub{font-size:12px!important}
+section[x-show*="'cart'"] .pm-copy{width:32px!important;height:32px!important}
+.pm-logo img{object-fit:contain}
+/* bottom nav realistic */
+.nav-btn .nav-icon-wrap{background:linear-gradient(180deg,#fff,#ece6dc);box-shadow:0 3px 0 #d6cdbf,0 6px 10px rgba(0,0,0,.14),inset 0 1px 0 #fff;border-radius:14px;width:42px;height:32px;transition:transform .15s,box-shadow .15s}
+.nav-btn:active .nav-icon-wrap{transform:translateY(2px);box-shadow:0 1px 0 #d6cdbf,inset 0 2px 4px rgba(0,0,0,.12)}
+.nav-btn.active .nav-icon-wrap{background:linear-gradient(180deg,var(--accent),color-mix(in srgb,var(--accent) 78%,#000))!important;color:#fff!important;box-shadow:0 3px 0 color-mix(in srgb,var(--accent) 55%,#000),0 8px 14px color-mix(in srgb,var(--accent) 45%,transparent),inset 0 1px 0 rgba(255,255,255,.4)!important}
+.nav-btn.active .nav-icon-wrap i{color:#fff!important}
+/* savings */
+.dd-bar{height:7px;border-radius:9px;background:#eee7dc;margin-top:12px;overflow:hidden}
+.dd-bar i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,var(--accent),#f59e0b);transition:width .6s}
+.dd-done{margin-top:10px;padding:8px 10px;border-radius:12px;background:#dcfce7;color:#15803d;font-weight:800;font-size:12.5px}
+.dd-more{display:block;margin:8px auto 0;background:none;border:0;font-size:12px;font-weight:700;color:var(--accent);cursor:pointer}
+.dd-det{margin-top:8px;padding:8px 12px;border-radius:12px;background:var(--bg2)}
+.dd-det p{display:flex;justify-content:space-between;font-size:12.5px;padding:5px 0;border-bottom:1px dashed var(--border);margin:0}
+.dd-det p:last-child{border:0}
+.kx .kx-btn{border-radius:14px;font-weight:800;box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 55%,#000),0 8px 14px rgba(0,0,0,.15)}
+.kx .kx-btn:active{transform:translateY(2px)}
+.kx-btnrow .kx-btn.sm{padding:9px 14px;font-size:13px}
+</style>
+<style id="dd-v4">
+.dd-hub .big-action-btn{height:auto!important;min-height:98px!important}
+.dd-hub .big-action-btn .btn-inner{padding-bottom:12px}
+.dd-hub .btn-arrow{transform:none!important;margin-top:8px!important;position:relative;z-index:2;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.dd-global>div:first-child{position:relative;overflow:hidden}
+.dd-plane{position:absolute;left:-12px;bottom:6px;font-size:13px;color:#fff;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6));animation:ddfly 2.6s ease-in-out infinite;opacity:0}
+.dd-plane.p2{animation-delay:1.3s;font-size:10px;bottom:16px}
+@keyframes ddfly{0%{transform:translate(0,4px) rotate(-18deg);opacity:0}15%{opacity:1}50%{transform:translate(24px,-8px) rotate(-30deg)}85%{opacity:1}100%{transform:translate(54px,-24px) rotate(-38deg);opacity:0}}
+.kyc-scan{display:flex;gap:9px;align-items:center;margin:4px 0 12px;padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;font-size:12.5px;font-weight:600;box-shadow:0 6px 16px rgba(30,58,138,.3)}
+.kyc-scan i{color:#f5d77a}
+.kyc-type{box-shadow:0 4px 0 #e4dccf,0 8px 14px rgba(0,0,0,.08)!important;border-radius:18px!important}
+.kyc-type.on{box-shadow:0 4px 0 color-mix(in srgb,var(--accent) 60%,#000),0 10px 18px color-mix(in srgb,var(--accent) 30%,transparent)!important}
+.kyc-drop{border-radius:20px!important;background:linear-gradient(180deg,#fff,#fbf7f1)!important;box-shadow:0 6px 16px rgba(0,0,0,.06)}
+.kyc-f{border-radius:14px!important;box-shadow:0 3px 8px rgba(0,0,0,.05)}
+.sheet-overlay .btn-primary{border-radius:16px;box-shadow:0 5px 0 color-mix(in srgb,var(--accent) 55%,#000),0 12px 20px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* profile */
+section[x-show*="'profile'"] .profile-cover{height:250px}
+section[x-show*="'profile'"] .profile-cover-img{object-fit:cover;filter:saturate(1.1) contrast(1.05)}
+section[x-show*="'profile'"] .profile-cover-overlay{background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.05) 40%,rgba(0,0,0,.72))!important}
+section[x-show*="'profile'"] .profile-cover-center p:first-child{background:linear-gradient(90deg,#fff,#f5d77a);-webkit-background-clip:text;color:transparent!important;letter-spacing:.5px;font-size:28px}
+section[x-show*="'profile'"] .dd-card{border-radius:22px;border:1px solid rgba(212,175,55,.35);box-shadow:0 10px 26px rgba(0,0,0,.09)}
+section[x-show*="'profile'"] button,section[x-show*="'profile'"] a.block{box-shadow:0 4px 0 rgba(0,0,0,.14),0 8px 16px rgba(0,0,0,.1);border-radius:18px;transition:transform .12s,box-shadow .12s}
+section[x-show*="'profile'"] button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.14)}
+section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-display{letter-spacing:.2px}
+</style>
 </head>
 <body :class="'theme-'+activeTheme" class="theme-light">
 
@@ -1361,7 +1433,7 @@ img.dd-ok{opacity:1!important}
           <div>
             <p class="dp-h mb-2">পরিমাণ বেছে নিন</p>
             <div class="flex flex-wrap gap-2 mb-3">
-              <template x-for="n in [5,10,50,100,200,500]" :key="n"><button type="button" @click="savingsModal.amount=n" class="size-chip" :class="Number(savingsModal.amount)===n?'active':''" x-text="'৳'+n"></button></template>
+              <template x-for="n in [5,10,20,50,100,200]" :key="n"><button type="button" @click="savingsModal.amount=n" class="size-chip" :class="Number(savingsModal.amount)===n?'active':''" x-text="'৳'+n"></button></template>
             </div>
             <input class="dd-input mb-3" type="number" inputmode="numeric" x-model="savingsModal.amount" placeholder="নিজে পরিমাণ লিখুন"/>
             <p class="dp-h mb-2">পেমেন্ট মেথড</p>
@@ -1457,6 +1529,7 @@ img.dd-ok{opacity:1!important}
     <div class="kyc-body">
       <div class="kyc-note"><i class="fa-solid fa-lock"></i><p>কিস্তিতে যেকোনো পণ্য অর্ডার বা কিস্তি জমা দেওয়ার আগে এই ভেরিফিকেশন সম্পূর্ণ করতে হবে। আপনার তথ্য নিরাপদে রাখা হবে এবং শুধু ভেরিফিকেশনের জন্য ব্যবহার হবে।</p></div>
 
+      <div class="kyc-scan" x-show="(kycModal.docType||'nid')==='nid'"><i class="fa-solid fa-wand-magic-sparkles"></i><span>ছবি আপলোডের সময় স্বয়ংক্রিয়ভাবে যাচাই হবে — NID কার্ড ছাড়া অন্য ছবি রিজেক্ট হবে।</span></div>
       <p class="kyc-h">কোন পরিচয়পত্র দিয়ে ভেরিফাই করবেন?</p>
       <div class="kyc-types">
         <template x-for="t in [{id:'nid',ic:'fa-id-card',t:'NID কার্ড',s:'জাতীয় পরিচয়পত্র'},{id:'birth',ic:'fa-file-lines',t:'জন্মনিবন্ধন',s:'জন্ম নিবন্ধন সনদ'},{id:'student',ic:'fa-graduation-cap',t:'স্টুডেন্ট কার্ড',s:'প্রতিষ্ঠানের আইডি'}]" :key="t.id">
@@ -2029,6 +2102,7 @@ img.dd-ok{opacity:1!important}
     <div class="hero3d-dots"><template x-for="(b,i) in heroSlides" :key="i"><button @click="a=i" class="banner-dot" :class="a===i?'active':''"></button></template></div>
   </div>
 
+  <div class="dd-hub">
   <!-- ═══ TWO BIG ACTION BUTTONS ═══ -->
   <div class="px-4 pt-4 grid grid-cols-2 gap-3">
     <button @click="activeTab='allproducts'" class="big-action-btn" style="background:linear-gradient(135deg,var(--header) 0%,color-mix(in srgb,var(--header) 70%,var(--accent)) 100%);box-shadow:0 8px 24px rgba(0,0,0,.28)">
@@ -2070,12 +2144,13 @@ img.dd-ok{opacity:1!important}
 
   <!-- ═══ INTERNATIONAL BUTTON ═══ -->
   <div class="px-4 pt-3">
-    <button @click="activeTab='intl';intlCat='সব'" class="w-full rounded-2xl p-4 flex items-center gap-3 text-left" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 8px 24px rgba(30,58,138,.35);border:1px solid rgba(255,255,255,.15)">
-      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:rgba(255,255,255,.14);backdrop-filter:blur(6px)"><i class="fa-solid fa-earth-asia"></i></div>
+    <button @click="activeTab='intl';intlCat='সব'" class="dd-global w-full rounded-2xl p-4 flex items-center gap-3 text-left" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 8px 24px rgba(30,58,138,.35);border:1px solid rgba(255,255,255,.15)">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center text-2xl" style="background:rgba(255,255,255,.14);backdrop-filter:blur(6px)"><i class="fa-solid fa-earth-asia" style="opacity:.85"></i><i class="fa-solid fa-plane dd-plane"></i><i class="fa-solid fa-plane dd-plane p2"></i></div>
       <div class="flex-1"><p class="text-sm font-extrabold text-white tracking-wide">Global Store · ইন্টারন্যাশনাল</p>
         <p class="text-xs" style="color:rgba(255,255,255,.75)">বিশ্বের সেরা পণ্য — প্রবাসে পাঠানোর সুবিধা সহ</p></div>
       <i class="fa-solid fa-arrow-right text-white text-sm"></i>
     </button>
+  </div>
   </div>
 
   <!-- ═══ CATEGORY CIRCLES ═══ -->
@@ -2609,13 +2684,13 @@ img.dd-ok{opacity:1!important}
         <div class="px-4 py-3.5" style="background:var(--header)"><p class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i>ডেলিভারি তথ্য</p></div>
         <div class="p-4 space-y-3">
           <div><label class="dd-label">পূর্ণ নাম *</label><input class="dd-input" x-model="form.name" placeholder="আপনার সম্পূর্ণ নাম"/></div>
-          <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
+          <div x-show="(form.name||'').trim().length>1" x-transition.opacity.duration.250ms><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
           <div>
             <label class="dd-label">বিভাগ *</label>
             <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
           </div>
           <div x-show="form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
-          <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
+          <div x-show="form.district" x-transition.opacity.duration.250ms><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
       </div>
       <!-- INSTALLMENT BREAKDOWN -->
@@ -2975,7 +3050,7 @@ img.dd-ok{opacity:1!important}
     <template x-if="myActiveInstallments.length>0"><div class="kx-sec"><h2 class="kx-h2">আমার লক্ষ্য</h2><span class="kx-mut" x-text="kxn(myActiveInstallments.length)+'টি পণ্য'"></span></div></template>
 
     <template x-for="w in myActiveInstallments" :key="w.fbKey">
-    <section class="kx-card" :aria-label="w.productName">
+<section class="kx-card" x-data="{d:false}" :aria-label="w.productName">
       <div class="kx-goal">
         <div class="kx-ring"><svg viewBox="0 0 80 80" aria-hidden="true"><circle class="tr" cx="40" cy="40" r="32"/><circle class="fl" cx="40" cy="40" r="32" :stroke-dasharray="(201.06*savingsProgressPct(w)/100).toFixed(1)+' 201.06'"/></svg><b x-text="kxn(savingsProgressPct(w))+'%'"></b></div>
         <div style="flex:1;min-width:0">
@@ -2983,6 +3058,16 @@ img.dd-ok{opacity:1!important}
           <p style="margin:2px 0 0;font-size:13px;color:var(--fg)"><b x-text="kxTk(w.currentAmount)"></b> <span class="kx-mut" x-text="'/ '+kxTk(w.targetAmount)"></span></p>
           <p class="kx-mut" style="margin:2px 0 0" x-text="'আরও '+kxTk(Math.max(0,(w.targetAmount||0)-(w.currentAmount||0)))+' বাকি'"></p>
         </div>
+      </div>
+      <div x-show="(w.currentAmount||0)>=(w.targetAmount||1)" class="dd-done"><i class="fa-solid fa-circle-check"></i> সম্পূর্ণ হয়েছে — অর্ডার কমপ্লিট!</div>
+      <div class="dd-bar"><i :style="'width:'+Math.min(100,Math.round((w.currentAmount||0)/(w.targetAmount||1)*100))+'%'"></i></div>
+      <button type="button" class="dd-more" @click="d=!d"><span x-text="d?'বিস্তারিত লুকান':'বিস্তারিত দেখুন'"></span> <i class="fa-solid" :class="d?'fa-chevron-up':'fa-chevron-down'"></i></button>
+      <div x-show="d" x-transition class="dd-det">
+        <p><span>পণ্যের দাম</span><b x-text="kxTk(w.targetAmount)"></b></p>
+        <p><span>এ পর্যন্ত জমা</span><b x-text="kxTk(w.currentAmount)"></b></p>
+        <p><span>বাকি</span><b x-text="kxTk(Math.max(0,(w.targetAmount||0)-(w.currentAmount||0)))"></b></p>
+        <p><span>শুরুর তারিখ</span><b x-text="w.createdAt?new Date(w.createdAt).toLocaleDateString('bn-BD'):'—'"></b></p>
+        <p><span>জমার সংখ্যা</span><b x-text="((w.deposits||w.payments||w.history||[]).length||'—')"></b></p>
       </div>
       <div class="kx-btnrow" style="margin-top:14px"><button type="button" class="kx-btn sm" @click="openInstallmentContribution(w)"><i class="fa-solid fa-plus"></i>টাকা জমা দিন</button></div>
     </section>
@@ -4022,6 +4107,23 @@ const DD_EMO_FA={'🔥':'fa-fire-flame-curved','🚚':'fa-truck-fast','✅':'fa-
 function emoFa(s,d){s=String(s==null?'':s);if(/(^|\s)fa-/.test(s))return /fa-(solid|regular|brands)/.test(s)?s:'fa-solid '+s;const m=s.replace(/\uFE0F/g,'').match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{2705}\u{274C}\u{2728}]/u);return 'fa-solid '+((m&&DD_EMO_FA[m[0]])||d||'fa-tag')}
 function emoTx(s){return String(s==null?'':s).replace(DD_EMO_RE,'').replace(/\s{2,}/g,' ').trim()}
 /* ত্রিমাত্রিক প্যাকেজ (SVG) — অ্যানিমেশনে ব্যবহৃত */
+const DD_PM_LOGO={upay:'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><linearGradient id="u" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD200"/><stop offset="1" stop-color="#F59E0B"/></linearGradient></defs><rect width="100" height="100" rx="24" fill="#fff"/><path d="M24 22v30a26 26 0 0 0 52 0V22" fill="none" stroke="#0B3C8C" stroke-width="13" stroke-linecap="round"/><circle cx="50" cy="30" r="9" fill="url(#u)"/></svg>')};
+async function ddCheckNid(file,field){
+  try{
+    const bm=await createImageBitmap(file);const sc=Math.min(1,1100/Math.max(bm.width,bm.height));
+    const c=document.createElement('canvas');c.width=bm.width*sc;c.height=bm.height*sc;c.getContext('2d').drawImage(bm,0,0,c.width,c.height);
+    const ar=Math.max(c.width,c.height)/Math.min(c.width,c.height);
+    if(ar<1.25||ar>2.1)return{ok:false,msg:'ছবিটি NID কার্ডের আকারের নয়। কার্ডটি সোজা করে পুরো দেখা যায় এমন ছবি দিন।'};
+    if(!window.Tesseract){await new Promise((y,n)=>{const t=document.createElement('script');t.src='https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js';t.onload=y;t.onerror=n;document.head.appendChild(t)})}
+    const {data}=await Tesseract.recognize(c,'eng');const t=(data.text||'').toLowerCase();
+    const hits=[/national/,/id\s*(card|no)/,/bangladesh/,/republic/,/date\s*of\s*birth|birth/,/\bname\b/,/father|mother|husband/,/pin|issue/].filter(r=>r.test(t)).length;
+    const need=field==='nidFront'?2:1;
+    if(hits<need&&!(field==='nidBack'&&/\d{6,}/.test(t)))return{ok:false,msg:'এটি NID কার্ডের '+(field==='nidFront'?'সামনের':'পেছনের')+' ছবি মনে হচ্ছে না। আসল NID কার্ডের পরিষ্কার ছবি দিন।'};
+    return{ok:true};
+  }catch(e){return{ok:true}}
+}
+const DD_BK=(c,t)=>'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" rx="22" fill="#fff"/><rect x="12" y="12" width="76" height="76" rx="18" fill="'+c+'"/><text x="50" y="60" font-size="'+(t.length>3?24:30)+'" font-weight="800" font-family="Arial" fill="#fff" text-anchor="middle">'+t+'</text></svg>');
+Object.assign(DD_PM_LOGO,{ibbl:DD_BK('#00753A','IBBL'),dbbl:DD_BK('#00A651','DBBL'),brac:DD_BK('#0072BC','BRAC'),city:DD_BK('#C8102E','City'),ebl:DD_BK('#0B4EA2','EBL'),bank:DD_BK('#0F766E','BANK')});
 const DD_BOX_SVG='<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ddbT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE2B0"/><stop offset="1" stop-color="#F2B662"/></linearGradient><linearGradient id="ddbL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5A04A"/><stop offset="1" stop-color="#C27B2A"/></linearGradient><linearGradient id="ddbR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C47F2E"/><stop offset="1" stop-color="#8E5314"/></linearGradient></defs><polygon points="6,19 32,32 32,60 6,46" fill="url(#ddbL)"/><polygon points="58,19 32,32 32,60 58,46" fill="url(#ddbR)"/><polygon points="32,6 58,19 32,32 6,19" fill="url(#ddbT)"/><polygon points="26,9 32,6 38,9 38,29 32,32 26,29" fill="#FFF3D6" opacity=".78"/><polygon points="32,32 38,29 38,57 32,60" fill="#FFF3D6" opacity=".38"/><polygon points="32,6 58,19 32,32 6,19" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/></svg>';
 </script>
 <script>
@@ -4135,6 +4237,11 @@ function App(){return{
       rocket:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'Rocket'},
       upay:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'উপায়'},
       bank:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'ব্যাংক ট্রান্সফার'},
+      ibbl:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'ইসলামী ব্যাংক'},
+      dbbl:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'ডাচ-বাংলা ব্যাংক'},
+      brac:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'ব্র্যাক ব্যাংক'},
+      city:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'সিটি ব্যাংক'},
+      ebl:{enabled:false,number:'',prepaidDiscountPct:0,codFeeAdjust:0,label:'ইস্টার্ন ব্যাংক'},
     },
     codSettings:{extraCharge:0,discountOnAdvance:0},
     checkoutPromoBanners:[],
@@ -4205,8 +4312,8 @@ function App(){return{
   get kycProgress(){const z=this.kycZones.filter(x=>x.r);return{d:z.filter(x=>this.kycModal[x.k]&&this.kycModal[x.k]!=='UPLOADING').length,n:z.length}},
   setKycType(t){if((this.kycModal.docType||'nid')===t)return;this.kycModal.docType=t;this.kycModal.nidFront='';this.kycModal.nidBack='';},
   copyNum(n,el){n=String(n||'').replace(/\s+/g,'');if(!n)return;const ok=()=>{this.showToast('নম্বর কপি হয়েছে 📋','success');if(el){const ic=el.querySelector('i');el.classList.add('done');if(ic)ic.className='fa-solid fa-check';setTimeout(()=>{el.classList.remove('done');if(ic)ic.className='fa-regular fa-copy'},1600)}};const fb=()=>{try{const t=document.createElement('textarea');t.value=n;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');t.remove();ok()}catch(e){this.showToast(n,'success')}};try{navigator.clipboard.writeText(n).then(ok).catch(fb)}catch(e){fb()}},
-  get payMethods(){const s=this.settings||{};const pm=s.paymentMethods||{};const colors={bkash:'#E2136E',nagad:'#F6921E',rocket:'#8C3494',upay:'#7C3AED',bank:'#0F766E'};
-    const l=Object.keys(pm).map(id=>({id,label:pm[id].label||id,num:pm[id].number||s[id]||'',logo:s[id+'Logo'],c:colors[id]||'#334155',pct:this._num(pm[id].prepaidDiscountPct),enabled:!!pm[id].enabled})).filter(m=>m.enabled);
+  get payMethods(){const s=this.settings||{};const pm=s.paymentMethods||{};const colors={bkash:'#E2136E',nagad:'#F6921E',rocket:'#8C3494',upay:'#7C3AED',bank:'#0F766E',ibbl:'#00753A',dbbl:'#00A651',brac:'#0072BC',city:'#C8102E',ebl:'#0B4EA2'};
+    const l=Object.keys(pm).map(id=>({id,label:pm[id].label||id,num:pm[id].number||s[id]||'',logo:s[id+'Logo']||DD_PM_LOGO[id],c:colors[id]||'#334155',pct:this._num(pm[id].prepaidDiscountPct),enabled:!!pm[id].enabled})).filter(m=>m.enabled);
     if(l.length)return l;
     // legacy fallback if paymentMethods not configured yet
     return [{id:'bkash',label:'bKash',num:s.bkash,logo:s.bkashLogo,c:'#E2136E',pct:0,enabled:true},{id:'nagad',label:'Nagad',num:s.nagad,logo:s.nagadLogo,c:'#F6921E',pct:0,enabled:true}].filter(m=>m.num)},
@@ -5297,6 +5404,15 @@ function App(){return{
     });
   },
   async handleKycImage(field,ev){
+    const file=ev.target.files&&ev.target.files[0];
+    if(file&&(this.kycModal.docType||'nid')==='nid'&&(field==='nidFront'||field==='nidBack')){
+      this.kycModal[field]='UPLOADING';
+      const r=await ddCheckNid(file,field);
+      if(!r.ok){this.kycModal[field]='';ev.target.value='';return this.showToast('রিজেক্ট: '+r.msg,'error')}
+    }
+    return this._kycUp(field,ev);
+  },
+  async _kycUp(field,ev){
     const file=ev.target.files[0];if(!file)return;
     const cn=this.settings?.cloudinaryCloudName,up=this.settings?.cloudinaryUploadPreset;
     if(cn&&up){
