@@ -2,7 +2,7 @@
 <html lang="bn" x-data="App()" x-init="boot()" :class="'theme-'+activeTheme">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
 <title x-text="settings.siteName||'Daily Deal'">Daily Deal</title>
 <meta name="description" content="Daily Deal — বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। সেরা পণ্য, সেরা দাম, দ্রুত ডেলিভারি।"/>
 <meta property="og:type" content="website"/>
@@ -1253,6 +1253,104 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
 .v5-tile i{font-size:20px;color:var(--accent)}
 .v5-svc-img{width:100%;border-radius:14px;object-fit:cover;background:var(--bg2)}
 .v5-acc{border:1px solid var(--border);border-radius:14px;background:var(--card);overflow:hidden}
+
+/* ═══ LAYOUT-FIX v1: অ্যাপ কলাম (<=480px পুরো প্রস্থ, বড় স্ক্রিনে মাঝে) — fixed UI সব কলাম-রেফারেন্সে ═══ */
+html{background:#0F0D0A;width:100%;max-width:100%;overflow-x:clip}
+body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
+.sheet-body{max-height:92vh;max-height:92dvh}
+/* ১ম ও ২য় কলাম-ভিত্তিক fixed এলিমেন্ট (মোবাইল/ট্যাবলেট-পোর্ট্রেট কলাম = 480px) */
+@media(max-width:767px){
+  .sell-bar{left:max(14px,calc(50% - 226px));right:max(14px,calc(50% - 226px))}
+  .help-fab{right:max(16px,calc(50% - 224px))}
+  .pv-wrap{max-width:480px;margin:0 auto;left:0;right:0}
+  .col-overlay>div{margin-left:max(0px,calc(50% - 240px))}
+}
+/* ডেস্কটপ কলাম (body max 1180px) */
+@media(min-width:768px){
+  .help-fab{right:max(24px,calc(50% - 566px))}
+  .col-overlay>div{margin-left:max(0px,calc(50% - 590px))}
+}
+.bottom-nav{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+
+/* ═══ DDC: প্রিমিয়াম ক্যারেক্টার কম্পোনেন্ট (পুনর্ব্যবহারযোগ্য) ═══ */
+.ddc{--ch-accent:#c98f4f;--ch-cloth:#8a5a2b;--s:1;--px:0px;--py:0px;--cap:-9px;--caprot:0deg;--tilt:0deg;--hy:0px;--ax:0px;position:relative;display:flex;justify-content:center;margin:0 auto}
+.ddc[data-theme=teal]{--ch-accent:#14b8a6;--ch-cloth:#0f766e}
+.ddc[data-size=sm]{--s:.56}
+.ddc-wrap{margin:0 0 12px}.ddc-sticky{position:sticky;top:6px;z-index:5}
+.ddc-frame{position:relative;width:calc(132px*var(--s));height:calc(132px*var(--s));border-radius:calc(40px*var(--s));overflow:hidden;background:linear-gradient(160deg,rgba(38,30,22,.88),rgba(14,11,8,.92));border:1.5px solid var(--ch-accent);box-shadow:0 10px 26px rgba(0,0,0,.28),inset 0 0 22px color-mix(in srgb,var(--ch-accent) 22%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:width .3s,height .3s}
+.ddc[data-wide] .ddc-frame{width:min(100%,calc(300px*var(--s)))}
+.ddc-frame svg{display:block;width:calc(132px*var(--s));height:calc(132px*var(--s));margin:0 auto;overflow:visible}
+.ddc[data-wide] .ddc-frame svg{margin:0 auto}
+.ddc-tag{position:absolute;top:calc(7px*var(--s));left:0;right:0;text-align:center;font:600 calc(10px*var(--s))/1 'Hind Siliguri',sans-serif;letter-spacing:.04em;color:var(--ch-accent);opacity:.9;z-index:2}
+.ddc[data-size=sm] .ddc-tag{display:none}
+.ddc-skip{display:none;position:absolute;right:8px;bottom:6px;z-index:3;font:600 11px 'Hind Siliguri',sans-serif;color:#fff;background:rgba(255,255,255,.14);border:0;border-radius:99px;padding:3px 10px;cursor:pointer}
+.ddc.walking .ddc-skip{display:block}
+.ddc .actor{transform:translateX(var(--ax));transition:transform 2s linear}
+.ddc .float{animation:ddcBreath 3.4s ease-in-out infinite;transform-origin:60px 100px}
+.ddc .head{transform-origin:60px 92px;transform:translateY(var(--hy)) rotate(var(--tilt));transition:transform .55s cubic-bezier(.3,1.4,.5,1)}
+.ddc.sway .head{--tilt:2.5deg}
+.ddc .cap{transform-origin:60px 40px;transform:translateY(var(--cap)) rotate(var(--caprot));transition:transform .6s cubic-bezier(.3,1.4,.5,1),opacity .4s}
+.ddc .pupil{transform:translate(var(--px),var(--py));transition:transform .2s ease-out}
+.ddc .eye{transform-box:fill-box;transform-origin:center;transition:transform .09s}
+.ddc .eye.b{transform:scaleY(.08)}
+.ddc .eye ellipse{transform-box:fill-box;transform-origin:center;transition:transform .35s cubic-bezier(.3,1.4,.5,1)}
+.ddc .brow{fill:none;stroke:#5a3a22;stroke-width:2.4;stroke-linecap:round;transition:transform .4s cubic-bezier(.3,1.4,.5,1)}
+.ddc .m{fill:none;stroke:#8a3b2e;stroke-width:2.6;stroke-linecap:round;opacity:0;transition:opacity .2s}
+.ddc .m-o{fill:#8a3b2e}
+.ddc .m-smile{opacity:1}
+.ddc .cheek{opacity:.3;transition:opacity .4s}
+.ddc .thumb{opacity:0;transform:translateY(24px) scale(.6);transform-origin:99px 100px;transition:opacity .3s,transform .6s cubic-bezier(.3,1.4,.5,1)}
+.ddc .legs,.ddc .suit{opacity:0}
+.ddc[data-walk=on] .legs,.ddc[data-walk=on] .suit{opacity:1}
+.ddc[data-walk=on][data-suit=up] .legs rect{animation:ddcStep .42s ease-in-out infinite}
+.ddc[data-walk=on][data-suit=up] .legs rect+rect{animation-delay:.21s}
+.ddc[data-walk=on][data-suit=up] .float{animation-duration:.42s}
+.ddc .suit{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.ddc[data-suit=up] .suit{transform:translateY(-9px)}
+.ddc .lid{transform-box:fill-box;transform-origin:left bottom;transition:transform .6s cubic-bezier(.3,1.4,.5,1)}
+.ddc[data-suit=open] .lid{transform:rotate(-72deg)}
+.ddc[data-suit=open] .suit{animation:ddcRattle .4s}
+/* স্টেট */
+.ddc[data-s=look]{--py:3px}
+.ddc[data-s=look] .eye ellipse{transform:scale(1.14)}
+.ddc[data-s=look] .cap{animation:ddcFix .8s cubic-bezier(.3,1.4,.5,1)}
+.ddc[data-s=pw]{--cap:9px;--hy:3px;--tilt:4deg;--py:3px}
+.ddc[data-s=pw] .m-smile,.ddc[data-s=peek] .m-smile{opacity:0}.ddc[data-s=pw] .m-flat,.ddc[data-s=peek] .m-flat{opacity:1}
+.ddc[data-s=peek]{--cap:-1px;--hy:2px;--px:4px;--py:3px}
+.ddc[data-s=peek] .eye ellipse{transform:scale(1.1)}
+.ddc[data-s=drop]{--cap:62px;--caprot:38deg;--hy:3px;--py:4px}
+.ddc[data-s=drop] .cap{opacity:0}
+.ddc[data-s=surprise]{--cap:-15px;--hy:-2px}
+.ddc[data-s=surprise] .eye ellipse{transform:scale(1.22)}
+.ddc[data-s=surprise] .brow{transform:translateY(-4px)}
+.ddc[data-s=surprise] .m-smile{opacity:0}.ddc[data-s=surprise] .m-o{opacity:1}
+.ddc[data-s=surprise] .pupil{animation:ddcLook 1.1s ease-in-out}
+.ddc[data-s=thumb] .thumb{opacity:1;transform:none}
+.ddc[data-s=thumb] .cheek{opacity:.6}
+.ddc[data-s=thumb]{--tilt:-3deg}
+.ddc[data-s=sad] .m-smile{opacity:0}.ddc[data-s=sad] .m-sad{opacity:1}
+.ddc[data-s=sad] .bl{transform:rotate(-12deg);transform-box:fill-box;transform-origin:center}
+.ddc[data-s=sad] .br{transform:rotate(12deg);transform-box:fill-box;transform-origin:center}
+.ddc[data-s=sad] .float{animation:ddcShake .55s}
+.ddc-hide{opacity:0!important;transform:scale(.2)!important;pointer-events:none}
+.ddc-form,[data-ddc-form]{transform-origin:18% 0}
+.ddc-pop{animation:ddcPop .7s cubic-bezier(.3,1.4,.5,1) both}
+.kx-bar>i{transform-origin:left;transition:width 1s cubic-bezier(.3,1.4,.5,1)}
+.ddc-pulse{animation:ddcPulse 1.6s ease-in-out infinite}
+.ddc-conf{position:absolute;top:30%;left:50%;width:7px;height:10px;border-radius:2px;pointer-events:none;z-index:5;animation:ddcConf 1.5s cubic-bezier(.2,.7,.3,1) forwards}
+.ddc-hat{position:absolute;top:26%;left:50%;width:34px;height:34px;pointer-events:none;z-index:6;animation:ddcHat 1.6s cubic-bezier(.3,1,.5,1) forwards}
+@keyframes ddcBreath{0%,100%{transform:translateY(0)}50%{transform:translateY(-1.6px)}}
+@keyframes ddcStep{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes ddcFix{0%{transform:translateY(var(--cap))}35%{transform:translateY(calc(var(--cap) - 5px)) rotate(-3deg)}100%{transform:translateY(var(--cap))}}
+@keyframes ddcLook{0%{transform:translate(0,0)}25%{transform:translate(-4px,1px)}65%{transform:translate(4px,-1px)}100%{transform:translate(0,0)}}
+@keyframes ddcShake{0%,100%{transform:translateX(0)}18%{transform:translateX(-5px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(3px)}}
+@keyframes ddcRattle{0%,100%{transform:translateX(0)}30%{transform:translateX(-1.5px)}60%{transform:translateX(1.5px)}}
+@keyframes ddcPop{0%{opacity:0;transform:scale(.2) translateY(-30px)}60%{opacity:1;transform:scale(1.04)}100%{opacity:1;transform:none}}
+@keyframes ddcPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08);color:var(--accent)}}
+@keyframes ddcConf{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) rotate(var(--dr))}}
+@keyframes ddcHat{0%{transform:translate(-50%,40px) rotate(0)}40%{transform:translate(-50%,-70px) rotate(300deg)}100%{transform:translate(-50%,10px) rotate(720deg);opacity:0}}
+@media(max-height:540px){.ddc{--s:.6}.ddc[data-size=sm]{--s:.45}}
+@media(prefers-reduced-motion:reduce){.ddc *,.ddc-pop,.ddc-pulse,.kx-bar>i{animation:none!important;transition-duration:.01s!important}.ddc .actor{transition:none}}
 </style>
 <body :class="'theme-'+activeTheme" class="theme-light">
 
@@ -1976,11 +2074,12 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
       <button @click="forgotPw.open=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);color:var(--fg3);border:none;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
+    <div class="ddc-wrap"><div class="ddc" data-theme="gold" data-size="sm"></div></div>
     <!-- Step 1: phone -->
     <template x-if="forgotPw.step===1">
       <div class="space-y-3">
         <p class="text-xs" style="color:var(--fg3)">আপনার একাউন্টের মোবাইল নম্বর দিন, আমরা যাচাই করে দেখব।</p>
-        <input class="dd-input" type="tel" x-model="forgotPw.phone" placeholder="০১XXXXXXXXX"/>
+        <input class="dd-input" type="tel" x-model="forgotPw.phone" data-ch="text" placeholder="০১XXXXXXXXX"/>
         <p class="text-xs font-bold" style="color:#DC2626" x-show="forgotPw.error" x-text="forgotPw.error"></p>
         <button @click="forgotPwCheckPhone()" :disabled="forgotPw.loading" class="btn-primary"><span x-show="!forgotPw.loading">যাচাই করুন</span><span x-show="forgotPw.loading">যাচাই হচ্ছে...</span></button>
       </div>
@@ -2022,8 +2121,8 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
     <!-- Step 4: set new password -->
     <template x-if="forgotPw.step===4">
       <div class="space-y-3">
-        <div><label class="dd-label">নতুন পাসওয়ার্ড</label><input class="dd-input" type="password" x-model="forgotPw.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/></div>
-        <div><label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label><input class="dd-input" type="password" x-model="forgotPw.confirmPw" placeholder="আবার লিখুন"/></div>
+        <div><label class="dd-label">নতুন পাসওয়ার্ড</label><input class="dd-input" type="password" x-model="forgotPw.newPw" data-ch="pw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/></div>
+        <div><label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label><input class="dd-input" type="password" x-model="forgotPw.confirmPw" data-ch="pw" placeholder="আবার লিখুন"/></div>
         <p class="text-xs font-bold" style="color:#DC2626" x-show="forgotPw.error" x-text="forgotPw.error"></p>
         <button @click="forgotPwSetNew()" class="btn-primary">পাসওয়ার্ড সেভ করুন</button>
       </div>
@@ -2042,7 +2141,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
 </div>
 
 <!-- ═══ RESELLER SIDEBAR DRAWER (NEW) ═══ -->
-<div x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5)" @click.self="resellSidebarOpen=false">
+<div class="col-overlay" x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5)" @click.self="resellSidebarOpen=false">
   <div class="h-full overflow-y-auto transition-transform duration-200" :style="'width:82%;max-width:300px;background:var(--card);'+(resellSidebarOpen?'transform:translateX(0)':'transform:translateX(-100%)')">
     <div class="p-4 flex items-center gap-3" style="background:var(--header)">
       <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style="background:var(--accent)" x-text="(reseller?.shopName||reseller?.name||'R').charAt(0)"></div>
@@ -2973,7 +3072,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
   <!-- ═══ ১. চলমান ═══ -->
   <div x-show="kxTab==='active'" role="tabpanel">
     <template x-if="emiSummary.hasActive">
-    <section class="kx-card" aria-label="বকেয়ার সারাংশ">
+    <section class="kx-card" x-effect="DDChar.kx($el,emiSummary,emiDaysLeft(emiSummary.nextDate),kxTk(emiSummary.remaining))" aria-label="বকেয়ার সারাংশ">
       <div class="kx-row"><h2 class="kx-h2">আপনার বকেয়া</h2>
         <span class="kx-chip bad" x-show="emiSummary.dueMonths>0" x-text="kxn(emiSummary.dueMonths)+' মাস ডিউ'"></span>
         <span class="kx-chip warn" x-show="emiSummary.dueMonths===0&&emiSummary.pending>0">যাচাই চলছে</span>
@@ -3124,6 +3223,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
 
 <!-- ─── PROFILE / ACCOUNT (Noon-style) ─── -->
 <section x-show="activeTab==='profile'" x-cloak class="animate-fade-in">
+<div class="ddc-wrap ddc-sticky" style="padding-top:8px"><div class="ddc" data-theme="gold" data-size="sm" data-follow></div></div>
   <div class="profile-cover" :style="!settings.profileCover?'background:var(--hgrad)':''">
     <img x-show="settings.profileCover" :src="optImg(settings.profileCover,480)" loading="lazy" class="profile-cover-img" onerror="this.style.display='none'"/>
     <div x-show="!settings.profileCover" x-html="deliverySvg()" style="position:absolute;right:0;bottom:0;width:55%;height:85%;pointer-events:none"></div>
@@ -3236,7 +3336,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
               <label class="dd-label mb-0">নাম</label>
               <span x-show="profile.nameLockedAt" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-lock"></i>লকড</span>
             </div>
-            <input class="dd-input" x-model="profile.name" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
+            <input class="dd-input" x-model="profile.name" data-ch="text" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
             <button x-show="profile.nameLockedAt" @click="helplineOpen=true" type="button" class="text-xs font-bold mt-1.5" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>তথ্য পরিবর্তনের অনুরোধ করুন</button>
           </div>
           <div>
@@ -3246,7 +3346,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
           </div>
           <div>
             <label class="dd-label" x-text="t('emailOpt')"></label>
-            <input class="dd-input" type="email" x-model="profile.email" placeholder="you@gmail.com"/>
+            <input class="dd-input" type="email" x-model="profile.email" data-ch="text" placeholder="you@gmail.com"/>
             <p class="text-xs mt-1" style="color:var(--fg3)"><i class="fa-solid fa-circle-info mr-1" style="color:var(--accent)"></i>Gmail যুক্ত থাকলে পাসওয়ার্ড ভুলে গেলে সহজে রিসেট করতে পারবেন — নিরাপত্তার জন্য সুপারিশকৃত।</p>
           </div>
           <div class="flex gap-2">
@@ -3274,7 +3374,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
           <div x-data="{show:false}">
             <label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label>
             <div style="position:relative">
-              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/>
+              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" data-ch="pw" placeholder="কমপক্ষে ৪ ডিজিট/অক্ষর"/>
               <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
             </div>
             <template x-if="securityForm.newPw">
@@ -3294,7 +3394,7 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
           <div x-data="{show:false}">
             <label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label>
             <div style="position:relative">
-              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" placeholder="আবার লিখুন"/>
+              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" data-ch="pw" placeholder="আবার লিখুন"/>
               <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
             </div>
             <template x-if="securityForm.confirmPw">
@@ -3444,19 +3544,20 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
         <p class="font-display text-xl" style="color:var(--fg)">রিসেলার পোর্টাল</p>
         <p class="text-sm mt-1 px-4" style="color:var(--fg3)">নিজের শপ খুলুন, কম দামে পণ্য নিয়ে বিক্রি করুন, এবং রেফারেল থেকে বাড়তি আয় করুন</p>
       </div>
+      <div class="ddc-wrap"><div class="ddc" data-theme="teal" data-wide data-validate x-effect="resellAuthError?DDChar.set($el,'sad',1600):((activeTab==='resell'&&resellAuthMode==='signup')?DDChar.walk($el):DDChar.unwalk($el))"></div></div>
       <div class="dd-card p-4">
         <div class="flex gap-2 mb-4 p-1 rounded-2xl" style="background:var(--bg2)">
           <button @click="resellAuthMode='signup';resellAuthError=''" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all" :style="resellAuthMode==='signup'?'background:var(--accent);color:#fff':'color:var(--fg3)'">রেজিস্ট্রেশন</button>
           <button @click="resellAuthMode='login';resellAuthError=''" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all" :style="resellAuthMode==='login'?'background:var(--accent);color:#fff':'color:var(--fg3)'">লগইন</button>
         </div>
 
-        <div x-show="resellAuthMode==='signup'" class="space-y-3">
-          <div><label class="dd-label">আপনার নাম *</label><input class="dd-input" x-model="resellSignupForm.name" placeholder="আপনার সম্পূর্ণ নাম"/></div>
-          <div><label class="dd-label">শপের নাম *</label><input class="dd-input" x-model="resellSignupForm.shopName" placeholder="যেমন: রুমা'স কালেকশন"/><p class="text-xs mt-1" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নাম দেখাবে</p></div>
-          <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="resellSignupForm.phone" placeholder="০১XXXXXXXXX" maxlength="11"/></div>
-          <div><label class="dd-label">পিন (৪ ডিজিট বা তার বেশি) *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.pin" placeholder="••••"/></div>
-          <div><label class="dd-label">পিন আবার লিখুন *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" placeholder="••••"/></div>
-          <div><label class="dd-label">রেফারেল / প্রমো কোড (ঐচ্ছিক)</label><input class="dd-input" x-model="resellSignupForm.referralCode" placeholder="যেমন: RS12345AB"/></div>
+        <div x-show="resellAuthMode==='signup'" class="space-y-3" data-ddc-form>
+          <div><label class="dd-label">আপনার নাম *</label><input class="dd-input" x-model="resellSignupForm.name" data-ch="text" placeholder="আপনার সম্পূর্ণ নাম"/></div>
+          <div><label class="dd-label">শপের নাম *</label><input class="dd-input" x-model="resellSignupForm.shopName" data-ch="text" placeholder="যেমন: রুমা'স কালেকশন"/><p class="text-xs mt-1" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নাম দেখাবে</p></div>
+          <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="resellSignupForm.phone" data-ch="text" placeholder="০১XXXXXXXXX" maxlength="11"/></div>
+          <div><label class="dd-label">পিন (৪ ডিজিট বা তার বেশি) *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.pin" data-ch="pw" data-cap="drop" placeholder="••••"/></div>
+          <div><label class="dd-label">পিন আবার লিখুন *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" data-ch="pw" data-cap="drop" placeholder="••••"/></div>
+          <div><label class="dd-label">রেফারেল / প্রমো কোড (ঐচ্ছিক)</label><input class="dd-input" x-model="resellSignupForm.referralCode" data-ch="text" data-opt placeholder="যেমন: RS12345AB"/></div>
           <label class="flex items-start gap-2.5 cursor-pointer pt-1">
             <input type="checkbox" x-model="resellSignupForm.agree" class="mt-0.5"/>
             <span class="text-xs" style="color:var(--fg2)">আমি রিসেলিং শর্তাবলীর সাথে সম্মত</span>
@@ -3466,8 +3567,8 @@ section[x-show*="'profile'"] p.font-display,section[x-show*="'profile'"] .font-d
         </div>
 
         <div x-show="resellAuthMode==='login'" class="space-y-3">
-          <div><label class="dd-label">মোবাইল নম্বর</label><input class="dd-input" type="tel" x-model="resellLoginForm.phone" placeholder="০১XXXXXXXXX" maxlength="11"/></div>
-          <div><label class="dd-label">পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellLoginForm.pin" placeholder="••••"/></div>
+          <div><label class="dd-label">মোবাইল নম্বর</label><input class="dd-input" type="tel" x-model="resellLoginForm.phone" data-ch="text" placeholder="০১XXXXXXXXX" maxlength="11"/></div>
+          <div><label class="dd-label">পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellLoginForm.pin" data-ch="pw" placeholder="••••"/></div>
           <p x-show="resellAuthError" class="text-xs font-semibold" style="color:#DC2626" x-text="resellAuthError"></p>
           <button @click="resellDoLogin()" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-right-to-bracket mr-2"></i>লগইন করুন</button>
         </div>
@@ -6335,6 +6436,87 @@ window.addEventListener('load',run)})();</script>
   window.addEventListener('load',function(){run();checkOverlays()});
   window.addEventListener('resize',syncNavHeight);
   setInterval(function(){run();},2000);
+})();
+</script>
+<script>
+/* DDC: প্রিমিয়াম ক্যারেক্টার কন্ট্রোলার — বাইরের লাইব্রেরি নেই, বিদ্যমান ফর্ম/x-model স্পর্শ করে না */
+(function(){
+var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches,seq=0;
+function tpl(n){var i=function(x){return x+n};
+return '<div class="ddc-frame"><span class="ddc-tag">@dailydeal</span><svg viewBox="0 -4 120 120" aria-hidden="true" focusable="false"><defs>'
++'<linearGradient id="'+i('sk')+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffdcb8"/><stop offset="1" stop-color="#eeb081"/></linearGradient>'
++'<linearGradient id="'+i('cl')+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--ch-cloth)"/><stop offset="1" style="stop-color:var(--ch-cloth);stop-opacity:.72"/></linearGradient>'
++'<linearGradient id="'+i('cp')+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b4a2d"/><stop offset="1" stop-color="#4a3220"/></linearGradient></defs>'
++'<g class="actor"><g class="legs"><rect x="46" y="100" width="10" height="18" rx="4" fill="#2b2118"/><rect x="64" y="100" width="10" height="18" rx="4" fill="#2b2118"/></g>'
++'<g class="suit"><rect x="2" y="96" width="30" height="20" rx="4" fill="var(--ch-accent)"/><rect x="2" y="104" width="30" height="2" fill="rgba(0,0,0,.25)"/><rect x="14" y="101" width="6" height="5" rx="1" fill="#f4d58a"/><g class="lid"><rect x="2" y="88" width="30" height="8" rx="3" fill="var(--ch-accent)"/><rect x="2" y="88" width="30" height="3" rx="1.5" fill="rgba(255,255,255,.3)"/></g></g>'
++'<g class="float"><path d="M20 122Q20 92 60 92Q100 92 100 122Z" fill="url(#'+i('cl')+')"/><path d="M42 100Q47 111 44 122M78 100Q73 111 76 122" stroke="rgba(0,0,0,.16)" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M50 92L60 103L70 92" fill="#fff" opacity=".9"/>'
++'<g class="thumb"><path d="M88 108Q102 104 101 90" stroke="url(#'+i('sk')+')" stroke-width="9" stroke-linecap="round" fill="none"/><path d="M95.5 82V66a4 4 0 0 1 8 0V82Z" fill="url(#'+i('sk')+')"/><rect x="91" y="80" width="18" height="15" rx="7" fill="url(#'+i('sk')+')"/><path d="M94 86h12M94 90h12" stroke="rgba(0,0,0,.12)" stroke-width="1.2"/></g>'
++'<g class="head"><circle cx="60" cy="60" r="30" fill="url(#'+i('sk')+')"/><ellipse class="cheek" cx="39" cy="69" rx="6" ry="4" fill="#ff7a7a"/><ellipse class="cheek" cx="81" cy="69" rx="6" ry="4" fill="#ff7a7a"/>'
++'<g class="eye"><ellipse cx="48" cy="58" rx="7" ry="8" fill="#fff"/><g class="pupil"><circle cx="48" cy="58" r="3.8" fill="#2a1d14"/><circle cx="49.6" cy="56.3" r="1.4" fill="#fff"/></g></g>'
++'<g class="eye"><ellipse cx="72" cy="58" rx="7" ry="8" fill="#fff"/><g class="pupil"><circle cx="72" cy="58" r="3.8" fill="#2a1d14"/><circle cx="73.6" cy="56.3" r="1.4" fill="#fff"/></g></g>'
++'<path class="brow bl" d="M41 47q7-4 14 0"/><path class="brow br" d="M65 47q7-4 14 0"/>'
++'<path class="m m-smile" d="M50 74q10 9 20 0"/><path class="m m-flat" d="M52 77h16"/><path class="m m-sad" d="M51 80q9-8 18 0"/><ellipse class="m m-o" cx="60" cy="77" rx="4" ry="5"/>'
++'<g class="cap"><path d="M29 50Q30 21 60 21Q90 21 91 50Z" fill="url(#'+i('cp')+')"/><path d="M40 40Q60 30 80 40M36 46Q60 35 84 46" stroke="rgba(255,255,255,.1)" stroke-width="1.5" fill="none"/><circle cx="60" cy="21" r="3" fill="var(--ch-accent)"/><path d="M29 45Q60 54 91 45L91.5 50Q60 59 28.5 50Z" fill="var(--ch-accent)"/><path d="M25 50Q60 63 95 50Q95 55 60 61Q25 55 25 50Z" fill="#3a2a1c"/></g>'
++'</g></g></g></svg><button type="button" class="ddc-skip" tabindex="-1">Skip</button></div>'}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function blink(m){m._b=setTimeout(function(){if(!m.isConnected)return;
+ if(!document.hidden&&m.offsetParent){var es=m.querySelectorAll('.eye');es.forEach(function(e){e.classList.add('b')});setTimeout(function(){es.forEach(function(e){e.classList.remove('b')})},110);
+  if(Math.random()<.3&&m.dataset.s==='idle'){m.classList.add('sway');setTimeout(function(){m.classList.remove('sway')},1600)}}
+ blink(m)},2500+Math.random()*2500)}
+function up(el,sel){var p=el.parentElement;while(p&&!p.querySelector(sel))p=p.parentElement;return p}
+function mountOf(t){var p=up(t,'.ddc');return p&&p.querySelector('.ddc')}
+var D=window.DDChar={
+ init:function(m){if(!m||m._i)return m;m._i=1;m.setAttribute('aria-hidden','true');m.dataset.s='idle';m.innerHTML=tpl(++seq);
+  m.addEventListener('click',function(e){if(e.target.closest('.ddc-skip'))return D.skip(m);if(!m._f||document.activeElement!==m._f)D.set(m,'surprise',800)});blink(m);return m},
+ set:function(m,s,ms){D.init(m);if(!m)return;clearTimeout(m._t);m.dataset.s=s;if(ms)m._t=setTimeout(function(){m.dataset.s='idle'},ms)},
+ eyes:function(m,x,y){m.style.setProperty('--px',x+'px');m.style.setProperty('--py',y+'px')},
+ follow:function(m,t){var r=t.getBoundingClientRect(),c=m.getBoundingClientRect();var f=clamp((t.value||'').length/22,0,1);
+  D.eyes(m,(-4+8*f).toFixed(1),r.top>c.bottom?3:1)},
+ walk:function(m){D.init(m);if(m._w)return;setTimeout(function(){
+  if(m._w||!m.offsetParent)return;try{if(sessionStorage.getItem('ddcWalk'))return}catch(e){}
+  if(RM)return;var root=up(m,'[data-ddc-form]'),form=root&&root.querySelector('[data-ddc-form]');if(!form)return;
+  m._w=1;try{sessionStorage.setItem('ddcWalk','1')}catch(e){}
+  m.classList.add('walking');form.classList.add('ddc-hide');m.dataset.walk='on';m.dataset.suit='up';m.style.setProperty('--ax','-110px');
+  m._end=function(pop){(m._wt||[]).forEach(clearTimeout);m.classList.remove('walking');m.dataset.walk='off';m.dataset.suit='closed';m.style.setProperty('--ax','0px');D.set(m,'idle');
+   form.classList.remove('ddc-hide');if(pop){form.classList.add('ddc-pop');setTimeout(function(){form.classList.remove('ddc-pop')},800)}};
+  requestAnimationFrame(function(){requestAnimationFrame(function(){m.style.setProperty('--ax','0px')})});
+  m._wt=[setTimeout(function(){m.dataset.suit='down';D.set(m,'look')},2050),setTimeout(function(){m.dataset.suit='open'},2750),setTimeout(function(){m._end(true)},3450)]},80)},
+ unwalk:function(m){D.init(m)},
+ skip:function(m){if(m._end)m._end(false)},
+ celebrate:function(el){if(el._c)return;el._c=1;if(RM)return;var cs=['#f59e0b','#22c55e','#3b82f6','#ef4444','#a855f7'];
+  el.style.position=el.style.position||'relative';
+  for(var i=0;i<18;i++){var s=document.createElement('i');s.className='ddc-conf';var a=Math.random()*Math.PI*2,d=70+Math.random()*80;
+   s.style.background=cs[i%5];s.style.setProperty('--dx',Math.cos(a)*d+'px');s.style.setProperty('--dy',(Math.sin(a)*d-30)+'px');s.style.setProperty('--dr',(Math.random()*540)+'deg');el.appendChild(s);setTimeout(function(n){n.remove()},1700,s)}
+  var h=document.createElement('i');h.className='ddc-hat';h.innerHTML='<svg viewBox="0 0 40 40"><path d="M6 26Q7 8 20 8Q33 8 34 26Z" fill="#6b4a2d"/><path d="M6 24Q20 30 34 24L34 27Q20 33 6 27Z" fill="#c98f4f"/><path d="M3 27Q20 37 37 27Q37 30 20 34Q3 30 3 27Z" fill="#3a2a1c"/></svg>';
+  el.appendChild(h);setTimeout(function(){h.remove()},1700)},
+ kx:function(el,s,days,txt){var big=el.querySelector('.kx-big');
+  if(big&&s){var n=+s.remaining||0,o=big._v;big._v=n;if(o!=null&&o!==n&&!RM&&Math.abs(o-n)>=1){var t0=performance.now();cancelAnimationFrame(big._r);
+    (function f(t){var k=clamp((t-t0)/800,0,1),e=1-Math.pow(1-k,3),v=Math.round(o+(n-o)*e);
+     big.textContent=k<1?txt.replace(/[০-৯0-9][০-৯0-9,]*/,v.toLocaleString('bn-BD')):txt;if(k<1)big._r=requestAnimationFrame(f)})(t0)}}
+  var db=el.querySelector('.kx-grid2 div:nth-child(2) b');if(db)db.classList.toggle('ddc-pulse',days!=null&&days<=3&&days>=0);
+  if(s&&s.percent>=100&&s.dueMonths===0&&s.pending===0)D.celebrate(el)}
+};
+function initAll(){document.querySelectorAll('.ddc:not([data-i])').forEach(function(m){m.dataset.i=1;D.init(m)})}
+new MutationObserver(function(){requestAnimationFrame(initAll)}).observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('DOMContentLoaded',initAll);
+/* ইভেন্ট হুক: শুধু শোনে, ইনপুটে কিছু বদলায় না */
+document.addEventListener('focusin',function(e){var t=e.target,k=t.dataset&&t.dataset.ch;if(!k)return;var m=mountOf(t);if(!m)return;m._f=t;
+ if(k==='pw')D.set(m,t.type==='text'?'peek':(t.dataset.cap==='drop'?'drop':'pw'));else{D.set(m,'look');D.follow(m,t)}});
+document.addEventListener('input',function(e){var t=e.target,k=t.dataset&&t.dataset.ch;if(!k)return;var m=mountOf(t);if(!m)return;
+ if(k==='pw'){if(m.dataset.s==='pw'||m.dataset.s==='peek')D.set(m,t.type==='text'?'peek':'pw');return}
+ D.follow(m,t);
+ if(m.hasAttribute('data-validate')&&!m._ok){var r=up(t,'[data-ddc-form]'),f=r&&r.querySelector('[data-ddc-form]');
+  if(f){var ok=[].every.call(f.querySelectorAll('[data-ch=text]'),function(i){return i.dataset.opt!==undefined||(i.value||'').trim().length>=(i.type==='tel'?11:2)});
+   if(ok){m._ok=1;D.set(m,'thumb',1800);setTimeout(function(){m._ok=0},4000)}}}});
+document.addEventListener('focusout',function(e){var t=e.target,k=t.dataset&&t.dataset.ch;if(!k)return;var m=mountOf(t);if(!m)return;
+ setTimeout(function(){var a=document.activeElement;if(a&&a.dataset&&a.dataset.ch)return;
+  if(k==='pw'&&a&&a!==document.body&&t.parentElement&&t.parentElement.contains(a)){D.set(m,t.type==='text'?'peek':'pw');return}
+  m._f=null;D.eyes(m,0,0);if(k==='pw')D.set(m,'surprise',1300);else D.set(m,'idle')},60)});
+document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button');if(!b)return;var p=b.parentElement,i=p&&p.querySelector('[data-ch=pw]');if(!i)return;
+ var m=mountOf(i);if(m)setTimeout(function(){if(m.dataset.s==='pw'||m.dataset.s==='peek')D.set(m,i.type==='text'?'peek':'pw')},30)});
+var raf=0;document.addEventListener('pointermove',function(e){if(raf)return;raf=requestAnimationFrame(function(){raf=0;
+ document.querySelectorAll('.ddc[data-follow]').forEach(function(m){if(!m.offsetParent||document.hidden||(m._f&&m._f===document.activeElement))return;
+  var c=m.getBoundingClientRect(),dx=e.clientX-(c.left+c.width/2),dy=e.clientY-(c.top+c.height/2);D.eyes(m,clamp(dx/40,-4,4).toFixed(1),clamp(dy/60,-3,3).toFixed(1))})})},{passive:true});
 })();
 </script>
 </body>
