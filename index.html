@@ -1004,15 +1004,15 @@ img.dd-ok{opacity:1!important}
 /* ── প্রিমিয়াম কনফার্ম ডায়ালগ (native "says" বক্স-এর বদলে) ── */
 .ddc-back{position:fixed;inset:0;z-index:1200;background:rgba(10,8,6,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:22px;animation:ddcFade .25s ease}
 @keyframes ddcFade{from{opacity:0}to{opacity:1}}
-.ddc{width:100%;max-width:340px;background:var(--card);border-radius:28px;padding:30px 22px 20px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4),inset 0 0 0 1px var(--border);animation:ddcIn .42s var(--luxe-ease);position:relative;overflow:hidden;--ddc-c1:#F87171;--ddc-c2:#DC2626}
+.ddcf{width:100%;max-width:340px;background:var(--card);border-radius:28px;padding:30px 22px 20px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.4),inset 0 0 0 1px var(--border);animation:ddcIn .42s var(--luxe-ease);position:relative;overflow:hidden;--ddc-c1:#F87171;--ddc-c2:#DC2626}
 @keyframes ddcIn{from{opacity:0;transform:translateY(26px) scale(.94)}to{opacity:1;transform:none}}
-.ddc::before{content:"";position:absolute;inset:0 0 auto 0;height:110px;background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--ddc-c2) 20%,transparent),transparent 72%);pointer-events:none}
-.ddc.brand{--ddc-c1:var(--accent2);--ddc-c2:var(--accent)}
-.ddc.success{--ddc-c1:#34D399;--ddc-c2:#059669}
+.ddcf::before{content:"";position:absolute;inset:0 0 auto 0;height:110px;background:radial-gradient(120% 100% at 50% 0,color-mix(in srgb,var(--ddc-c2) 20%,transparent),transparent 72%);pointer-events:none}
+.ddcf.brand{--ddc-c1:var(--accent2);--ddc-c2:var(--accent)}
+.ddcf.success{--ddc-c1:#34D399;--ddc-c2:#059669}
 .ddc-ic{position:relative;width:68px;height:68px;margin:0 auto 16px;border-radius:24px;display:grid;place-items:center;font-size:27px;color:#fff;background:linear-gradient(145deg,var(--ddc-c1),var(--ddc-c2));box-shadow:0 14px 28px color-mix(in srgb,var(--ddc-c2) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.4)}
 .ddc-ic::after{content:"";position:absolute;inset:-7px;border-radius:29px;border:1.5px solid color-mix(in srgb,var(--ddc-c2) 28%,transparent)}
-.ddc h3{margin:0;font-size:20px;font-weight:800;color:var(--fg);line-height:1.3;position:relative}
-.ddc p{margin:8px 0 0;font-size:13px;line-height:1.65;color:var(--fg3);position:relative}
+.ddcf h3{margin:0;font-size:20px;font-weight:800;color:var(--fg);line-height:1.3;position:relative}
+.ddcf p{margin:8px 0 0;font-size:13px;line-height:1.65;color:var(--fg3);position:relative}
 .ddc-act{display:flex;flex-direction:column;gap:10px;margin-top:22px;position:relative}
 .ddc-yes,.ddc-no{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;border-radius:16px;font-family:'Hind Siliguri',sans-serif;cursor:pointer;transition:transform .15s,box-shadow .2s}
 .ddc-yes{height:52px;border:0;color:#fff;font-size:15px;font-weight:800;background:linear-gradient(135deg,var(--ddc-c1),var(--ddc-c2));box-shadow:0 12px 26px color-mix(in srgb,var(--ddc-c2) 38%,transparent),inset 0 1px 0 rgba(255,255,255,.35)}
@@ -4526,7 +4526,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   <div class="dlg-ic" style="background:#D1FAE5;color:#059669"><i class="fa-solid fa-link"></i></div>
   <p class="dlg-t">লিংক তৈরি হয়েছে</p>
   <p class="text-xs mt-1" style="color:var(--fg3)" x-text="(sellLinkModal.p?sellLinkModal.p.name:'')+' — ৳'+sellLinkModal.price"></p>
-  <div class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2)" x-text="sellLinkModal.url"></div>
+  <div id="sellLinkUrl" class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2);user-select:all;-webkit-user-select:all" x-text="sellLinkModal.url"></div>
   <p class="text-xs mt-2 font-bold" style="color:#B45309" x-show="sellLinkModal.exp"><i class="fa-regular fa-clock"></i> সক্রিয় থাকবে: <span x-text="fmtLeft(Math.max(0,Math.ceil((sellLinkModal.exp-nowTs)/1000)))"></span> — এরপর লিংকটি কাজ করবে না।</p>
   <p class="text-xs mt-2" style="color:var(--fg3)">শেয়ার করলে প্রোডাক্টের ছবিসহ পাঠানো হবে। কাস্টমার লিংক খুলে এই দামেই কিনতে পারবে।</p>
   <div class="flex gap-2 mt-4"><button @click="copySellLink()" class="dlg-b2"><i class="fa-regular fa-copy"></i> কপি</button><button @click="shareSellLink()" class="dlg-b1"><i class="fa-solid fa-share-nodes"></i> শেয়ার</button></div>
@@ -4632,7 +4632,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 
 <!-- ════════ প্রিমিয়াম কনফার্ম ডায়ালগ ════════ -->
 <div class="ddc-back" x-show="confirmDlg.open" x-cloak @click.self="confirmClose(false)" @keydown.escape.window="confirmDlg.open&&confirmClose(false)">
-  <div class="ddc" :class="confirmDlg.tone" role="alertdialog" aria-modal="true" aria-labelledby="ddcT">
+  <div class="ddcf" :class="confirmDlg.tone" role="alertdialog" aria-modal="true" aria-labelledby="ddcT">
     <div class="ddc-ic"><i :class="confirmDlg.icon"></i></div>
     <h3 id="ddcT" x-text="confirmDlg.title"></h3>
     <p x-show="confirmDlg.msg" x-text="confirmDlg.msg"></p>
@@ -4943,10 +4943,12 @@ function App(){return{
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
   get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
   get intlFiltered(){return this.intlCat==='সব'?this.intlProducts:this.intlProducts.filter(p=>p.intlCat===this.intlCat)},
+  _secGender(s){const n=String(s.name||'');if(s.gender==='men'||s.gender==='women')return s.gender;if(/ছেলে|পুরুষ|জেন্টস|men|boy|male/i.test(n)&&!/মেয়ে|women/i.test(n))return'men';if(/মেয়ে|মহিলা|লেডিস|women|girl|female|ladies/i.test(n))return'women';return''},
+  _catSec(c,d=0){const ids=this._realSecs.map(s=>s.fbKey||s.id),own=c.section||c.sectionId;if(own&&ids.includes(own))return own;if(c.parent&&d<3){const pr=this.allCategories.find(x=>x.name===c.parent);if(pr){const r=this._catSec(pr,d+1);if(r)return r}}if(c.gender==='men'||c.gender==='women'){const s=this._realSecs.find(s=>this._secGender(s)===c.gender);if(s)return s.fbKey||s.id}return''},
   get _realSecs(){return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>(a.order||99)-(b.order||99))},
   get allSections(){
     const r=this._realSecs,ids=new Set(r.map(s=>s.fbKey||s.id));
-    const orph=this.allCategories.some(c=>!c.parent&&!ids.has(c.section||c.sectionId));
+    const orph=this.allCategories.some(c=>!c.parent&&!this._catSec(c));
     return orph?[...r,{fbKey:'__other',id:'__other',name:'অন্যান্য ক্যাটাগরি',icon:'fa-layer-group',color:'#6B7280',color2:'#9CA3AF',order:999}]:r},
     get menProducts(){return this.allProducts.filter(p=>p.gender==='men')},
   get womenProducts(){return this.allProducts.filter(p=>p.gender==='women')},
@@ -5013,7 +5015,7 @@ function App(){return{
   // ══ AUTH / RESELLER COMPUTED (NEW) ══
   get resellStatus(){return this.reseller?this.reseller.status||'none':'none'},
   get resellableProducts(){return this.allProducts.filter(p=>p.resellEnabled&&p.resellerPrice>0)},
-  get resellCategories(){return this.allCategories.filter(c=>this.resellableProducts.some(p=>p.cat===c.name))},
+  get resellCategories(){return this.allCategories},
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
   get resellFilteredProducts(){return this.resellActiveCat==='সব'?this.resellableProducts:this.resellableProducts.filter(p=>p.cat===this.resellActiveCat)},
@@ -5069,14 +5071,16 @@ function App(){return{
   // ⭐ SECTIONS helpers
   getSectionProducts(section){
     const sid=section.fbKey||section.id,ids=new Set(this._realSecs.map(s=>s.fbKey||s.id));
-    if(sid==='__other'){const rc=new Set(this.allCategories.filter(c=>ids.has(c.section||c.sectionId)).map(c=>c.name));return this.allProducts.filter(p=>!ids.has(p.section||p.sectionId)&&!rc.has(p.cat))}
+    if(sid==='__other'){const rc=new Set(this.allCategories.filter(c=>this._catSec(c)).map(c=>c.name));return this.allProducts.filter(p=>!ids.has(p.section||p.sectionId)&&!rc.has(p.cat))}
     const cats=new Set(this.getSectionCategories(section).map(c=>c.name));
     return this.allProducts.filter(p=>p.section===sid||p.sectionId===sid||(!ids.has(p.section||p.sectionId)&&cats.has(p.cat)));
   },
+  resellSecCats(section){const n=new Set(this.getSectionCategories(section).map(c=>c.name));return this.resellCategoryCounts.filter(c=>n.has(c.name))},
+  resellOtherCats(){const u=new Set();this.allSections.forEach(s=>this.getSectionCategories(s).forEach(c=>u.add(c.name)));return this.resellCategoryCounts.filter(c=>!u.has(c.name))},
   getSectionCategories(section){
     const sid=section.fbKey||section.id;
-    if(sid==='__other'){const ids=new Set(this._realSecs.map(s=>s.fbKey||s.id));return this.allCategories.filter(c=>!c.parent&&!ids.has(c.section||c.sectionId))}
-    return this.allCategories.filter(c=>c.section===sid||c.sectionId===sid);
+    if(sid==='__other')return this.allCategories.filter(c=>!c.parent&&!this._catSec(c));
+    return this.allCategories.filter(c=>this._catSec(c)===sid);
   },
     getFilteredSectionProducts(section){
     const sid=section.fbKey||section.id;
@@ -6427,7 +6431,8 @@ function App(){return{
     if(!this.allProducts.length)return;
     let p=null,link=null;
     if(l){
-      link=this._dlLink||(this._dlLink=await window.$db.getSharedLink(l));
+      if(/^x/.test(l)&&sp.get('d')){try{const r=JSON.parse(this._b64d(sp.get('d')));link=r&&r.productKey&&r.price?r:null}catch(e){link=null}}
+      else link=this._dlLink||(this._dlLink=await window.$db.getSharedLink(l).catch(()=>null));
       if(link)p=this.allProducts.find(x=>(x.fbKey||x.id)===link.productKey)||this.findProdByKey(link.productId);
     }else p=this.findProdByKey(pk);
     if(!p&&this._dlMiss<1){this._dlMiss++;return} // প্রথম (আংশিক) লোডে না পেলে পূর্ণ লোডের জন্য অপেক্ষা
@@ -6456,18 +6461,26 @@ function App(){return{
     try{const b=await window.$db.getBlock(this.otpNormPhone(this.resellSession));if(b)return this.showToast('আপনার একাউন্টে লিংক তৈরি বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।','error')}catch(e){}
     this.sellLinkModal.busy=true;
     try{
-      const act=await window.$db.getActiveLink(this.resellSession);
+      let act=null;try{act=await window.$db.getActiveLink(this.resellSession)}catch(e){}
+      if(!act){try{act=JSON.parse(localStorage.getItem('dd_lastlink_'+this.resellSession)||'null')}catch(e){}}
       if(act&&act.exp>Date.now()){this._lkExp=act.exp;this._linkTick();this.sellLinkModal.busy=false;return this.showToast('আগের লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত নতুন লিংক বানানো যাবে না','error')}
       if(act&&act.id)window.$db.removeSharedLink(act.id);   // পুরনো লিংক পরিষ্কার
       const mins=Number(this.linkMin)||15,now=Date.now(),exp=now+mins*60000;
-      const key=await window.$db.pushSharedLink({resellerPhone:this.resellSession,shopName:this.reseller?.shopName||this.reseller?.name||'',productKey:p.fbKey||p.id,productId:p.productId||'',price:s,resellerPrice:p.resellerPrice,createdAt:now,expiresAt:exp,durationMin:mins});
-      await window.$db.setActiveLink(this.resellSession,{id:key,exp});
+      const rec={resellerPhone:this.resellSession,shopName:this.reseller?.shopName||this.reseller?.name||'',productKey:p.fbKey||p.id,productId:p.productId||'',price:s,resellerPrice:p.resellerPrice,createdAt:now,expiresAt:exp,durationMin:mins};
+      let key,qs='';
+      try{key=await window.$db.pushSharedLink(rec)}catch(e){console.warn('sharedLinks write denied → stateless link',e);key='x'+Math.random().toString(36).slice(2,8);qs='&d='+this._b64e(JSON.stringify(rec))}
+      try{await window.$db.setActiveLink(this.resellSession,{id:key,exp})}catch(e){}try{localStorage.setItem('dd_lastlink_'+this.resellSession,JSON.stringify({id:key,exp}))}catch(e){}
       this._lkExp=exp;this._linkTick();
-      this.sellLinkModal={open:true,url:location.origin+location.pathname+'?l='+encodeURIComponent(key),price:s,p,busy:false,exp};
-    }catch(e){this.sellLinkModal.busy=false;this.showToast('লিংক তৈরি ব্যর্থ, আবার চেষ্টা করুন','error')}
+      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(key)+qs,price:s,p,busy:false,exp};
+    }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
   },
   async shareSellLink(){const m=this.sellLinkModal;if(m.p)await this._shareWithImage(m.p,m.url,m.p.name+' — ৳'+m.price)},
-  async copySellLink(){try{await navigator.clipboard.writeText(this.sellLinkModal.url);this.showToast('লিংক কপি হয়েছে 🔗','success')}catch(e){this.showToast(this.sellLinkModal.url,'success')}},
+  _b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
+  _b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))},
+  _siteBase(){const u=(this.settings.siteUrl||'').trim();if(u)return u.replace(/[?#].*$/,'').replace(/\/?$/,'/');return /dailydeal/i.test(location.hostname)?location.origin+location.pathname:'https://dailydeal.world/'},
+  async copyText(txt){try{await navigator.clipboard.writeText(txt);return true}catch(e){}
+    try{const ta=document.createElement('textarea');ta.value=txt;ta.setAttribute('readonly','');ta.style.cssText='position:fixed;top:0;left:0;opacity:0';document.body.appendChild(ta);ta.focus();ta.select();ta.setSelectionRange(0,99999);const ok=document.execCommand('copy');document.body.removeChild(ta);return ok}catch(e){return false}},
+  async copySellLink(){const u=this.sellLinkModal.url;if(await this.copyText(u))this.showToast('লিংক কপি হয়েছে 🔗','success');else{this.showToast('অটো কপি হয়নি — লিংকে চেপে ধরে কপি করুন','error');try{const r=document.createRange();r.selectNodeContents(document.getElementById('sellLinkUrl'));const s=getSelection();s.removeAllRanges();s.addRange(r)}catch(e){}}},
   // ── কাস্টমার: লিংক থেকে সরাসরি অর্ডার ──
   openLinkOrder(p,link,id){
     const exp=Number(link&&link.expiresAt)||0,now=Date.now();
