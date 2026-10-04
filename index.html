@@ -59,7 +59,7 @@ tailwind.config={
 <!-- Firebase -->
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getDatabase,ref,push,set,update,remove,onValue,get,query,orderByChild,equalTo,limitToLast,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import{getDatabase,ref,push,set,update,remove,onValue,get,query,orderByChild,equalTo,limitToLast,orderByKey,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import{getAuth,signInAnonymously,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const cfg={
   apiKey:"AIzaSyCQVlbjApQYtyc86ZTVPsBjOZ3J-RHv_vI",
@@ -111,10 +111,16 @@ window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d)
   saveOrder:async(data)=>{const r=push(ref(db,'orders'));await set(r,data);return r.key},
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   listenProducts:(cb)=>{
-    // দ্রুত প্রথম পেইন্টের জন্য সাম্প্রতিক ৩০টা প্রোডাক্ট একবার আগে আনা হয়, তারপর ফুল রিয়েলটাইম লিস্টেনার চালু হয়
-    try{onValue(query(ref(db,'products'),orderByChild('createdAt'),limitToLast(30)),s=>{const v=s.val();if(v)cb(Object.entries(v).map(([k,d])=>({fbKey:k,...d})),false)},{onlyOnce:true});}catch(e){}
-    onValue(ref(db,'products'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[],true)},{onlyOnce:false});
+    const toArr=s=>{const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]};
+    // দ্রুত প্রথম পেইন্ট: সর্বশেষ ৪০টা প্রোডাক্ট (push-key টাইম-অর্ডারে, তাই createdAt ছাড়া পুরনো পণ্যও ঠিকঠাক আসে)
+    try{onValue(query(ref(db,'products'),orderByKey(),limitToLast(40)),s=>{const a=toArr(s);if(a.length)cb(a,false)},e=>console.warn('products preview',e&&e.code),{onlyOnce:true});}catch(e){}
+    // পূর্ণ লিস্টেনার — এরর হলে নিজে থেকে আবার চেষ্টা করে
+    let tries=0;
+    const full=()=>{try{onValue(ref(db,'products'),s=>{cb(toArr(s),true)},e=>{console.warn('products full',e&&e.code);if(tries++<4)setTimeout(full,2000+tries*1500);else cb(null,false,true)},{onlyOnce:false})}catch(e){cb(null,false,true)}};
+    full();
   },
+  // ইনডেক্সড কুয়েরি: নির্দিষ্ট ক্যাটাগরি/সেকশন/ফ্ল্যাগের পণ্য সরাসরি আনে (পুরো লিস্ট লোডের অপেক্ষা ছাড়াই)
+  getProductsByChild:async(child,val)=>{try{const s=await get(query(ref(db,'products'),orderByChild(child),equalTo(val)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('byChild',child,e&&e.code);return[]}},
   // Cloudinary URL অটো-অপ্টিমাইজ হেল্পার — থাম্বনেইল/ডিটেইল ছবি ছোট+কম্প্রেসড সাইজে আনতে
   optImg:(url,width)=>{
     if(!url||typeof url!=='string')return url;
@@ -137,7 +143,7 @@ window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d)
   getUserOnce:(phone,cb)=>onValue(ref(db,'users/'+phone),s=>cb(s.val()),{onlyOnce:true}),
   // ══ Resellers / MLM (NEW) ══
   saveResellerApp:async(phone,data)=>update(ref(db,'resellers/'+phone),data),
-  getResellerOnce:(phone,cb)=>onValue(ref(db,'resellers/'+phone),s=>cb(s.val()),{onlyOnce:true}),
+  getResellerOnce:(phone,cb)=>onValue(ref(db,'resellers/'+phone),s=>cb(s.val()),()=>cb(null),{onlyOnce:true}),
   listenReseller:(phone,cb)=>onValue(ref(db,'resellers/'+phone),s=>cb(s.val()),{onlyOnce:false}),
   listenAllResellers:(cb)=>onValue(ref(db,'resellers'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   // ══ Withdrawals (NEW) ══
@@ -2579,7 +2585,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                     <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
                   </div>
                 </template>
-                <template x-if="!(p.images||[]).length>1">
+                <template x-if="(p.images||[]).length<=1">
                   <div class="prod-img-wrap" x-data="{cidx:0}" x-init="if((p.images||[]).length>1){let _t=setInterval(()=>cidx=(cidx+1)%p.images.length,2500);$cleanup(()=>clearInterval(_t))}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.onerror=null;this.src=DD_PH" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                 </template>
               </div>
@@ -2609,7 +2615,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                     <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
                   </div>
                 </template>
-                <template x-if="!(p.images||[]).length>1">
+                <template x-if="(p.images||[]).length<=1">
                   <div class="prod-img-wrap" x-data="{cidx:0}" x-init="if((p.images||[]).length>1){let _t=setInterval(()=>cidx=(cidx+1)%p.images.length,2500);$cleanup(()=>clearInterval(_t))}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.onerror=null;this.src=DD_PH" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                 </template>
               </div>
@@ -2632,7 +2638,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <span x-show="fetching"><i class="fa-solid fa-spinner fa-spin"></i></span>
       </button>
     </div>
-    <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')" class="col-span-full text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
+    <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')&&!prodsComplete&&(q!==''||catBusy||catDoneFor!==activeCat)" class="col-span-full text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3" style="color:var(--accent)"></i><p class="text-sm font-semibold">পণ্য লোড হচ্ছে...</p></div>
+    <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')&&(prodsComplete||(q===''&&!catBusy&&catDoneFor===activeCat))" class="col-span-full text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
     <div x-show="!loading&&allProducts.length===0&&q===''&&activeCat==='সব'" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
   </div>
 <div id="policy-section" class="px-4 pt-8" x-data="{open:null}" x-show="activeCat==='সব'&&q===''">
@@ -2710,7 +2717,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 <section x-show="activeTab==='allproducts'" x-cloak class="animate-fade-in">
   <div class="px-4 pt-4 pb-3 flex items-center gap-3" style="background:var(--header)">
     <button @click="activeTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.12);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-arrow-left"></i></button>
-    <div><p class="font-display text-lg text-white">সকল পণ্য</p><p class="text-xs" style="color:rgba(255,255,255,.5)" x-text="prodsFull?allProducts.length+'টি পণ্য':'লোড হচ্ছে...'"></p></div>
+    <div><p class="font-display text-lg text-white">সকল পণ্য</p><p class="text-xs" style="color:rgba(255,255,255,.5)" x-text="allProducts.length+'টি পণ্য'+(prodsComplete?'':' · আরও লোড হচ্ছে...')"></p></div>
   </div>
   <div class="px-4 py-3" style="background:var(--header)">
     <div class="search-glass">
@@ -2780,7 +2787,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                 <span class="sub-cat-name">সব</span>
               </div>
               <template x-for="c in getSectionCategories(section)" :key="c.fbKey||c.name">
-                <div class="sub-cat-item" :class="sectionCatFilters[section.fbKey||section.id]===c.name?'active':''" @click="setSectionFilter(section,c.name)">
+                <div class="sub-cat-item" :class="sectionCatFilters[section.fbKey||section.id]===c.name?'active':''" @click="setSectionFilter(section,c.name);secFetchCat(c.name)">
                   <div class="sub-cat-img-wrap" :style="sectionCatFilters[section.fbKey||section.id]===c.name?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'">
                     <img x-show="c.img" :src="c.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/>
                     <i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i>
@@ -2804,7 +2811,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                       <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
                     </div>
                   </template>
-                  <template x-if="!(p.images||[]).length>1">
+                  <template x-if="(p.images||[]).length<=1">
                     <div class="prod-img-wrap" x-data="{cidx:0}" x-init="if((p.images||[]).length>1){let _t=setInterval(()=>cidx=(cidx+1)%p.images.length,2500);$cleanup(()=>clearInterval(_t))}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.onerror=null;this.src=DD_PH" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
                   </template>
                 </div>
@@ -2915,7 +2922,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         </div>
       </template>
 
-      <div x-show="allProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
+      <div x-show="!prodsComplete&&allProducts.length>0&&allProdsQ===''" class="text-center py-4 text-xs font-semibold" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin mr-1" style="color:var(--accent)"></i>আরও পণ্য লোড হচ্ছে...</div>
+      <div x-show="prodsComplete&&allProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
     </div>
   </div>
 </section>
@@ -2942,7 +2950,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         </div>
       </template>
     </div>
-    <div x-show="eidProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-moon"></i></div><p class="font-display text-xl mb-2" style="color:var(--fg)">ঈদ কালেকশন আসছে!</p><p class="text-sm">শীঘ্রই স্পেশাল পণ্য যোগ হবে</p></div>
+    <div x-show="!prodsComplete&&eidProducts.length===0" class="text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl" style="color:var(--accent)"></i><p class="text-sm font-semibold mt-2">লোড হচ্ছে...</p></div>
+    <div x-show="prodsComplete&&eidProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-moon"></i></div><p class="font-display text-xl mb-2" style="color:var(--fg)">ঈদ কালেকশন আসছে!</p><p class="text-sm">শীঘ্রই স্পেশাল পণ্য যোগ হবে</p></div>
   </div>
 </section>
 
@@ -3727,7 +3736,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <span class="text-xs" style="color:var(--fg2)">আমি রিসেলিং শর্তাবলীর সাথে সম্মত</span>
           </label>
           <p x-show="resellAuthError" class="text-xs font-semibold" style="color:#DC2626" x-text="resellAuthError"></p>
-          <button type="button" @click="resellDoSignup()" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-store mr-2"></i>রিসেলার হিসেবে রেজিস্ট্রেশন করুন</button>
+          <button type="button" @click="resellDoSignup()" :disabled="resellBusy" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid mr-2" :class="resellBusy?'fa-spinner fa-spin':'fa-store'"></i><span x-text="resellBusy?'অপেক্ষা করুন...':'রিসেলার হিসেবে রেজিস্ট্রেশন করুন'"></span></button>
         </div>
 
         <div x-show="resellAuthMode==='login'" class="space-y-3">
@@ -3887,9 +3896,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <!-- v5 search modes -->
             <div class="space-y-2">
               <div class="pill-scroll">
-                <button type="button" class="v5-chip" :class="resellSearchMode==='name'?'on':''" @click="resellSearchMode='name'"><i class="fa-solid fa-font mr-1"></i>প্রোডাক্ট নাম</button>
-                <button type="button" class="v5-chip" :class="resellSearchMode==='id'?'on':''" @click="resellSearchMode='id'"><i class="fa-solid fa-hashtag mr-1"></i>প্রোডাক্ট আইডি</button>
-                <button type="button" class="v5-chip" :class="resellSearchMode==='image'?'on':''" @click="resellSearchMode='image'"><i class="fa-solid fa-camera mr-1"></i>ছবি দিয়ে সার্চ</button>
+                <button type="button" class="v5-chip" :class="resellSearchMode==='name'?'on':''" @click="resellSearchMode='name';clearImgSearch()"><i class="fa-solid fa-font mr-1"></i>প্রোডাক্ট নাম</button>
+                <button type="button" class="v5-chip" :class="resellSearchMode==='id'?'on':''" @click="resellSearchMode='id';clearImgSearch()"><i class="fa-solid fa-hashtag mr-1"></i>প্রোডাক্ট আইডি</button>
+                <button type="button" class="v5-chip" :class="resellSearchMode==='image'?'on':''" @click="resellSearchMode='image';resellSearchQuery=''"><i class="fa-solid fa-camera mr-1"></i>ছবি দিয়ে সার্চ</button>
               </div>
               <div x-show="resellSearchMode==='image'" x-cloak class="dd-card p-3">
                 <div class="flex items-center gap-3">
@@ -3940,7 +3949,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                       <div style="color:#16A34A;font-weight:700"><i class="fa-solid fa-circle-check"></i> ভেরিফাইড</div>
                       <div x-show="p.marketPrice>0">মার্কেটঃ <b x-text="'৳'+p.marketPrice"></b></div>
                     </div>
-                    <p class="fb-title" x-text="p.name"></p>
+                    <div class="flex items-start gap-2"><p class="fb-title" style="flex:1;min-width:0" x-text="p.name"></p><button type="button" @click.stop="copyPostDesc(p)" class="flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer;width:32px;height:32px;border-radius:10px" title="বিবরণ কপি করুন"><i class="fa-regular fa-copy"></i></button></div>
                     <div class="fb-btns"><button @click="openPost(p)"><i class="fa-solid fa-square-caret-down"></i> READ MORE</button><button @click="dlAll(p)"><i class="fa-solid fa-download"></i> IMAGE</button></div>
                     <div class="fb-photos" @click="openPost(p)"><template x-for="(im,ix) in (p.images||[]).slice(0,6)" :key="ix"><img :src="optImg(im,300)" loading="lazy" onerror="this.style.visibility='hidden'"/></template></div>
                   </div>
@@ -4539,7 +4548,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <p class="text-xs mt-2" style="color:var(--fg3)">শুধু প্রোডাক্টের দাম লিখুন। ডেলিভারি চার্জ পরের ধাপে যোগ হবে।</p></div>
       <button @click="addFromPost(false)" class="btn-primary mt-4"><i class="fa-solid fa-basket-shopping mr-2"></i>অর্ডার তালিকায় অ্যাড করুন</button>
     </div>
-    <div class="pv-card"><p class="font-bold text-sm mb-2">পণ্যের বিবরণ</p><p class="text-sm" style="white-space:pre-line;color:var(--fg2);line-height:1.7" x-text="postView.desc||postView.name"></p></div>
+    <div class="pv-card"><div class="flex items-center justify-between mb-2"><p class="font-bold text-sm">পণ্যের বিবরণ</p><button type="button" @click="copyPostDesc(postView)" class="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer" title="বিবরণ কপি করুন"><i class="fa-regular fa-copy"></i> কপি</button></div><p class="text-sm" style="white-space:pre-line;color:var(--fg2);line-height:1.7" x-text="postView.desc||postView.name"></p></div>
     <div style="height:90px"></div>
   </div></template>
 </div>
@@ -4576,7 +4585,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   </template>
   <template x-if="linkOrder.open&&linkOrder.p&&linkOrder.link&&!linkOrder.done&&!linkOrder.expired">
     <div>
-      <div class="pv-top"><button @click="closeLinkOrder()" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--bg2);border:none;cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button><p class="font-bold text-sm">প্রোডাক্ট অর্ডার</p></div>
+      <div class="pv-top"><button @click="exitLinkOrder()" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--bg2);border:none;cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button><p class="font-bold text-sm">প্রোডাক্ট অর্ডার</p></div>
       <div class="lo-ban"><div class="lo-logo sm"><i class="fa-solid fa-bag-shopping"></i></div>
         <div class="flex-1 min-w-0"><p class="font-display text-base leading-tight" x-text="settings.siteName||'Daily Deal'"></p><p class="text-xs" style="opacity:.8">বিশ্বস্ত · দ্রুত · সাশ্রয়ী</p></div>
         <div class="lo-timer" x-show="linkOrder.exp"><i class="fa-regular fa-clock"></i> <span x-text="fmtLeft(linkOrder.left)"></span></div></div>
@@ -4613,8 +4622,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto text-3xl" style="background:#D1FAE5;color:#059669"><i class="fa-solid fa-check"></i></div>
       <p class="font-display text-xl mt-4">অর্ডার পাঠানো হয়েছে!</p>
       <p class="text-sm mt-2" style="color:var(--fg2)" x-text="'অর্ডার আইডি #'+linkOrder.done.id"></p>
-      <p class="text-xs mt-3 leading-relaxed" style="color:var(--fg3)">বিক্রেতা অর্ডারটি কনফার্ম করলে আমরা আপনার ঠিকানায় প্রোডাক্ট পাঠিয়ে দেব। অর্ডারের অবস্থা "আমার অর্ডার" সেকশনে দেখতে পারবেন।</p>
-      <button @click="closeLinkOrder()" class="btn-primary w-full mt-6" style="justify-content:center">সাইটে ফিরে যান</button>
+      <p class="text-xs mt-3 leading-relaxed" style="color:var(--fg3)">বিক্রেতা অর্ডারটি কনফার্ম করলে আমরা আপনার ঠিকানায় প্রোডাক্ট পাঠিয়ে দেব। আপনি এখন এই পেজ থেকে ব্যাক করে বের হয়ে যেতে পারেন।</p>
+      <button @click="exitLinkOrder()" class="btn-primary w-full mt-6" style="justify-content:center"><i class="fa-solid fa-xmark mr-2"></i>বন্ধ করুন</button>
     </div>
   </template>
 </div>
@@ -4832,7 +4841,7 @@ function App(){return{
   // ══ v5: লিংক, সার্চ, রিচার্জ, ফ্রিল্যান্সিং, কনটেন্ট ══
   rcfg:{},fbRecharges:[],fbServices:[],fbMyServiceOrders:[],
   sellLinkModal:{open:false,url:'',price:0,p:null,busy:false},
-  resellGate:false,rgPop:false,resellBusy:false,allSeen:false,prodsFull:false,secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
+  resellGate:false,rgPop:false,resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
   linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',placing:false,done:null},
   _dlChecked:false,_dlMiss:0,
   resellFeedMode:'all',resellSearchMode:'name',
@@ -4968,7 +4977,7 @@ function App(){return{
   },
 
   // ── COMPUTED ──
-  get allCategories(){return this.fbCategories.filter(c=>c&&c.name).sort((a,b)=>(a.order??99)-(b.order??99))},
+  get allCategories(){return this.fbCategories.filter(c=>c&&c.name&&this._cn(c.name)).map(c=>({...c,name:this._cn(c.name),parent:c.parent?this._cn(c.parent):c.parent})).sort((a,b)=>(a.order??99)-(b.order??99))},
   get menCategories(){return this.allCategories.filter(c=>c.gender==='men')},
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
   get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl)},
@@ -5051,13 +5060,13 @@ function App(){return{
   get resellCategories(){return this.allCategories},
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
-  get resellFilteredProducts(){return this.resellActiveCat==='সব'?this.resellableProducts:this.resellableProducts.filter(p=>p.cat===this.resellActiveCat)},
+  get resellFilteredProducts(){if(this.resellActiveCat==='সব')return this.resellableProducts;const t=this._catTree(this._cn(this.resellActiveCat));return this.resellableProducts.filter(p=>t.has(p.cat))},
   get resellSearchResults(){
     const q=(this.resellSearchQuery||'').trim().toLowerCase(),m=this.resellSearchMode;
     if(m==='image')return this.imgSearch.done?this.imgSearch.ids.map(k=>this.resellableProducts.find(p=>(p.fbKey||p.id)===k)).filter(Boolean):[];
     if(!q)return [];
     if(m==='id'){const n=q.replace(/^#/,'');return this.resellableProducts.filter(p=>[p.productId,p.sku,p.fbKey,p.id].some(v=>v!=null&&v!==''&&String(v).toLowerCase().replace(/^#/,'').includes(n)))}
-    return this.resellableProducts.filter(p=>(p.name||'').toLowerCase().includes(q));
+    return this.resellableProducts.filter(p=>[p.name,p.productId,p.sku,p.designSKU,p.cat].some(v=>v!=null&&String(v).toLowerCase().includes(q)));
   },
   _cfgKeys(s){return String(s||'').split(/[,\s]+/).map(x=>x.trim()).filter(Boolean)},
   get resellFeedBase(){
@@ -5069,7 +5078,7 @@ function App(){return{
   },
   get resellFeedTitle(){return {boost:'বুস্টিং প্রোডাক্টস',top:'টপ সেলিং প্রোডাক্টস',new:'নতুন প্রোডাক্টস'}[this.resellFeedMode]||''},
   get myActiveResellOrders(){return this.myResellOrders.filter(o=>o.status==='পেন্ডিং'||o.status==='প্রসেসিং')},
-  get resellCategoryCounts(){return this.resellCategories.map(c=>({...c,count:this.resellableProducts.filter(p=>p.cat===c.name).length}))},
+  get resellCategoryCounts(){const rp=this.resellableProducts;return this.resellCategories.map(c=>{const t=this._catTree(c.name);return {...c,count:rp.filter(p=>t.has(p.cat)).length}})},
   get myResellerMessages(){return this.fbResellerMessages.filter(m=>m.resellerPhone===this.resellSession).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
   get myWalletTx(){return this.fbWalletTx.filter(t=>t.resellerPhone===this.resellSession).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
   get unseenTxCount(){return Math.max(0,this.myWalletTx.filter(t=>t.type!=='withdrawal').length-this.lastSeenTxCount)},
@@ -5123,6 +5132,7 @@ function App(){return{
     const list=filter?prods.filter(p=>p.cat===filter):prods;
     return list.slice(0,this.secLimit[sid]||24);
   },
+  secFetchCat(name){if(name)this._fetchCat(name)},
   secTotal(section){const sid=section.fbKey||section.id,f=this.sectionCatFilters[sid],pr=this.getSectionProducts(section);return f?pr.filter(p=>p.cat===f).length:pr.length},
   secMore(section){const sid=section.fbKey||section.id;this.secLimit={...this.secLimit,[sid]:(this.secLimit[sid]||24)+24}},
   setSectionFilter(section,catName){
@@ -5154,6 +5164,12 @@ function App(){return{
     this._dlChecked=true;this._dlLink=link;this.openLinkOrder(p,link,l);
   },
   boot(){try{this._earlyLink()}catch(e){}
+    try{
+      this.$watch('activeCat',v=>{if(v&&v!=='সব')this._fetchCat(v)});
+      this.$watch('activeSub',v=>{if(v)this._fetchCat(v)});
+      this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
+      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});
+    }catch(e){}
     try{this.$watch('activeTab',v=>{if(v==='allproducts')this.allSeen=true});if(this.activeTab==='allproducts')this.allSeen=true}catch(e){}
     /* SAFETY NET: the full-page skeleton (fixed, inset:0) only hides once
        `loading` is set to false, which normally happens inside the Firebase
@@ -5169,7 +5185,7 @@ function App(){return{
     setTimeout(()=>{this.loading=false},1200);
     /* দ্রুত প্রথম পেইন্ট: আগের ভিজিটে ক্যাশ করা প্রোডাক্ট থাকলে সঙ্গে সঙ্গে দেখানো হয়,
        নেটওয়ার্ক রেসপন্স আসা পর্যন্ত অপেক্ষা না করেই — Firebase রেসপন্স এলে সাইলেন্টলি আপডেট হয়ে যাবে। */
-    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;}}}catch(e){}
+    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;this.prodsFull=true;}}}catch(e){}
     this._initHistoryNav();
     const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
     if(this.profile.phone&&window.$db){
@@ -5226,14 +5242,14 @@ function App(){return{
       this._captureReferral();
       window.$db.listenResellerConfig(c=>{this.rcfg=c||{}});
       window.$db.listenServices(s=>{this.fbServices=s.sort((a,b)=>(a.order||0)-(b.order||0))});
-      window.$db.listenProducts((prods,full)=>{if(full)this.prodsFull=true;
-        this.fbProducts=prods.map(p=>p?({...p,sizes:this.splitList(p.sizes||p.size||p.sizeList,true),colors:this.splitList(p.colors)}):p)
-          .filter(p=>p&&typeof p.name==='string'&&p.name.trim())
-          .map(p=>({...p,price:this._num(p.price),oldPrice:this._num(p.oldPrice),resellerPrice:this._num(p.resellerPrice)}))
-          .filter(p=>p.price>0).sort((a,b)=>this._ts(b)-this._ts(a));
+      window.$db.listenProducts((prods,full,failed)=>{
+        if(failed){this.prodsFull=true;this.loading=false;return}
+        const n=this._normProds(prods);
+        if(full){this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
+        else{this._mergeProds(n);this.prodsFull=true}
         this.loading=false;
         try{this._openDeepLink()}catch(e){}
-        try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}
+        if(full){try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}}
       });
       window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true});
@@ -5314,7 +5330,31 @@ function App(){return{
   isOpen(g,i){return this.subOpen[g.key]??(i===0)},
   toggleSub(g,i){this.subOpen={...this.subOpen,[g.key]:!this.isOpen(g,i)}},
   get subCats(){const m=this.allCategories.find(c=>c.name===this.activeCat);if(!m)return [];const main=m.parent?(this.allCategories.find(c=>c.name===m.parent)||m):m;return this.allCategories.filter(c=>c.parent===main.name)},
-  catOk(p){const a=this.activeCat;if(a==='সব')return true;const kids=this.allCategories.filter(c=>c.parent===a).map(c=>c.name);return (p.cat===a||kids.includes(p.cat))&&(!this.activeSub||p.cat===this.activeSub)},
+  _cn(x){return String(x==null?'':x).replace(/[\u200b-\u200d\ufeff]/g,'').replace(/\s+/g,' ').trim()},
+  _normProds(arr){return (arr||[]).map(p=>p?({...p,sizes:this.splitList(p.sizes||p.size||p.sizeList,true),colors:this.splitList(p.colors)}):p)
+    .filter(p=>p&&typeof p.name==='string'&&p.name.trim())
+    .map(p=>({...p,cat:this._cn(p.cat||p.category||''),price:this._num(p.price),oldPrice:this._num(p.oldPrice),resellerPrice:this._num(p.resellerPrice)}))
+    .filter(p=>p.price>0)},
+  _mergeProds(list){if(!list||!list.length)return;const m=new Map((this.fbProducts||[]).map(p=>[p.fbKey,p]));list.forEach(p=>m.set(p.fbKey,p));this.fbProducts=[...m.values()].sort((a,b)=>this._ts(b)-this._ts(a))},
+  _dbReady(){return (window.$db&&window.$db.getProductsByChild)?Promise.resolve():new Promise(r=>window.addEventListener('firebase-ready',()=>r(),{once:true}))},
+  async _fetchBy(child,vals){window.__ddF=window.__ddF||{};const todo=[...new Set(vals)].filter(v=>!window.__ddF[child+':'+v]);if(!todo.length)return;todo.forEach(v=>window.__ddF[child+':'+v]=1);
+    const res=await Promise.all(todo.map(v=>window.$db.getProductsByChild(child,v)));this._mergeProds(this._normProds(res.flat()))},
+  async _fetchCat(name){
+    name=this._cn(name);if(!name)return;
+    if(this.prodsComplete){this.catDoneFor=name;return}
+    window.__ddCq=(window.__ddCq||0)+1;this.catBusy=true;
+    try{await this._dbReady();
+      const tree=this._catTree(name),raw=new Set([...tree]);
+      (this.fbCategories||[]).forEach(c=>{if(c&&c.name&&tree.has(this._cn(c.name)))raw.add(c.name)});
+      await this._fetchBy('cat',[...raw].slice(0,12));
+    }catch(e){console.warn('fetchCat',e)}
+    window.__ddCq--;this.catBusy=window.__ddCq>0;this.catDoneFor=name;
+  },
+  async _fetchSections(){if(this.prodsComplete)return;try{await this._dbReady();const ids=this._realSecs.map(s=>s.fbKey||s.id).filter(Boolean).slice(0,8);await this._fetchBy('section',ids)}catch(e){}},
+  async _fetchResellable(){if(this.prodsComplete)return;try{await this._dbReady();await this._fetchBy('resellEnabled',[true])}catch(e){}},
+  async _fetchEid(){if(this.prodsComplete)return;try{await this._dbReady();await this._fetchBy('isEidCollection',[true])}catch(e){}},
+  _catTree(a){const st=new Set([a]);let ch=true,n=0;while(ch&&n++<5){ch=false;this.allCategories.forEach(c=>{if(c.parent&&st.has(c.parent)&&!st.has(c.name)){st.add(c.name);ch=true}})}return st},
+  catOk(p){const a=this.activeCat;if(a==='সব')return true;return this._catTree(a).has(p.cat)&&(!this.activeSub||p.cat===this.activeSub)},
   get dpImgs(){const p=this.detailSheet.prod;return p?((p.images&&p.images.length)?p.images:[p.img||'']):[]},
   ratingOf(p){const k=p.fbKey||p.id,rs=(this.fbReviews||[]).filter(r=>r.productId===k),n=rs.length;return {n,avg:n?(rs.reduce((s,r)=>s+(Number(r.rating)||0),0)/n).toFixed(1):'0.0',list:[...rs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))}},
   // ══════════ ৩D-ধাঁচের অর্ডার ট্র্যাকিং ভিজ্যুয়াল (আইসোমেট্রিক বক্স → প্যাকিং → ট্রাক → ডেলিভারি) ══════════
@@ -5765,7 +5805,12 @@ function App(){return{
     const buf=await crypto.subtle.digest('SHA-256',enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   },
-  _getResellerOnce(phone){return new Promise(res=>window.$db.getResellerOnce(phone,val=>res(val)))},
+  _getResellerOnce(phone){return new Promise(res=>{let d=false;const t=setTimeout(()=>{if(!d){d=true;res(null)}},8000);window.$db.getResellerOnce(phone,v=>{if(!d){d=true;clearTimeout(t);res(v)}})})},
+  async _ensureResellerRecord(f,pinHash,extra){
+    const r=await this._getResellerOnce(f.phone);if(r)return r;
+    const rec={name:(f.name||f.phone).trim(),shopName:(f.shopName||f.name||f.phone).trim(),phone:f.phone,pin:pinHash,authMigrated:true,referredBy:(extra&&extra.referredBy)||null,referralCodeUsed:!!(extra&&extra.codeValid),status:'pending',walletBalance:0,createdAt:Date.now()};
+    await window.$db.saveResellerApp(f.phone,rec);return rec;
+  },
   _listenMyReseller(){
     if(!this.resellSession)return;
     window.$db.listenReseller(this.resellSession,r=>{
@@ -5788,6 +5833,7 @@ function App(){return{
     if(!f.pin||f.pin.length<4)return this.resellAuthError='কমপক্ষে ৪ ডিজিটের পিন দিন!';
     if(f.pin!==f.confirmPin)return this.resellAuthError='পিন দুটো মিলছে না!';
     if(!f.agree)return this.resellAuthError='শর্তাবলীতে সম্মতি দিন!';
+    if(this.resellBusy)return;this.resellBusy=true;
     try{
       const existing=await this._getResellerOnce(f.phone);
       if(existing){this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';return;}
@@ -5799,16 +5845,22 @@ function App(){return{
         referredBy=owner.fbKey;codeValid=true;
       }
       const pinHash=await this._hash(f.pin);
-      await window.$auth.resellerCreate(f.phone,pinHash); // ফায়ারবেস অথেনটিকেশন অ্যাকাউন্ট তৈরি
-      await window.$db.saveResellerApp(f.phone,{
-        name:f.name.trim(),shopName:f.shopName.trim(),phone:f.phone,pin:pinHash,authMigrated:true,
-        referredBy,referralCodeUsed:codeValid,
-        status:'pending',walletBalance:0,createdAt:Date.now(),
-      });
+      let created=false;
+      try{await window.$auth.resellerCreate(f.phone,pinHash);created=true}
+      catch(ce){
+        if(ce&&ce.code==='auth/email-already-in-use'){
+          // আগে অ্যাকাউন্ট তৈরি হয়েছিল কিন্তু রেকর্ড সেভ হয়নি — একই পিন হলে ঢুকিয়ে রেকর্ড সম্পূর্ণ করা হবে
+          try{await window.$auth.resellerSignIn(f.phone,pinHash)}catch(se){this.resellAuthError='এই নম্বরে আগে থেকে অ্যাকাউন্ট আছে। লগইন করুন (পিন ভুলে গেলে সাপোর্টে জানান)।';return}
+        }else throw ce;
+      }
+      const ex=await this._getResellerOnce(f.phone);
+      if(ex&&!created){this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';this.resellAuthMode='login';return}
+      await this._ensureResellerRecord(f,pinHash,{referredBy,codeValid});
       this._resellLoginSuccess(f.phone);
       this.resellSignupForm={name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false};
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
-    }catch(e){this.resellAuthError=(e&&e.code==='auth/email-already-in-use')?'এই নম্বরে আগে থেকে অ্যাকাউন্ট আছে, লগইন করুন।':'সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    }catch(e){console.warn('signup',e);this.resellAuthError=(e&&e.code==='auth/network-request-failed')?'ইন্টারনেট সংযোগ চেক করুন।':(e&&e.code==='auth/operation-not-allowed')?'Firebase Authentication-এ Email/Password চালু করুন।':'সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    finally{this.resellBusy=false}
   },
   async resellDoLogin(){
     this.resellAuthError='';
@@ -5831,6 +5883,7 @@ function App(){return{
         await window.$auth.resellerCreate(f.phone,pinHash);
         await window.$db.saveReseller({authMigrated:true,migrateProof:pinHash},f.phone);
       }
+      try{await this._ensureResellerRecord({phone:f.phone},pinHash,{})}catch(e2){console.warn('ensure',e2)}
       this._resellLoginSuccess(f.phone);
       this.resellLoginForm={phone:'',pin:''};
     }catch(e){console.warn('login',e);this.resellAuthError=(e&&/network|offline/i.test(e.message||''))?'ইন্টারনেট সংযোগ চেক করুন।':'পিন সঠিক নয় অথবা সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
@@ -6535,6 +6588,7 @@ function App(){return{
       this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(key)+qs,price:s,p,busy:false,exp};
     }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
   },
+  async copyPostDesc(p){const t=String((p&&(p.desc||p.description))||(p&&p.name)||'').trim();if(!t)return this.showToast('কপি করার মতো বিবরণ নেই','error');if(await this.copyText(t))this.showToast('বিবরণ কপি হয়েছে ✅','success');else this.showToast('কপি হয়নি — বিবরণে চেপে ধরে কপি করুন','error')},
   async shareSellLink(){const m=this.sellLinkModal;if(m.p)await this._shareWithImage(m.p,m.url,m.p.name+' — ৳'+m.price)},
   _b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')},
   _b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';return decodeURIComponent(escape(atob(s)))},
@@ -6582,10 +6636,13 @@ function App(){return{
     this.linkOrder.placing=false;
   },
   closeLinkOrder(){this.linkOrder={...this.linkOrder,open:false};try{history.replaceState(null,'',location.pathname)}catch(e){}},
+  exitLinkOrder(){const done=!!this.linkOrder.done;let left=false;const onHide=()=>{left=true};window.addEventListener('pagehide',onHide,{once:true});
+    try{if(history.length>1){history.back()}else{window.close()}}catch(e){}
+    setTimeout(()=>{if(left)return;try{window.close()}catch(e){}setTimeout(()=>{if(!left&&!done)this.closeLinkOrder()},250)},450)},
   get pendingLinkOrders(){return this.myResellOrders.filter(o=>o.status==='রিসেলার অ্যাপ্রুভাল')},
   async resellerApproveLinkOrder(o){
     if(!(await this.askConfirm({title:'অর্ডার এপ্রুভ করবেন?',msg:'এপ্রুভ করলে অর্ডারটি ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-circle-check',yesText:'এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না'})))return;
-    try{await window.$db.updateOrder(o.fbKey,{status:'পেন্ডিং',resellerApprovedAt:Date.now()});this.showToast('অর্ডার এপ্রুভ হয়েছে ✅','success')}catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন','error')}
+    try{await window.$db.updateOrder(o.fbKey,{status:'পেন্ডিং',resellerApprovedAt:Date.now(),placedAt:o.timestamp||null,timestamp:new Date().toISOString()});this.showToast('অর্ডার এপ্রুভ হয়েছে ✅','success')}catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন','error')}
   },
   async resellerRejectLinkOrder(o){
     if(!(await this.askConfirm({title:'অর্ডার বাতিল করবেন?',msg:'বাতিল করলে এই অর্ডারটি আর প্রসেস হবে না।',icon:'fa-solid fa-triangle-exclamation',yesText:'বাতিল করুন',noText:'না'})))return;
