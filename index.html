@@ -50,6 +50,8 @@ tailwind.config={
 <link rel="preconnect" href="https://www.gstatic.com"/>
 <link rel="preconnect" href="https://daily-deal-online-shopping-default-rtdb.firebaseio.com"/>
 <link rel="preconnect" href="https://res.cloudinary.com"/>
+<link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin/>
+<link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -190,6 +192,8 @@ Object.assign(window.$db,{
   pushSharedLink:async(d)=>{const r=push(ref(db,'sharedLinks'));await set(r,d);return r.key},
   setSharedLink:async(id,d)=>{await set(ref(db,'sharedLinks/'+id),d);return id},
   getBlock:(ph)=>window.$db.getOnce('blocklist/'+ph),
+  listenBlock:(ph,cb)=>onValue(ref(db,'blocklist/'+ph),x=>cb(x.exists()?x.val():null),()=>cb(null)),
+  listenActiveLink:(ph,cb)=>onValue(ref(db,'resellerActiveLink/'+ph),x=>cb(x.exists()?x.val():null),()=>cb(null)),
   getSharedLink:(id)=>window.$db.getOnce('sharedLinks/'+id),
   removeSharedLink:async(id)=>{try{await remove(ref(db,'sharedLinks/'+id))}catch(e){}},
   getActiveLink:(ph)=>window.$db.getOnce('resellerActiveLink/'+ph),
@@ -1353,6 +1357,84 @@ section[x-show*="'profile'"] .grid-cols-2>button .font-bold.text-sm{font-size:12
 <style id="dd-rg-v3">
 .rg-wrap{width:auto!important;max-width:none!important;margin:0 0 10px!important;position:static!important}
 .rg-wrap .ddc[data-wide]{max-width:200px;margin:0 auto}
+</style>
+
+<style id="dd-v10">
+/* ═══ v10: রিসেলার হোম — ShopBase-স্টাইল লেআউট, নিজস্ব টিল/অ্যাম্বার প্যালেট ═══ */
+.rh{display:flex;flex-direction:column;gap:14px;padding-bottom:18px}
+.rh-marq{display:flex;align-items:center;gap:8px;border-radius:12px;padding:8px 12px;background:#E6F6F2;color:#0B6B5B;font-size:12px;font-weight:700}
+.rh-banner{border-radius:18px;overflow:hidden;box-shadow:0 6px 18px rgba(15,143,122,.18)}
+.rh-ban-img{position:relative;aspect-ratio:16/7;background:#E6F6F2}
+.rh-ban-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.rh-dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:6px}
+.rh-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.55);transition:all .25s}
+.rh-dots i.on{width:20px;background:#fff}
+.rh-ban-def{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 18px;min-height:120px;color:#fff;background:linear-gradient(120deg,#0B6B5B,#0F8F7A 55%,#22B8A0)}
+.rh-ban-t{font-size:19px;font-weight:800;line-height:1.25}
+.rh-ban-s{font-size:12px;opacity:.9;margin-top:6px;line-height:1.5}
+.rh-ban-def>span{width:58px;height:58px;border-radius:18px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.rh-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--card);border-radius:18px;padding:12px 6px;box-shadow:0 2px 10px var(--shadow);border:1px solid var(--border)}
+.rh-q{display:flex;flex-direction:column;align-items:center;gap:7px;text-decoration:none;background:none;border:none;cursor:pointer}
+.rh-qi{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:19px;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.rh-q b{font-size:11.5px;font-weight:700;color:var(--fg2)}
+.rh-alert{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:#FEF2F2;border:1px solid #FCA5A5;color:#991B1B}
+.rh-alert>span{font-size:20px;color:#DC2626}
+.rh-alert button{border:none;background:#DC2626;color:#fff;font-weight:800;font-size:12px;border-radius:12px;padding:8px 14px;cursor:pointer}
+.rh-zone-card{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1px solid #FDE68A;border-radius:18px;padding:12px;box-shadow:0 2px 10px rgba(180,83,9,.08)}
+.rh-zc-top{display:flex;align-items:center;gap:12px}
+.rh-zc-ic{width:46px;height:46px;border-radius:14px;background:#F59E0B;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.rh-zc-t{font-size:17px;font-weight:800;color:#B45309}
+.rh-zc-s{font-size:12px;color:#92400E;margin-top:1px}
+.rh-zc-bar{display:flex;align-items:center;gap:8px;margin-top:10px;background:#fff;border-radius:12px;padding:6px 6px 6px 12px;border:1px solid #FDE68A}
+.rh-zc-bar span{flex:1;font-size:12px;font-weight:700;color:#B45309;line-height:1.3}
+.rh-zc-bar button{border:none;background:#D97706;color:#fff;border-radius:10px;padding:9px 14px;font-weight:800;font-size:12.5px;cursor:pointer;white-space:nowrap}
+.rh-band{background:linear-gradient(180deg,#E3F6F1,#CDEFE6);border-radius:20px;padding:12px 10px}
+.rh-panel{background:var(--card);border-radius:20px;padding:12px 10px;border:1px solid var(--border);box-shadow:0 2px 10px var(--shadow)}
+.rh-soft{background:#F3F8F6;border-radius:20px;padding:12px 10px}
+html.theme-dark .rh-soft,.theme-dark .rh-soft{background:rgba(255,255,255,.04)}
+.rh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rh-tile{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;padding:12px 4px 10px;min-height:104px;background:var(--card);border:1px solid rgba(15,143,122,.10);border-radius:16px;box-shadow:0 3px 10px rgba(15,60,50,.07);cursor:pointer;transition:transform .15s,box-shadow .15s}
+.rh-tile:active{transform:scale(.94);box-shadow:0 1px 4px rgba(15,60,50,.1)}
+.rh-tile.flat{background:transparent;border-color:transparent;box-shadow:none}
+.rh-ic{width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:21px}
+.rh-lb{font-size:11.5px;font-weight:700;line-height:1.3;color:var(--fg2);text-align:center;padding:0 2px}
+.rh-c0{background:#D5F3EA;color:#0F8F7A}.rh-c1{background:#FFE6D2;color:#D9631E}.rh-c2{background:#E1E8FF;color:#3552D6}
+.rh-c3{background:#FFF0BD;color:#B7791F}.rh-c4{background:#FCE0EB;color:#C2336E}.rh-c5{background:#E4F6D2;color:#4C8A16}
+.rh-note{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--card);border:1px dashed #0F8F7A}
+.rh-note>span{width:42px;height:42px;border-radius:13px;background:#D5F3EA;color:#0F8F7A;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.rh-note p:last-child{color:var(--fg3)}
+.rh-note button{border:none;background:#0F8F7A;color:#fff;font-weight:800;font-size:12px;border-radius:11px;padding:9px 12px;cursor:pointer;white-space:nowrap}
+
+/* ═══ v10: প্রোডাক্ট ক্যাটাগরি পেজ (ছেলেদের পোশাক / মেয়েদের পোশাক স্টাইল) ═══ */
+.rs-sec{margin-bottom:18px}
+.rs-head{background:var(--card);border-radius:14px;padding:13px 10px;text-align:center;font-weight:800;font-size:17px;box-shadow:0 2px 8px var(--shadow);margin-bottom:10px;border:1px solid var(--border)}
+.rs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rs-card{position:relative;background:var(--card);border-radius:12px;padding:20px 3px 8px;text-align:center;box-shadow:0 1px 5px var(--shadow);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center}
+.rs-cnt{position:absolute;top:4px;right:7px;font-size:11px;font-weight:700;color:var(--fg3)}
+.rs-img{width:62px;height:62px;margin:0 auto 6px;border-radius:8px;overflow:hidden;background:transparent}
+.rs-img img{width:100%;height:100%;object-fit:contain}
+.rs-ic{font-size:24px}
+.rs-name{display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;line-height:1.25;color:var(--fg);min-height:30px;padding:0 2px;word-break:break-word}
+
+/* ═══ v10: কাস্টমার লিংক-অর্ডার পেজ ═══ */
+.lo-cat{display:inline-flex;align-items:center;gap:7px;margin-top:8px;padding:5px 11px;border-radius:99px;background:#E6F6F2;color:#0B6B5B;font-size:12px;font-weight:700}
+.lo-desc{margin-top:10px;padding:12px 13px;border-radius:14px;background:var(--bg2);border:1px solid var(--border)}
+.lo-desc-h{font-size:12.5px;font-weight:800;color:var(--fg);margin-bottom:6px}
+.lo-desc p:last-child{font-size:13px;line-height:1.75;color:var(--fg2);white-space:pre-line;word-break:break-word}
+.lo-adv{padding:13px;border-radius:16px;background:var(--card);border:1.5px solid var(--border)}
+.lo-adv-t{font-size:14px;font-weight:800;color:var(--fg)}
+.lo-adv-s{font-size:12px;color:var(--fg3);margin-top:3px}
+.lo-opt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 6px;border-radius:14px;border:2px solid var(--border);background:var(--bg);color:var(--fg2);font-size:12px;font-weight:700;line-height:1.3;cursor:pointer}
+.lo-opt i{font-size:18px;opacity:.6}
+.lo-opt.on{border-color:#0F8F7A;background:#E6F6F2;color:#0B6B5B}.lo-opt.on i{opacity:1;color:#0F8F7A}
+.lo-opt.on.no{border-color:#D9631E;background:#FFF1E6;color:#9A3F0A}.lo-opt.on.no i{color:#D9631E}
+.lo-adv-n{font-size:12px;font-weight:700;color:#0B6B5B;margin-top:9px;line-height:1.5}
+.lo-sum{padding:12px 13px;border-radius:16px;background:var(--card);border:1px solid var(--border)}
+.lo-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;color:var(--fg3)}
+.lo-row b{color:var(--fg)}
+.lo-row.paid{color:#0B6B5B}.lo-row.paid b{color:#0B6B5B}
+.lo-due{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px;padding:11px 12px;border-radius:12px;background:#0F8F7A;color:#fff;font-weight:800;font-size:14px}
+.lo-due span:last-child{font-size:19px}
 </style>
 </head>
 <style id="dd-v5">
@@ -3824,58 +3906,78 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 
         <!-- ══ HOME (button grid, matches shopbasebd) ══ -->
         <template x-if="resellSubTab==='home'">
-          <div class="space-y-4">
-            <div x-show="settings.marqueeText" class="overflow-hidden rounded-xl py-2 px-3" style="background:var(--accentL)">
-              <p class="text-xs font-semibold truncate" style="color:var(--accent)" x-text="emoTx(settings.marqueeText)"></p>
-            </div>
-            <!-- contact strip -->
-            <div class="dd-card p-3 flex items-center justify-around">
-              <a :href="'tel:'+(settings.shopPhone||'')" x-show="settings.shopPhone" class="flex flex-col items-center gap-1" style="text-decoration:none"><span class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#EA580C"><i class="fa-solid fa-headset text-sm"></i></span><span class="text-[10px] font-semibold" style="color:var(--fg2)">কল সেন্টার</span></a>
-              <a :href="settings.fbLink||'https://facebook.com'" target="_blank" class="flex flex-col items-center gap-1" style="text-decoration:none"><span class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#1877F2"><i class="fa-brands fa-facebook-f text-sm"></i></span><span class="text-[10px] font-semibold" style="color:var(--fg2)">ফেইজবুক</span></a>
-              <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="flex flex-col items-center gap-1" style="text-decoration:none"><span class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#25D366"><i class="fa-brands fa-whatsapp text-sm"></i></span><span class="text-[10px] font-semibold" style="color:var(--fg2)">হোয়াটসঅ্যাপ</span></a>
-              <button @click="resellSubTab='support'" class="flex flex-col items-center gap-1" style="background:none;border:none;cursor:pointer"><span class="w-9 h-9 rounded-full flex items-center justify-center text-white" style="background:#2563EB"><i class="fa-solid fa-comment-dots text-sm"></i></span><span class="text-[10px] font-semibold" style="color:var(--fg2)">সাপোর্ট</span></button>
+          <div class="rh">
+            <div x-show="settings.marqueeText" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(settings.marqueeText)"></p></div>
+
+            <!-- ব্যানার -->
+            <div class="rh-banner" x-data="{a:0}" x-init="const t=setInterval(()=>{if(!$el.isConnected){clearInterval(t);return}const n=(banners||[]).filter(b=>b&&b.img).length;if(n>1)a=(a+1)%n},4200)">
+              <template x-if="(banners||[]).filter(b=>b&&b.img).length>0">
+                <div class="rh-ban-img">
+                  <template x-for="(b,i) in (banners||[]).filter(b=>b&&b.img)" :key="i"><img x-show="a===i" :src="optImg(b.img,900)" alt="" loading="lazy"/></template>
+                  <div class="rh-dots"><template x-for="(b,i) in (banners||[]).filter(b=>b&&b.img)" :key="'d'+i"><i :class="a===i?'on':''"></i></template></div>
+                </div>
+              </template>
+              <template x-if="(banners||[]).filter(b=>b&&b.img).length===0">
+                <div class="rh-ban-def">
+                  <div><p class="rh-ban-t" x-text="(settings.siteName||'Daily Deal')+' রিসেলিং'"></p><p class="rh-ban-s">কম দামে পণ্য নিন · নিজের দামে বিক্রি করুন · লাভ সরাসরি ওয়ালেটে</p></div>
+                  <span><i class="fa-solid fa-bag-shopping"></i></span>
+                </div>
+              </template>
             </div>
 
-            <div class="dd-card p-4" style="border:1px solid var(--accent)">
-              <div class="flex items-center gap-3">
-                <span class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style="background:var(--accentL);color:var(--accent)"><i class="fa-solid fa-store"></i></span>
-                <div class="flex-1"><p class="text-sm font-bold" style="color:var(--fg)">জরুরী নোটিশ</p><p class="text-xs mt-0.5 leading-relaxed" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয় — তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p></div>
-              </div>
-              <button @click="resellSubTab='shop'" class="btn-primary w-full mt-3" style="justify-content:center"><i class="fa-solid fa-user-pen mr-2"></i>এডিট প্রোফাইল</button>
+            <!-- কুইক লিংক -->
+            <div class="rh-quick">
+              <a :href="'tel:'+(settings.shopPhone||'')" class="rh-q"><span class="rh-qi" style="background:#0F8F7A"><i class="fa-solid fa-headset"></i></span><b>কল সেন্টার</b></a>
+              <a :href="settings.fbLink||'https://facebook.com'" target="_blank" rel="noopener" class="rh-q"><span class="rh-qi" style="background:#1877F2"><i class="fa-brands fa-facebook-f"></i></span><b>ফেইসবুক</b></a>
+              <button type="button" @click="resellButtonClick({action:'youtube'})" class="rh-q"><span class="rh-qi" style="background:#E11D48"><i class="fa-brands fa-youtube"></i></span><b>ইউটিউব</b></button>
+              <button type="button" @click="resellButtonClick({action:'telegram'})" class="rh-q"><span class="rh-qi" style="background:#229ED9"><i class="fa-brands fa-telegram"></i></span><b>টেলিগ্রাম</b></button>
             </div>
 
-            <div x-show="pendingLinkOrders.length>0" x-cloak class="dd-card p-4 flex items-center gap-3" style="border:1px solid #DC2626;background:#FEF2F2">
-              <span class="text-xl flex-shrink-0" style="color:#DC2626"><i class="fa-solid fa-bell"></i></span>
-              <div class="flex-1"><p class="text-sm font-bold" style="color:#991B1B" x-text="'নতুন লিংক অর্ডার ('+pendingLinkOrders.length+')'"></p><p class="text-xs mt-0.5" style="color:#991B1B">আপনার লিংক থেকে অর্ডার এসেছে — এপ্রুভ করুন</p></div>
-              <button @click="resellOrdersSubTab='link';resellSubTab='orders'" class="text-xs font-bold px-3 py-2 rounded-xl text-white flex-shrink-0" style="background:#DC2626;border:none;cursor:pointer">দেখুন →</button>
-            </div>
-            <!-- vendor-zone style banner -->
-            <div class="dd-card p-4 flex items-center gap-3" style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7)">
-              <span class="text-2xl flex-shrink-0"><i class="fa-solid fa-store"></i></span>
-              <div class="flex-1"><p class="text-sm font-bold" style="color:#92400E">প্রতিদিন নতুন প্রোডাক্ট যুক্ত হচ্ছে</p><p class="text-xs mt-0.5" style="color:#92400E">রিসেলিং প্রোডাক্ট লিস্ট থেকে নতুন কালেকশন দেখুন</p></div>
-              <button @click="resellSubTab='post'" class="text-xs font-bold px-3 py-2 rounded-xl text-white flex-shrink-0" style="background:#B45309;border:none;cursor:pointer">দেখুন →</button>
+            <!-- নতুন লিংক অর্ডার অ্যালার্ট -->
+            <div x-show="pendingLinkOrders.length>0" x-cloak class="rh-alert">
+              <span><i class="fa-solid fa-bell"></i></span>
+              <div class="flex-1"><p class="font-bold text-sm" x-text="'নতুন লিংক অর্ডার ('+pendingLinkOrders.length+')'"></p><p class="text-xs mt-0.5">আপনার লিংক থেকে অর্ডার এসেছে — এপ্রুভ করুন</p></div>
+              <button @click="resellOrdersSubTab='link';resellSubTab='orders'">দেখুন</button>
             </div>
 
-            <!-- core shopping tools — tinted zone, mirrors the reference layout -->
-            <div class="rounded-2xl p-3" style="background:linear-gradient(180deg,#FFFBEB,#FEF3C7)">
-              <div class="grid grid-cols-4 gap-x-2 gap-y-4">
-                <template x-for="b in resellHomeButtons.slice(0,8)" :key="b.label">
-                  <button @click="resellButtonClick(b)" class="rb-btn" style="background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.7);box-shadow:none">
-                    <div class="rb-ic" :style="'background:'+b.bg+';color:'+b.color"><i :class="b.icon"></i></div>
-                    <span class="rb-lbl" x-text="b.label"></span>
-                  </button>
+            <!-- নতুন কালেকশন কার্ড -->
+            <div class="rh-zone-card">
+              <div class="rh-zc-top"><span class="rh-zc-ic"><i class="fa-solid fa-store"></i></span><div class="flex-1 min-w-0"><p class="rh-zc-t">নতুন কালেকশন</p><p class="rh-zc-s">প্রতিদিন নতুন প্রোডাক্ট যুক্ত হচ্ছে</p></div></div>
+              <div class="rh-zc-bar"><span>রিসেলিং প্রোডাক্ট লিস্ট থেকে সেরা পণ্য বেছে নিন</span><button @click="resellSubTab='post'">দেখুন <i class="fa-solid fa-arrow-right"></i></button></div>
+            </div>
+
+            <!-- মূল টুলস (রঙিন জোন) -->
+            <div class="rh-band">
+              <div class="rh-grid">
+                <template x-for="(b,bi) in resellHomeButtons.slice(0,8)" :key="b.label">
+                  <button @click="resellButtonClick(b)" class="rh-tile"><span class="rh-ic" :class="'rh-c'+(bi%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
                 </template>
               </div>
             </div>
 
-            <!-- more tools — plain zone -->
-            <div class="grid grid-cols-4 gap-x-2 gap-y-4">
-              <template x-for="b in resellHomeButtons.slice(8)" :key="b.label">
-                <button @click="resellButtonClick(b)" class="rb-btn">
-                  <div class="rb-ic" :style="'background:'+b.bg+';color:'+b.color"><i :class="b.icon"></i></div>
-                  <span class="rb-lbl" x-text="b.label"></span>
-                </button>
-              </template>
+            <!-- আয়ের টুলস (সাদা প্যানেল) -->
+            <div class="rh-panel">
+              <div class="rh-grid">
+                <template x-for="(b,bi) in resellHomeButtons.slice(8,12)" :key="b.label">
+                  <button @click="resellButtonClick(b)" class="rh-tile flat"><span class="rh-ic" :class="'rh-c'+((bi+2)%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
+                </template>
+              </div>
+            </div>
+
+            <!-- অর্ডার, ব্যালেন্স ও সাপোর্ট -->
+            <div class="rh-soft">
+              <div class="rh-grid">
+                <template x-for="(b,bi) in resellHomeButtons.slice(12)" :key="b.label">
+                  <button @click="resellButtonClick(b)" class="rh-tile"><span class="rh-ic" :class="'rh-c'+((bi+4)%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
+                </template>
+              </div>
+            </div>
+
+            <!-- প্রোফাইল নোটিশ -->
+            <div class="rh-note">
+              <span><i class="fa-solid fa-store"></i></span>
+              <div class="flex-1"><p class="font-bold text-sm">জরুরী নোটিশ</p><p class="text-xs mt-0.5 leading-relaxed">কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয় — তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p></div>
+              <button @click="resellSubTab='shop'"><i class="fa-solid fa-user-pen"></i> এডিট</button>
             </div>
           </div>
         </template>
@@ -4313,7 +4415,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                 <div class="rs-grid">
                 <template x-for="c in resellSecCats(section)" :key="c.fbKey||c.name">
                   <div class="rs-card" @click="resellActiveCat=c.name;resellSubTab='post'">
-                    <span class="rs-cnt" x-text="c.count"></span>
+                    <span class="rs-cnt" x-text="Number(c.count||0).toLocaleString('bn-BD')"></span>
                     <div class="rs-img"><img x-show="c.img" :src="c.img" :alt="c.name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="rs-ic" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div></div>
                     <span class="rs-name" x-text="c.name"></span>
                   </div>
@@ -4326,7 +4428,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <div class="rs-grid">
                 <template x-for="c in resellOtherCats()" :key="c.fbKey||c.name">
                   <div class="rs-card" @click="resellActiveCat=c.name;resellSubTab='post'">
-                    <span class="rs-cnt" x-text="c.count"></span>
+                    <span class="rs-cnt" x-text="Number(c.count||0).toLocaleString('bn-BD')"></span>
                     <div class="rs-img"><img x-show="c.img" :src="c.img" :alt="c.name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="rs-ic" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div></div>
                     <span class="rs-name" x-text="c.name"></span>
                   </div>
@@ -4558,6 +4660,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   <p class="dlg-t">লিংক তৈরি হয়েছে</p>
   <p class="text-xs mt-1" style="color:var(--fg3)" x-text="(sellLinkModal.p?sellLinkModal.p.name:'')+' — ৳'+sellLinkModal.price"></p>
   <div id="sellLinkUrl" class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2);user-select:all;-webkit-user-select:all" x-text="sellLinkModal.url"></div>
+  <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saving" style="color:#0F8F7A"><i class="fa-solid fa-spinner fa-spin"></i> সার্ভারে সেভ হচ্ছে... (কপি/শেয়ার এখনই করতে পারেন)</p>
+  <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saveErr" style="color:#DC2626" x-text="sellLinkModal.saveErr"></p>
   <p class="text-xs mt-2 font-bold" style="color:#B45309" x-show="sellLinkModal.exp"><i class="fa-regular fa-clock"></i> সক্রিয় থাকবে: <span x-text="fmtLeft(Math.max(0,Math.ceil((sellLinkModal.exp-nowTs)/1000)))"></span> — এরপর লিংকটি কাজ করবে না।</p>
   <p class="text-xs mt-2" style="color:var(--fg3)">শেয়ার করলে প্রোডাক্টের ছবিসহ পাঠানো হবে। কাস্টমার লিংক খুলে এই দামেই কিনতে পারবে।</p>
   <div class="flex gap-2 mt-4"><button @click="copySellLink()" class="dlg-b2"><i class="fa-regular fa-copy"></i> কপি</button><button @click="shareSellLink()" class="dlg-b1"><i class="fa-solid fa-share-nodes"></i> শেয়ার</button></div>
@@ -4595,7 +4699,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <h2 class="font-bold text-base mt-1" x-text="linkOrder.p.name"></h2>
         <p class="font-display text-2xl mt-1" style="color:var(--accent)" x-text="'৳'+Number(linkOrder.link.price).toLocaleString()"></p>
         <p class="text-xs mt-1" style="color:var(--fg3)" x-show="linkOrder.p.productId" x-text="'আইডি #'+linkOrder.p.productId"></p>
-        <p class="text-xs mt-2 leading-relaxed" style="color:var(--fg2);white-space:pre-line" x-show="linkOrder.p.desc" x-text="(linkOrder.p.desc||'').slice(0,400)"></p>
+        <div class="lo-cat" x-show="loCatPath()"><i class="fa-solid fa-tags"></i><span x-text="loCatPath()"></span></div>
+        <div class="lo-desc" x-show="linkOrder.p.desc||linkOrder.p.description"><p class="lo-desc-h"><i class="fa-regular fa-rectangle-list"></i> প্রোডাক্ট বিবরণ</p><p x-text="(linkOrder.p.desc||linkOrder.p.description||'')"></p></div>
       </div>
       <div class="px-4 pt-3 space-y-3">
         <div x-show="(linkOrder.p.images||[]).length>1"><label class="dd-label">ছবি/ডিজাইন বেছে নিন</label><div class="flex gap-2 overflow-x-auto pb-1"><template x-for="(im,ix) in (linkOrder.p.images||[])" :key="ix"><img :src="optImg(im,160)" @click="linkOrder.vi=ix" class="w-14 h-14 rounded-xl object-cover flex-shrink-0" :style="linkOrder.vi===ix?'outline:2.5px solid var(--accent);outline-offset:1px':'opacity:.75'" onerror="this.style.visibility='hidden'"/></template></div></div>
@@ -4607,10 +4712,22 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div><label class="dd-label">বিভাগ *</label><select class="dd-input" x-model="linkOrder.division" @change="linkOrder.district=''"><option value="">বিভাগ বেছে নিন</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select></div>
         <div x-show="linkOrder.division"><label class="dd-label">জেলা *</label><select class="dd-input" x-model="linkOrder.district"><option value="">জেলা বেছে নিন</option><template x-for="d in bdLoc[linkOrder.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select></div>
         <div><label class="dd-label">পূর্ণ ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="linkOrder.address" placeholder="গ্রাম/এলাকা, থানা, বাড়ির নম্বর..."></textarea></div>
-        <div class="dd-card p-3 space-y-1.5">
-          <div class="flex justify-between text-sm"><span style="color:var(--fg3)">প্রোডাক্ট</span><b x-text="'৳'+(Number(linkOrder.link.price)*linkOrder.qty).toLocaleString()"></b></div>
-          <div class="flex justify-between text-sm"><span style="color:var(--fg3)">ডেলিভারি চার্জ</span><b x-text="linkOrder.division?('৳'+loShipping):'বিভাগ বেছে নিন'"></b></div>
-          <div class="flex justify-between text-base font-bold pt-1.5" style="border-top:1px solid var(--border)"><span>মোট (ক্যাশ অন ডেলিভারি)</span><span style="color:var(--accent)" x-text="'৳'+loTotal.toLocaleString()"></span></div>
+        <div class="lo-adv">
+          <p class="lo-adv-t"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ কি আগে পেমেন্ট করেছেন? *</p>
+          <p class="lo-adv-s" x-text="linkOrder.division?('আপনার এলাকার ডেলিভারি চার্জ ৳'+loShipping):'আগে বিভাগ বেছে নিন, তাহলে ডেলিভারি চার্জ দেখাবে'"></p>
+          <div class="grid grid-cols-2 gap-2 mt-2">
+            <button type="button" class="lo-opt" :class="linkOrder.advance==='yes'?'on':''" @click="linkOrder.advance='yes'"><i class="fa-solid fa-circle-check"></i><span>হ্যাঁ, ডেলিভারি চার্জ পেমেন্ট করেছি</span></button>
+            <button type="button" class="lo-opt" :class="linkOrder.advance==='no'?'on no':''" @click="linkOrder.advance='no'"><i class="fa-solid fa-circle-xmark"></i><span>না, পেমেন্ট করিনি</span></button>
+          </div>
+          <p class="lo-adv-n" x-show="linkOrder.advance==='yes'">ডেলিভারি চার্জ আগেই দেওয়া হয়েছে, তাই ডেলিভারির সময় শুধু প্রোডাক্টের দাম দিতে হবে।</p>
+          <p class="lo-adv-n" x-show="linkOrder.advance==='no'">ডেলিভারি চার্জসহ পুরো টাকা ডেলিভারির সময় দিতে হবে।</p>
+        </div>
+        <div class="lo-sum">
+          <div class="lo-row"><span>প্রোডাক্ট (<span x-text="linkOrder.qty"></span> পিস)</span><b x-text="'৳'+(Number(linkOrder.link.price)*linkOrder.qty).toLocaleString()"></b></div>
+          <div class="lo-row"><span>ডেলিভারি চার্জ</span><b x-text="linkOrder.division?('৳'+loShipping):'বিভাগ বেছে নিন'"></b></div>
+          <div class="lo-row"><span>সর্বমোট (ডেলিভারি চার্জসহ)</span><b x-text="linkOrder.division?('৳'+loGrand.toLocaleString()):'—'"></b></div>
+          <div class="lo-row paid" x-show="linkOrder.advance==='yes'&&linkOrder.division"><span>− ডেলিভারি চার্জ আগে পরিশোধিত</span><b x-text="'৳'+loShipping"></b></div>
+          <div class="lo-due"><span x-text="linkOrder.advance==='yes'?'ডেলিভারির সময় দিতে হবে (শুধু প্রোডাক্ট)':(linkOrder.advance==='no'?'ডেলিভারির সময় দিতে হবে (ডেলিভারিসহ)':'ডেলিভারির সময় দিতে হবে')"></span><span x-text="'৳'+loTotal.toLocaleString()"></span></div>
         </div>
         <button @click="placeLinkOrder()" :disabled="linkOrder.placing" class="btn-primary w-full" style="justify-content:center"><span x-show="linkOrder.placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>অর্ডার হচ্ছে...</span><span x-show="!linkOrder.placing"><i class="fa-solid fa-bag-shopping mr-2"></i>অর্ডার কনফার্ম করুন</span></button>
         <div style="height:40px"></div>
@@ -4840,9 +4957,10 @@ function App(){return{
   helplineOpen:false,
   // ══ v5: লিংক, সার্চ, রিচার্জ, ফ্রিল্যান্সিং, কনটেন্ট ══
   rcfg:{},fbRecharges:[],fbServices:[],fbMyServiceOrders:[],
-  sellLinkModal:{open:false,url:'',price:0,p:null,busy:false},
+  sellLinkModal:{open:false,url:'',price:0,p:null,busy:false,saving:false,saveErr:''},
+  resellBlocked:false,activeLinkRec:null,
   resellGate:false,rgPop:false,resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
-  linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',placing:false,done:null},
+  linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null},
   _dlChecked:false,_dlMiss:0,
   resellFeedMode:'all',resellSearchMode:'name',
   imgSearch:{busy:false,done:false,pct:0,ids:[],preview:''},
@@ -5197,6 +5315,7 @@ function App(){return{
     if(this.profile.name)this.form.name=this.profile.name;
     if(this.profile.phone)this.form.phone=this.profile.phone;
     const rp=localStorage.getItem('dd_reseller_session');
+    try{if(localStorage.getItem('dd_had_reseller'))this.resellAuthMode='login'}catch(e){}
     const lsc=localStorage.getItem('dd_last_seen_tx');if(lsc)this.lastSeenTxCount=parseInt(lsc)||0;
     window.addEventListener('firebase-ready',()=>{
       window.$db.registerUser().catch(()=>{});setInterval(()=>this.now=Date.now(),60000);
@@ -5544,7 +5663,7 @@ function App(){return{
   otpIsVerified(d){try{const m=JSON.parse(localStorage.getItem('dd_otpok')||'{}');return !!m[d]&&Date.now()-m[d]<30*864e5}catch{return false}},
   async otpGate(raw){
     if(!this.otpValidPhone(raw)){this.showToast('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (01XXXXXXXXX)','error');return false}
-    try{const b=await window.$db.getBlock(this.otpNormPhone(raw));if(b){this.showToast('এই নম্বর দিয়ে অর্ডার করা যাচ্ছে না। সাপোর্টে যোগাযোগ করুন।','error');return false}}catch(e){}
+    try{const b=await this._wt(window.$db.getBlock(this.otpNormPhone(raw)),3500,null);if(b){this.showToast('এই নম্বর দিয়ে অর্ডার করা যাচ্ছে না। সাপোর্টে যোগাযোগ করুন।','error');return false}}catch(e){}
     if(!this.otpActive())return true;
     const d=this.otpNormPhone(raw);
     if(this.otpIsVerified(d))return true;
@@ -5805,6 +5924,7 @@ function App(){return{
     const buf=await crypto.subtle.digest('SHA-256',enc);
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   },
+  _wt(p,ms,fb){return Promise.race([Promise.resolve(p),new Promise(r=>setTimeout(()=>r(fb),ms))])},
   _getResellerOnce(phone){return new Promise(res=>{let d=false;const t=setTimeout(()=>{if(!d){d=true;res(null)}},8000);window.$db.getResellerOnce(phone,v=>{if(!d){d=true;clearTimeout(t);res(v)}})})},
   async _ensureResellerRecord(f,pinHash,extra){
     const r=await this._getResellerOnce(f.phone);if(r)return r;
@@ -5828,7 +5948,7 @@ function App(){return{
     if(!f.shopName.trim())return this.resellAuthError='আপনার শপের নাম লিখুন!';
     f.phone=this.otpNormPhone(f.phone);
     if(!this.otpValidPhone(f.phone))return this.resellAuthError='সঠিক ১১ ডিজিটের বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)!';
-    try{if(await window.$db.getBlock(f.phone))return this.resellAuthError='এই নম্বরে রেজিস্ট্রেশন বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।'}catch(e){}
+    try{if(await this._wt(window.$db.getBlock(f.phone),3500,null))return this.resellAuthError='এই নম্বরে রেজিস্ট্রেশন বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।'}catch(e){}
     if(/^(0000|1234|1111|12345|123456|0123)$/.test(f.pin))return this.resellAuthError='সহজ পিন দেওয়া যাবে না (যেমন 1234, 0000)।';
     if(!f.pin||f.pin.length<4)return this.resellAuthError='কমপক্ষে ৪ ডিজিটের পিন দিন!';
     if(f.pin!==f.confirmPin)return this.resellAuthError='পিন দুটো মিলছে না!';
@@ -5883,15 +6003,16 @@ function App(){return{
         await window.$auth.resellerCreate(f.phone,pinHash);
         await window.$db.saveReseller({authMigrated:true,migrateProof:pinHash},f.phone);
       }
-      try{await this._ensureResellerRecord({phone:f.phone},pinHash,{})}catch(e2){console.warn('ensure',e2)}
-      this._resellLoginSuccess(f.phone);
+      this._resellLoginSuccess(f.phone);   // সাথে সাথে ঢুকিয়ে দেওয়া — রেকর্ড যাচাই ব্যাকগ্রাউন্ডে
+      this._ensureResellerRecord({phone:f.phone},pinHash,{}).catch(e2=>console.warn('ensure',e2));
       this.resellLoginForm={phone:'',pin:''};
     }catch(e){console.warn('login',e);this.resellAuthError=(e&&/network|offline/i.test(e.message||''))?'ইন্টারনেট সংযোগ চেক করুন।':'পিন সঠিক নয় অথবা সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
     finally{this.resellBusy=false}
   },
   _resellLoginSuccess(phone){
     this.resellSession=phone;
-    localStorage.setItem('dd_reseller_session',phone);
+    localStorage.setItem('dd_reseller_session',phone);try{localStorage.setItem('dd_had_reseller','1')}catch(e){}
+    this.resellSubTab='home';
     this._listenMyReseller();
     this._attachResellerListeners(phone);
     this.showToast('স্বাগতম! ✅','success');
@@ -5905,6 +6026,8 @@ function App(){return{
     window.$db.listenMyResellOrders(phone,os=>this.fbMyResellOrders=os);
     window.$db.listenMyRecharges(phone,rs=>this.fbRecharges=rs);
     window.$db.listenMyServiceOrders(phone,os=>this.fbMyServiceOrders=os);
+    try{window.$db.listenBlock(phone,b=>{this.resellBlocked=!!b})}catch(e){}
+    try{window.$db.listenActiveLink(phone,a=>{this.activeLinkRec=a;if(a&&a.exp>Date.now()){this._lkExp=a.exp;this._linkTick()}})}catch(e){}
   },
   async resellLogout(){
     if(!(await this.askConfirm({title:'লগআউট করবেন?',msg:'রিসেলার একাউন্ট থেকে বের হয়ে যাবেন।',icon:'fa-solid fa-arrow-right-from-bracket',yesText:'লগআউট',yesIcon:'fa-solid fa-arrow-right-from-bracket',noText:'থাকুন'})))return;
@@ -6567,26 +6690,48 @@ function App(){return{
     const s=Number(this.pvPrice);
     if(!s)return this.showToast('আগে বিক্রয়মূল্য লিখুন!','error');
     if(s<p.resellerPrice){this.pvPopup='low';return}
-    try{const b=await window.$db.getBlock(this.otpNormPhone(this.resellSession));if(b)return this.showToast('আপনার একাউন্টে লিংক তৈরি বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।','error')}catch(e){}
+    if(this.sellLinkModal.busy)return;
+    if(this.resellBlocked)return this.showToast('আপনার একাউন্টে লিংক তৈরি বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।','error');
+    const ph=this.resellSession;
+    // কুলডাউন যাচাই: লাইভ ক্যাশ + লোকাল স্টোরেজ থেকে — নেটওয়ার্কের জন্য অপেক্ষা নেই, তাই লিংক ১ সেকেন্ডের মধ্যে তৈরি হয়
+    let act=this.activeLinkRec||null,loc=null;
+    try{loc=JSON.parse(localStorage.getItem('dd_lastlink_'+ph)||'null')}catch(e){}
+    if(loc&&(!act||(loc.exp||0)>(act.exp||0)))act=loc;
+    if(act&&act.exp>Date.now()){this._lkExp=act.exp;this._linkTick();return this.showToast('আগের লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত নতুন লিংক বানানো যাবে না','error')}
     this.sellLinkModal.busy=true;
     try{
-      let act=null;try{act=await window.$db.getActiveLink(this.resellSession)}catch(e){}
-      if(!act){try{act=JSON.parse(localStorage.getItem('dd_lastlink_'+this.resellSession)||'null')}catch(e){}}
-      if(act&&act.exp>Date.now()){this._lkExp=act.exp;this._linkTick();this.sellLinkModal.busy=false;return this.showToast('আগের লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত নতুন লিংক বানানো যাবে না','error')}
-      if(act&&act.id)window.$db.removeSharedLink(act.id);   // পুরনো লিংক পরিষ্কার
       const mins=Number(this.linkMin)||15,now=Date.now(),exp=now+mins*60000;
-      const rec={resellerPhone:this.resellSession,shopName:this.reseller?.shopName||this.reseller?.name||'',productKey:p.fbKey||p.id,productId:p.productId||'',price:s,resellerPrice:p.resellerPrice,createdAt:now,expiresAt:exp,durationMin:mins};
-      const promo=String((this.reseller&&(this.reseller.myReferralCode||this.reseller.promoCode))||this.resellSession.slice(-5)).replace(/[^A-Za-z0-9]/g,'').slice(0,12)||this.resellSession.slice(-5);
+      const rec={resellerPhone:ph,shopName:this.reseller?.shopName||this.reseller?.name||'',productKey:p.fbKey||p.id,productId:p.productId||'',price:s,resellerPrice:p.resellerPrice,createdAt:now,expiresAt:exp,durationMin:mins};
+      const promo=String((this.reseller&&(this.reseller.myReferralCode||this.reseller.promoCode))||ph.slice(-5)).replace(/[^A-Za-z0-9]/g,'').slice(0,12)||ph.slice(-5);
       const pid=String(p.productId||p.id||'').replace(/[^A-Za-z0-9]/g,'').slice(0,10)||'P';
-      let key='',lastErr=null;
-      for(let k=0;k<4&&!key;k++){const id=promo+'-'+pid+'-'+Math.random().toString(36).slice(2,6);
-        try{key=await window.$db.setSharedLink(id,rec)}catch(e){lastErr=e}}
-      if(!key){const msg=String((lastErr&&lastErr.message)||'');throw new Error(/permission/i.test(msg)?'Firebase Rules আপডেট করুন (sharedLinks)':(msg||'লিংক সেভ হয়নি'))}
-      const qs='';
-      try{await window.$db.setActiveLink(this.resellSession,{id:key,exp})}catch(e){}try{localStorage.setItem('dd_lastlink_'+this.resellSession,JSON.stringify({id:key,exp}))}catch(e){}
-      this._lkExp=exp;this._linkTick();
-      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(key)+qs,price:s,p,busy:false,exp};
+      const id=promo+'-'+pid+'-'+Math.random().toString(36).slice(2,8);
+      const nrec={id,exp};
+      this._lkExp=exp;this._linkTick();this.activeLinkRec=nrec;
+      try{localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(nrec))}catch(e){}
+      // লিংক সঙ্গে সঙ্গে দেখানো হয় (অপটিমিস্টিক) — সার্ভারে সেভ ব্যাকগ্রাউন্ডে চলে
+      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',linkId:id};
+      this._saveLinkBg(id,rec,act,nrec,ph);
     }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
+  },
+  async _saveLinkBg(id,rec,old,nrec,ph){
+    let ok=false,lastErr=null;
+    for(let k=0;k<4&&!ok;k++){
+      try{ok=!!(await this._wt(window.$db.setSharedLink(id,rec).then(()=>true),25000,false))}
+      catch(e){lastErr=e;if(/permission/i.test(String((e&&e.message)||'')))break}
+      if(!ok)await new Promise(r=>setTimeout(r,700*(k+1)));
+    }
+    const mine=this.sellLinkModal.linkId===id;
+    if(ok){
+      if(mine)this.sellLinkModal.saving=false;
+      window.$db.setActiveLink(ph,nrec);
+      if(old&&old.id&&old.id!==id)window.$db.removeSharedLink(old.id);
+    }else{
+      const msg=/permission/i.test(String((lastErr&&lastErr.message)||''))?'Firebase Rules আপডেট করুন (sharedLinks)':'লিংক সার্ভারে সেভ হয়নি — ইন্টারনেট চেক করে আবার চেষ্টা করুন';
+      if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.saveErr='⚠️ '+msg}
+      this.activeLinkRec=null;this._lkExp=0;this.linkCool=0;
+      try{localStorage.removeItem('dd_lastlink_'+ph)}catch(e){}
+      this.showToast(msg,'error');
+    }
   },
   async copyPostDesc(p){const t=String((p&&(p.desc||p.description))||(p&&p.name)||'').trim();if(!t)return this.showToast('কপি করার মতো বিবরণ নেই','error');if(await this.copyText(t))this.showToast('বিবরণ কপি হয়েছে ✅','success');else this.showToast('কপি হয়নি — বিবরণে চেপে ধরে কপি করুন','error')},
   async shareSellLink(){const m=this.sellLinkModal;if(m.p)await this._shareWithImage(m.p,m.url,m.p.name+' — ৳'+m.price)},
@@ -6601,9 +6746,11 @@ function App(){return{
     const exp=Number(link&&link.expiresAt)||0,now=Date.now();
     if(exp&&now>exp+864e5){window.$db.removeSharedLink(id);this.linkOrder={...this.linkOrder,open:true,gone:true,expired:false,p:null,link:null,done:null};return}   // ১ দিন পর পুরো উধাও
     this._linkTick();
-    this.linkOrder={open:true,gone:false,expired:!!(exp&&now>exp),exp,left:exp?Math.max(0,Math.ceil((exp-now)/1000)):0,loading:false,p,link,linkId:id,size:'',color:'',vi:0,qty:1,name:'',phone:'',division:'',district:'',address:'',placing:false,done:null}},
+    this.linkOrder={open:true,gone:false,expired:!!(exp&&now>exp),exp,left:exp?Math.max(0,Math.ceil((exp-now)/1000)):0,loading:false,p,link,linkId:id,size:'',color:'',vi:0,qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null}},
   get loShipping(){const d=this.linkOrder.division;return d?(d==='ঢাকা'?80:150):0},
-  get loTotal(){const o=this.linkOrder;return o.p&&o.link?(Number(o.link.price)||0)*o.qty+this.loShipping:0},
+  get loGrand(){const o=this.linkOrder;return o.p&&o.link?(Number(o.link.price)||0)*o.qty+this.loShipping:0},
+  get loTotal(){const o=this.linkOrder;if(!(o.p&&o.link))return 0;const sub=(Number(o.link.price)||0)*o.qty;return o.advance==='yes'?sub:sub+this.loShipping},
+  loCatPath(){const p=this.linkOrder.p;if(!p||!p.cat)return '';try{const c=this.allCategories.find(x=>x.name===this._cn(p.cat));return (c&&c.parent)?(c.parent+' › '+c.name):String(p.cat)}catch(e){return String(p.cat)}},
   async placeLinkOrder(){
     const o=this.linkOrder,p=o.p,l=o.link;if(!p||!l||o.placing)return;
     if(o.expired||(Number(l.expiresAt)&&Date.now()>Number(l.expiresAt))){o.expired=true;return this.showToast('এই লিংকের মেয়াদ শেষ হয়ে গেছে','error')}
@@ -6613,6 +6760,7 @@ function App(){return{
     if(!/^01[0-9]{9}$/.test(String(o.phone).trim()))return this.showToast('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন!','error');
     if(!o.division||!o.district)return this.showToast('বিভাগ ও জেলা বেছে নিন!','error');
     if(!o.address.trim())return this.showToast('ঠিকানা দিন!','error');
+    if(!o.advance)return this.showToast('ডেলিভারি চার্জ আগে পেমেন্ট করেছেন কিনা বেছে নিন!','error');
     if(Number(l.price)<(Number(p.resellerPrice)||0))return this.showToast('এই লিংকের দাম এখন আর বৈধ নয়, বিক্রেতার সাথে যোগাযোগ করুন','error');
     if(!(await this.otpGate(o.phone)))return;
     o.placing=true;
@@ -6624,9 +6772,9 @@ function App(){return{
       status:'রিসেলার অ্যাপ্রুভাল',uid:localStorage.getItem('dd_uid')||'',
       orderType:'reseller',linkOrder:true,linkId:o.linkId,resellerPhone:l.resellerPhone,resellerShopName:l.shopName||'',
       customerName:o.name.trim(),phone:o.phone.trim(),division:o.division,district:o.district,address:o.address.trim(),
-      payMethod:'ক্যাশ অন ডেলিভারি (রিসেলার লিংক)',payType:'cod',trxId:'',deliveryAdvance:false,collectAmount:this.loTotal,
+      payMethod:o.advance==='yes'?'ডেলিভারি চার্জ অগ্রিম (কাস্টমারের দাবি) — বাকি ক্যাশ অন ডেলিভারি (রিসেলার লিংক)':'ক্যাশ অন ডেলিভারি (রিসেলার লিংক)',payType:'cod',trxId:'',deliveryAdvance:o.advance==='yes',advanceClaimedByCustomer:o.advance==='yes',collectAmount:this.loTotal,
       items:[{id:p.id||p.fbKey,name:p.name,price:p.price,resellerPrice:p.resellerPrice||0,resellerSellPrice:price,genCommission1:p.genCommission1||0,genCommission2:p.genCommission2||0,genCommission3:p.genCommission3||0,qty:o.qty,size:o.size||'',color:o.color||'',variantImg:((p.images||[])[o.vi]||''),variantNo:(o.vi||0)+1,productId:p.productId||'',img,images:p.images||[]}],
-      subtotal:price*o.qty,shipping:this.loShipping,total:this.loTotal,trackingLink:null,
+      subtotal:price*o.qty,shipping:this.loShipping,total:this.loGrand,trackingLink:null,
     };
     try{
       await window.$db.saveOrder(order);
@@ -6641,7 +6789,7 @@ function App(){return{
     setTimeout(()=>{if(left)return;try{window.close()}catch(e){}setTimeout(()=>{if(!left&&!done)this.closeLinkOrder()},250)},450)},
   get pendingLinkOrders(){return this.myResellOrders.filter(o=>o.status==='রিসেলার অ্যাপ্রুভাল')},
   async resellerApproveLinkOrder(o){
-    if(!(await this.askConfirm({title:'অর্ডার এপ্রুভ করবেন?',msg:'এপ্রুভ করলে অর্ডারটি ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-circle-check',yesText:'এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না'})))return;
+    if(!(await this.askConfirm({title:'অর্ডার এপ্রুভ করবেন?',msg:(o.deliveryAdvance?'কাস্টমার জানিয়েছে ডেলিভারি চার্জ ৳'+(o.shipping||0)+' আগেই দেওয়া হয়েছে — নিশ্চিত হয়ে এপ্রুভ করুন। ':'')+'এপ্রুভ করলে অর্ডারটি ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-circle-check',yesText:'এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না'})))return;
     try{await window.$db.updateOrder(o.fbKey,{status:'পেন্ডিং',resellerApprovedAt:Date.now(),placedAt:o.timestamp||null,timestamp:new Date().toISOString()});this.showToast('অর্ডার এপ্রুভ হয়েছে ✅','success')}catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন','error')}
   },
   async resellerRejectLinkOrder(o){
