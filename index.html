@@ -62,7 +62,7 @@ tailwind.config={
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import{getDatabase,ref,push,set,update,remove,onValue,get,query,orderByChild,equalTo,limitToLast,orderByKey,runTransaction}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import{getAuth,signInAnonymously,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getAuth,signInAnonymously,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut,updatePassword,reauthenticateWithCredential,EmailAuthProvider,deleteUser}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 const cfg={
   apiKey:"AIzaSyCQVlbjApQYtyc86ZTVPsBjOZ3J-RHv_vI",
   authDomain:"daily-deal-online-shopping.firebaseapp.com",
@@ -94,6 +94,15 @@ window.$auth={auth,authReady,RESELLER_DOMAIN,
   resellerSignIn:(phone,pinHash)=>signInWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
   resellerCreate:(phone,pinHash)=>createUserWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
   resellerSignOut:()=>signOut(auth),
+  // পিন বদল: পুরনো পিন দিয়ে রি-অথ → নতুন derivePw দিয়ে Firebase Auth পাসওয়ার্ড বদল (লগইন একই derivePw ব্যবহার করে, তাই ভাঙবে না)
+  resellerChangePassword:async(phone,oldHash,newHash)=>{
+    const u=auth.currentUser;
+    if(!u||u.email!==phone+RESELLER_DOMAIN){const e=new Error('no-session');e.code='auth/no-session';throw e}
+    await reauthenticateWithCredential(u,EmailAuthProvider.credential(u.email,derivePw(oldHash,phone)));
+    await updatePassword(u,derivePw(newHash,phone));
+  },
+  // সাইনআপ ব্যর্থ হলে অসম্পূর্ণ Auth অ্যাকাউন্ট মুছে ফেলা (যাতে আসল মালিক আটকে না যায়)
+  deleteCurrent:async()=>{const u=auth.currentUser;if(u)await deleteUser(u)},
 };
 
 const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+'_'+Math.random().toString(36).slice(2);localStorage.setItem('dd_uid',id);}return id;};
@@ -102,7 +111,17 @@ window.$db={pushReview:async(d)=>{const r=push(ref(db,'reviews'));await set(r,d)
   lookupReferralOwner:async(code)=>{if(!code)return null;const v=await window.$db.getOnce('referralCodes/'+code);return v&&v.resellerPhone?{fbKey:v.resellerPhone}:null},
   listenMyOrders:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyResellOrders:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
-  getOrdersByPhone:async(phone)=>{try{const s=await get(query(ref(db,'orders'),orderByChild('phone'),equalTo(phone)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){return[]}},
+  getCustomerStats:async(hash)=>{try{const s=await get(ref(db,'customerStats/'+hash));return s.exists()?s.val():null}catch(e){return undefined}},
+  // পুরনো রিসেলার মাইগ্রেশন: pin ক্লায়েন্টে না পড়েই রুলস দিয়ে প্রমাণ যাচাই (migrationCheck), সফল হলে true
+  checkMigrationProof:async(phone,proof)=>{
+    await authReady;const u=auth.currentUser;if(!u)return false;
+    const r=ref(db,'migrationCheck/'+u.uid);
+    try{await set(r,{phone,proof,at:Date.now()})}
+    catch(e){if(/permission_denied/i.test(String((e&&(e.code||e.message))||'')))return false;throw e}
+    try{await remove(r)}catch(e){}
+    return true;
+  },
+  getAuthMigrated:async(phone)=>{try{const s=await get(ref(db,'resellers/'+phone+'/authMigrated'));return s.exists()?s.val():null}catch(e){return null}},
   listenMyWithdrawals:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'withdrawals'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyDeposits:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'deposits'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyWalletTx:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'walletTx'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
@@ -3810,7 +3829,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div><label class="dd-label">আপনার নাম *</label><input class="dd-input" x-model="resellSignupForm.name" data-ch="text" placeholder="আপনার সম্পূর্ণ নাম"/></div>
           <div><label class="dd-label">শপের নাম *</label><input class="dd-input" x-model="resellSignupForm.shopName" data-ch="text" placeholder="যেমন: রুমা'স কালেকশন"/><p class="text-xs mt-1" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নাম দেখাবে</p></div>
           <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="resellSignupForm.phone" data-ch="text" placeholder="01XXXXXXXXX" maxlength="14"/><p class="text-xs mt-1 font-semibold" style="color:#DC2626" x-show="resellSignupForm.phone&&resellSignupForm.phone.replace(/\D/g,'').length>=11&&!otpValidPhone(resellSignupForm.phone)">সঠিক বাংলাদেশি নম্বর দিন</p><p class="text-xs mt-1" style="color:var(--fg3)">আসল নম্বর দিন — এই নম্বরেই লগইন হবে</p></div>
-          <div x-data="{sh:false}"><label class="dd-label">পিন (৪ ডিজিট বা তার বেশি) *</label><div style="position:relative"><input class="dd-input" :type="sh?'text':'password'" inputmode="numeric" x-model="resellSignupForm.pin" data-ch="pw" data-cap="drop" placeholder="••••" style="padding-right:42px"/><button type="button" @click="sh=!sh" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:0;color:var(--fg3);cursor:pointer"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div></div>
+          <div x-data="{sh:false}"><label class="dd-label">পিন (কমপক্ষে ৬ ডিজিট, শুধু সংখ্যা) *</label><div style="position:relative"><input class="dd-input" :type="sh?'text':'password'" inputmode="numeric" x-model="resellSignupForm.pin" data-ch="pw" data-cap="drop" placeholder="••••" style="padding-right:42px"/><button type="button" @click="sh=!sh" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:0;color:var(--fg3);cursor:pointer"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div></div>
           <div><label class="dd-label">পিন আবার লিখুন *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" data-ch="pw" data-cap="drop" placeholder="••••"/><p class="text-xs mt-1 font-semibold" x-show="resellSignupForm.confirmPin" :style="resellSignupForm.confirmPin===resellSignupForm.pin?'color:#16A34A':'color:#DC2626'" x-text="resellSignupForm.confirmPin===resellSignupForm.pin?'✓ পিন মিলেছে':'পিন মিলছে না'"></p></div>
           <div><label class="dd-label">রেফারেল / প্রমো কোড (ঐচ্ছিক)</label><input class="dd-input" x-model="resellSignupForm.referralCode" data-ch="text" data-opt placeholder="যেমন: RS12345AB"/></div>
           <label class="flex items-start gap-2.5 cursor-pointer pt-1">
@@ -3908,6 +3927,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <template x-if="resellSubTab==='home'">
           <div class="rh">
             <div x-show="settings.marqueeText" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(settings.marqueeText)"></p></div>
+            <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" @click="resellSubTab='shop'" class="text-xs font-bold mt-2 px-3 py-1.5 rounded-lg" style="background:#B45309;color:#fff;border:0;cursor:pointer">পিন বদলান</button></div></div>
 
             <!-- ব্যানার -->
             <div class="rh-banner" x-data="{a:0}" x-init="const t=setInterval(()=>{if(!$el.isConnected){clearInterval(t);return}const n=(banners||[]).filter(b=>b&&b.img).length;if(n>1)a=(a+1)%n},4200)">
@@ -4361,6 +4381,15 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               </div>
               <div><label class="dd-label">ঠিকানা *</label><textarea class="dd-input resize-none" rows="3" x-model="resellProfileForm.address" placeholder="আপনার ঠিকানা লিখুন"></textarea></div>
               <button @click="saveResellerProfile()" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-check mr-2"></i>পরিবর্তন করুন</button>
+            </div>
+            <div class="dd-card p-4 space-y-3">
+              <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-key" style="color:var(--accent)"></i>পিন পরিবর্তন</p>
+              <p class="text-xs" style="color:var(--fg3)">কমপক্ষে ৬ ডিজিটের পিন দিন (শুধু সংখ্যা)। 000000, 123456 এর মতো সহজ পিন চলবে না।</p>
+              <div><label class="dd-label">বর্তমান পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.old" autocomplete="current-password"/></div>
+              <div><label class="dd-label">নতুন পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.nw" autocomplete="new-password"/></div>
+              <div><label class="dd-label">নতুন পিন আবার লিখুন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.cf" autocomplete="new-password" @keydown.enter="resellChangePin()"/></div>
+              <p class="text-xs font-semibold" style="color:#DC2626" x-show="resellPinForm.err" x-text="resellPinForm.err"></p>
+              <button type="button" @click="resellChangePin()" :disabled="resellPinForm.busy" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid mr-2" :class="resellPinForm.busy?'fa-spinner fa-spin':'fa-check'"></i>পিন বদলান</button>
             </div>
           </div>
         </template>
@@ -4943,6 +4972,8 @@ function App(){return{
   // ══ RESELLER PORTAL AUTH — separate from normal profile (NEW) ══
   resellSession:'',resellAuthMode:'signup',resellAuthError:'',
   resellLoginForm:{phone:'',pin:''},
+  resellWeakPin:(()=>{try{return localStorage.getItem('dd_weak_pin')==='1'}catch(e){return false}})(),
+  resellPinForm:{old:'',nw:'',cf:'',busy:false,err:''},
   resellSignupForm:{name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false},
   // ══ RESELLER / MLM (NEW) ══
   reseller:null,fbMyOrders:[],fbMyResellOrders:[],fbWithdrawals:[],custReportData:null,
@@ -5925,6 +5956,29 @@ function App(){return{
     return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
   },
   _wt(p,ms,fb){return Promise.race([Promise.resolve(p),new Promise(r=>setTimeout(()=>r(fb),ms))])},
+  _bnToEn(x){return String(x==null?'':x).replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d))},
+  // দুর্বল পিন (দৈর্ঘ্য < ৬, একই অঙ্ক, ক্রমিক, বহুল ব্যবহৃত) — মেসেজ ফেরত দেয়, ঠিক থাকলে ''
+  _pinWeak(pin){
+    const p=String(pin||'');
+    if(p.length<6)return 'কমপক্ষে ৬ ডিজিটের পিন দিন!';
+    if(/^(.)\1+$/.test(p)||'01234567890123456789'.includes(p)||'98765432109876543210'.includes(p)||/^(.{2,3})\1+$/.test(p)||['000123','123321','147258','159753','741852','789456','456789','112233','102030','010203','202020','121212','123123','112345','654123','963852','258369','246810','135790','001122','520520','555666','666888','888999'].includes(p))return 'সহজ পিন দেওয়া যাবে না (যেমন 000000, 111111, 123456)।';
+    return '';
+  },
+  _pinProblem(pin){
+    const p=String(pin||'');
+    if(!/^[0-9]*$/.test(p))return 'পিন শুধু সংখ্যা (০-৯) হতে হবে!';
+    if(p.length>12)return 'পিন সর্বোচ্চ ১২ ডিজিটের হতে পারবে!';
+    return this._pinWeak(p);
+  },
+  async _phoneHash(ph){return this._hash('dd-cust:'+String(ph||'').replace(/\D/g,'').slice(-11))},
+  // পুরনো (পিন-ভিত্তিক) রেকর্ড Firebase Auth-এ মাইগ্রেট করা — মাইগ্রেটেড না হলে প্রমাণসহ authMigrated:true লেখা (যাচাই রুলস করে)
+  async _finalizeMigration(phone,pinHash){
+    try{
+      const m=await window.$db.getAuthMigrated(phone);
+      if(m===true)return;
+      await window.$db.saveResellerApp(phone,{authMigrated:true,migrateProof:pinHash});
+    }catch(e){console.warn('migrate',e)}
+  },
   _getResellerOnce(phone){return new Promise(res=>{let d=false;const t=setTimeout(()=>{if(!d){d=true;res(null)}},8000);window.$db.getResellerOnce(phone,v=>{if(!d){d=true;clearTimeout(t);res(v)}})})},
   async _ensureResellerRecord(f,pinHash,extra){
     const r=await this._getResellerOnce(f.phone);if(r)return r;
@@ -5949,8 +6003,8 @@ function App(){return{
     f.phone=this.otpNormPhone(f.phone);
     if(!this.otpValidPhone(f.phone))return this.resellAuthError='সঠিক ১১ ডিজিটের বাংলাদেশি মোবাইল নম্বর দিন (01XXXXXXXXX)!';
     try{if(await this._wt(window.$db.getBlock(f.phone),3500,null))return this.resellAuthError='এই নম্বরে রেজিস্ট্রেশন বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।'}catch(e){}
-    if(/^(0000|1234|1111|12345|123456|0123)$/.test(f.pin))return this.resellAuthError='সহজ পিন দেওয়া যাবে না (যেমন 1234, 0000)।';
-    if(!f.pin||f.pin.length<4)return this.resellAuthError='কমপক্ষে ৪ ডিজিটের পিন দিন!';
+    f.pin=this._bnToEn(f.pin).trim();f.confirmPin=this._bnToEn(f.confirmPin).trim();
+    const pinErr=this._pinProblem(f.pin);if(pinErr)return this.resellAuthError=pinErr;
     if(f.pin!==f.confirmPin)return this.resellAuthError='পিন দুটো মিলছে না!';
     if(!f.agree)return this.resellAuthError='শর্তাবলীতে সম্মতি দিন!';
     if(this.resellBusy)return;this.resellBusy=true;
@@ -5975,7 +6029,15 @@ function App(){return{
       }
       const ex=await this._getResellerOnce(f.phone);
       if(ex&&!created){this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';this.resellAuthMode='login';return}
-      await this._ensureResellerRecord(f,pinHash,{referredBy,codeValid});
+      try{await this._ensureResellerRecord(f,pinHash,{referredBy,codeValid})}
+      catch(we){
+        // পুরনো (অমাইগ্রেটেড) রেকর্ড আছে এমন নম্বরে সাইনআপ — রুলস লেখা আটকায়; অসম্পূর্ণ Auth অ্যাকাউন্ট মুছে দিই
+        if(/permission_denied/i.test(String((we&&(we.code||we.message))||''))){
+          if(created){try{await window.$auth.deleteCurrent()}catch(de){}}
+          this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';this.resellAuthMode='login';return;
+        }
+        throw we;
+      }
       this._resellLoginSuccess(f.phone);
       this.resellSignupForm={name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false};
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
@@ -5985,7 +6047,7 @@ function App(){return{
   async resellDoLogin(){
     this.resellAuthError='';
     if(this.resellBusy)return;const f=this.resellLoginForm;
-    f.phone=this.otpNormPhone(String(f.phone||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)));f.pin=String(f.pin||'').replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)).trim();
+    f.phone=this.otpNormPhone(this._bnToEn(f.phone));f.pin=this._bnToEn(f.pin).trim();
     if(!/^01[0-9]{9}$/.test(f.phone))return this.resellAuthError='সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন!';
     if(!f.pin)return this.resellAuthError='পিন দিন!';
     this.resellBusy=true;
@@ -5995,19 +6057,48 @@ function App(){return{
         // ধাপ ১: আগে থেকেই ফায়ারবেস অথেনটিকেশনে মাইগ্রেট করা থাকলে সরাসরি লগইন
         await window.$auth.resellerSignIn(f.phone,pinHash);
       }catch(authErr){
-        // ধাপ ২: পুরনো (পিন-ভিত্তিক) অ্যাকাউন্ট — পিন যাচাই করে ফায়ারবেস অথেনটিকেশনে মাইগ্রেট করা হচ্ছে
-        const r=await this._getResellerOnce(f.phone);
-        if(!r){this.resellAuthError='এই নম্বরে কোনো রিসেলার অ্যাকাউন্ট নেই। সাইনআপ করুন।';return;}
-        if(r.pin!==pinHash){this.resellAuthError='পিন সঠিক নয়!';return;}
-        if(r.authMigrated){this.resellAuthError='সমস্যা হয়েছে, আবার চেষ্টা করুন।';return;}
-        await window.$auth.resellerCreate(f.phone,pinHash);
-        await window.$db.saveReseller({authMigrated:true,migrateProof:pinHash},f.phone);
+        const ac=authErr&&authErr.code;
+        if(ac==='auth/network-request-failed')throw authErr;
+        if(ac==='auth/too-many-requests'){this.resellAuthError='অনেকবার ভুল চেষ্টা হয়েছে, কিছুক্ষণ পরে আবার চেষ্টা করুন।';return;}
+        // ধাপ ২: পুরনো (পিন-ভিত্তিক) অ্যাকাউন্ট — pin ক্লায়েন্টে না পড়ে, সার্ভার-রুলসে প্রমাণ যাচাই করে মাইগ্রেট
+        const ok=await window.$db.checkMigrationProof(f.phone,pinHash);
+        if(!ok){this.resellAuthError='নম্বর বা পিন সঠিক নয়! (অ্যাকাউন্ট না থাকলে সাইনআপ করুন)';return;}
+        try{await window.$auth.resellerCreate(f.phone,pinHash)}
+        catch(ce){
+          if(ce&&ce.code==='auth/email-already-in-use'){this.resellAuthError='এই অ্যাকাউন্টে লগইন করা যাচ্ছে না। সাপোর্টে যোগাযোগ করুন।';return;}
+          throw ce;
+        }
       }
+      // অ্যাকাউন্ট মাইগ্রেটেড না থাকলে এখানে সম্পন্ন হবে (প্রমাণ না মিললে রুলস আটকাবে)
+      await this._finalizeMigration(f.phone,pinHash);
+      const weak=!!this._pinWeak(f.pin);
+      this.resellWeakPin=weak;try{weak?localStorage.setItem('dd_weak_pin','1'):localStorage.removeItem('dd_weak_pin')}catch(e){}
       this._resellLoginSuccess(f.phone);   // সাথে সাথে ঢুকিয়ে দেওয়া — রেকর্ড যাচাই ব্যাকগ্রাউন্ডে
       this._ensureResellerRecord({phone:f.phone},pinHash,{}).catch(e2=>console.warn('ensure',e2));
       this.resellLoginForm={phone:'',pin:''};
     }catch(e){console.warn('login',e);this.resellAuthError=(e&&/network|offline/i.test(e.message||''))?'ইন্টারনেট সংযোগ চেক করুন।':'পিন সঠিক নয় অথবা সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
     finally{this.resellBusy=false}
+  },
+  async resellChangePin(){
+    const f=this.resellPinForm;f.err='';
+    if(!this.resellSession||f.busy)return;
+    const oldP=this._bnToEn(f.old).trim(),newP=this._bnToEn(f.nw).trim(),cfP=this._bnToEn(f.cf).trim();
+    if(!oldP)return f.err='বর্তমান পিন দিন!';
+    const pb=this._pinProblem(newP);if(pb)return f.err=pb;
+    if(newP!==cfP)return f.err='নতুন পিন দুটো মিলছে না!';
+    if(newP===oldP)return f.err='নতুন পিন আগেরটির মতো হতে পারবে না!';
+    f.busy=true;
+    try{
+      const oh=await this._hash(oldP),nh=await this._hash(newP);
+      await window.$auth.resellerChangePassword(this.resellSession,oh,nh);
+      try{await window.$db.saveResellerApp(this.resellSession,{pin:nh})}catch(e){console.warn('pin sync',e)}   // লগইন derivePw(টাইপ করা পিন) থেকে হয়, তাই এটা ব্যর্থ হলেও লগইন ভাঙে না
+      this.resellWeakPin=false;try{localStorage.removeItem('dd_weak_pin')}catch(e){}
+      f.old='';f.nw='';f.cf='';
+      this.showToast('পিন পরিবর্তন হয়েছে ✅','success');
+    }catch(e){
+      const c=e&&e.code;
+      f.err=(c==='auth/wrong-password'||c==='auth/invalid-credential'||c==='auth/invalid-login-credentials')?'বর্তমান পিন সঠিক নয়!':(c==='auth/network-request-failed')?'ইন্টারনেট সংযোগ চেক করুন।':(c==='auth/no-session')?'আবার লগআউট করে লগইন করুন, তারপর চেষ্টা করুন।':(c==='auth/too-many-requests')?'অনেকবার ভুল চেষ্টা হয়েছে, কিছুক্ষণ পরে আবার চেষ্টা করুন।':'পিন বদলানো যায়নি, আবার চেষ্টা করুন।';
+    }finally{f.busy=false}
   },
   _resellLoginSuccess(phone){
     this.resellSession=phone;
@@ -6032,7 +6123,7 @@ function App(){return{
   async resellLogout(){
     if(!(await this.askConfirm({title:'লগআউট করবেন?',msg:'রিসেলার একাউন্ট থেকে বের হয়ে যাবেন।',icon:'fa-solid fa-arrow-right-from-bracket',yesText:'লগআউট',yesIcon:'fa-solid fa-arrow-right-from-bracket',noText:'থাকুন'})))return;
     this.resellSession='';this.reseller=null;
-    localStorage.removeItem('dd_reseller_session');
+    localStorage.removeItem('dd_reseller_session');this.resellWeakPin=false;try{localStorage.removeItem('dd_weak_pin')}catch(e){}
     try{await window.$auth.resellerSignOut()}catch(e){}
     this.showToast('লগআউট হয়েছে','success');
   },
@@ -6066,12 +6157,13 @@ function App(){return{
   async checkCustReport(){
     this.custChecked=true;this.custReportData=null;
     const ph=String(this.sellForm.phone||'').replace(/\D/g,'').slice(-11);if(ph.length<11)return;
-    const os=await window.$db.getOrdersByPhone(ph);
-    const d=os.filter(o=>o.status==='ডেলিভার্ড').length,bd=os.filter(o=>o.status==='বাতিল'||/রিটার্ন|ফেরত/.test(o.status||'')).length;
-    const last=os.reduce((m,o)=>Math.max(m,o.createdAt||o.timestamp||0),0),m30=os.filter(o=>Date.now()-(o.createdAt||o.timestamp||0)<2592000000).length;
+    // ব্যক্তিগত তথ্য (ঠিকানা ইত্যাদি) নয় — শুধু ফোন-হ্যাশ ভিত্তিক সংখ্যা customerStats থেকে পড়া হয়
+    const st=await window.$db.getCustomerStats(await this._phoneHash(ph));
+    if(st===undefined){this.custReportData={total:0,delivered:0,bad:0,label:'রিপোর্ট আনা যায়নি — একটু পরে আবার চেষ্টা করুন',color:'#B45309',last:''};return}
+    const n=Number(st&&st.total)||0,d=Number(st&&st.delivered)||0,bd=Number(st&&st.cancelled)||0,last=Number(st&&st.lastOrderAt)||0;
     const rate=d+bd?d/(d+bd):null;
-    const label=!os.length?'নতুন কাস্টমার — আগে কোনো অর্ডার নেই':rate===null?'অর্ডার আছে, এখনো ডেলিভারি/রিটার্ন হয়নি':rate>=.8?'ভালো কাস্টমার':rate>=.5?'মাঝারি — কল করে কনফার্ম করুন':'ঝুঁকিপূর্ণ — অগ্রিম চার্জ নিয়ে পাঠানো ভালো';
-    this.custReportData={total:os.length,delivered:d,bad:bd,label,color:!os.length?'#2563EB':rate===null?'#B45309':rate>=.8?'#16A34A':rate>=.5?'#B45309':'#DC2626',last:os.length?('শেষ অর্ডার: '+(last?new Date(last).toLocaleDateString('bn-BD'):'—')+' · গত ৩০ দিনে '+m30+'টি'):''};
+    const label=!n?'নতুন কাস্টমার — আগে কোনো অর্ডার নেই':rate===null?'অর্ডার আছে, এখনো ডেলিভারি/রিটার্ন হয়নি':rate>=.8?'ভালো কাস্টমার':rate>=.5?'মাঝারি — কল করে কনফার্ম করুন':'ঝুঁকিপূর্ণ — অগ্রিম চার্জ নিয়ে পাঠানো ভালো';
+    this.custReportData={total:n,delivered:d,bad:bd,label,color:!n?'#2563EB':rate===null?'#B45309':rate>=.8?'#16A34A':rate>=.5?'#B45309':'#DC2626',last:n?('শেষ অর্ডার: '+(last?new Date(last).toLocaleDateString('bn-BD'):'—')):''};
   },
   _ts(p){const t=Number(p.createdAt||p.timestamp);if(t>1e12)return t;const k=String(p.fbKey||''),C='-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';if(k.length<8)return 0;let n=0;for(let i=0;i<8;i++)n=n*64+C.indexOf(k[i]);return n},
   ago(p){const t=this._ts(p);if(!t)return '';const s=Math.max(0,Math.floor((this.now-t)/1000));if(s<60)return 'এইমাত্র';if(s<3600)return Math.floor(s/60)+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';return Math.floor(s/2592000)+' মাস আগে'},
