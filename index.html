@@ -193,6 +193,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   },
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
+  listenIntlConfig:(cb)=>onValue(ref(db,'intlConfig'),s=>cb(s.val()||{}),{onlyOnce:false}),
   listenIntlCats:(cb)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -2579,6 +2580,31 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     </div>
   </div>
 
+  <!-- ═══ SECTIONS EXPLORER (সেকশন → ক্যাটাগরি) ═══ -->
+  <div class="px-4 pt-4" x-show="q===''&&activeCat==='সব'&&_realSecs.length>0" x-cloak>
+    <div class="section-header mb-2"><div class="flex items-center gap-2"><i class="fa-solid fa-layer-group" style="color:var(--accent)"></i><p class="section-title">সেকশন অনুযায়ী কেনাকাটা</p></div></div>
+    <div class="flex gap-2 overflow-x-auto grp-row" style="padding-bottom:6px">
+      <template x-for="s in _realSecs" :key="s.fbKey||s.id">
+        <button type="button" class="sub-chip" :class="homeSec===(s.fbKey||s.id)?'on':''" @click="homeSec=(homeSec===(s.fbKey||s.id)?'':(s.fbKey||s.id))"><img x-show="s.img" :src="s.img" alt=""/><span x-text="(s.img?'':(s.icon&&!/^fa-/.test(s.icon)?s.icon+' ':''))+s.name"></span></button>
+      </template>
+    </div>
+    <template x-if="homeSecObj">
+      <div class="mt-3 rounded-2xl p-3" style="background:var(--card);border:1px solid var(--border)">
+        <div class="flex items-center justify-between mb-2"><p class="text-sm font-bold" x-text="homeSecObj.name"></p><button type="button" @click="activeTab='allproducts'" class="text-xs font-bold" style="color:var(--accent);background:none;border:none;cursor:pointer">সব পণ্য →</button></div>
+        <div class="sub-cat-scroll" x-show="getSectionCategories(homeSecObj).length>0">
+          <template x-for="c in getSectionCategories(homeSecObj)" :key="c.fbKey||c.name">
+            <div class="sub-cat-item" @click="activeCat=(c.parent?c.parent:c.name);activeSub=(c.parent?c.name:'');q=''">
+              <div class="sub-cat-img-wrap" style="background:var(--bg2);border:2px solid var(--border)"><img x-show="c.img" :src="c.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/><i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i></div>
+              <span class="sub-cat-name" x-text="c.name"></span>
+            </div>
+          </template>
+        </div>
+        <p x-show="getSectionCategories(homeSecObj).length===0&&getSectionProducts(homeSecObj).length===0" class="text-xs text-center py-4" style="color:var(--fg3)">এই সেকশনে শীঘ্রই পণ্য আসছে</p>
+        <p x-show="getSectionCategories(homeSecObj).length===0&&getSectionProducts(homeSecObj).length>0" class="text-xs" style="color:var(--fg3)"><span x-text="getSectionProducts(homeSecObj).length"></span>টি পণ্য আছে — <button type="button" @click="activeTab='allproducts'" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700">সব পণ্য পেজে দেখুন</button></p>
+      </div>
+    </template>
+  </div>
+
   <!-- ═══ PINNED FEATURED PRODUCTS (from admin) ═══ -->
   <template x-for="g in pinnedGroups" :key="g.key">
     <div class="px-4 pt-4">
@@ -2810,30 +2836,88 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 <!-- ─── ALL PRODUCTS PAGE (Organized by Sections) ─── -->
 <!-- ═══ INTERNATIONAL / GLOBAL STORE ═══ -->
 <section x-show="activeTab==='intl'" x-cloak class="animate-fade-in pb-24">
+  <!-- Header -->
   <div class="px-4 pt-4 pb-3 flex items-center gap-3">
-    <button @click="activeTab='home'" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--card);border:1px solid var(--border)"><i class="fa-solid fa-chevron-left text-sm"></i></button>
-    <div><p class="font-extrabold text-base"><i class="fa-solid fa-earth-asia" style="margin-right:8px"></i>Global Store</p><p class="text-xs" style="color:var(--fg3)">ইন্টারন্যাশনাল ক্যাটাগরি</p></div>
+    <button @click="intlCat!=='সব'?(intlSub?intlSub='':(intlCat='সব')):(activeTab='home')" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+    <div class="flex-1 min-w-0"><p class="font-extrabold text-base"><i class="fa-solid fa-earth-asia" style="margin-right:8px"></i>Global Store</p>
+      <p class="text-xs truncate" style="color:var(--fg3)"><span>ইন্টারন্যাশনাল</span><template x-if="intlCat!=='সব'"><span> › <b x-text="intlCat"></b></span></template><template x-if="intlSub"><span> › <b x-text="intlSub"></b></span></template></p></div>
   </div>
-  <div class="px-4 grid grid-cols-4 gap-3">
-    <template x-for="c in intlCatsActive" :key="c.fbKey">
-      <div @click="intlCat=(intlCat===c.name?'সব':c.name)" class="text-center cursor-pointer">
-        <div class="aspect-square rounded-2xl flex items-center justify-center overflow-hidden" :style="'background:linear-gradient(160deg,#E0F2FE,#EDE9FE);border:2px solid '+(intlCat===c.name?'var(--accent)':'transparent')">
-          <img x-show="c.img" :src="c.img" class="w-full h-full object-cover" onerror="this.style.display='none'"/>
-          <i x-show="!c.img" class="text-3xl" :class="emoFa(c.emoji,'fa-box-open')"></i>
+  <!-- Hero + delivery highlights -->
+  <div class="px-4" x-show="intlCat==='সব'">
+    <div class="rounded-3xl p-4 text-white" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 10px 28px rgba(30,58,138,.3)">
+      <p class="text-sm font-extrabold">বিশ্বের সেরা পণ্য, এক জায়গায়</p>
+      <p class="text-xs mt-1" style="color:rgba(255,255,255,.78)">প্রবাসে স্বজনদের কাছেও পাঠান — দুবাই, আমেরিকা, কাতারসহ ডজনখানেক দেশে ডেলিভারি।</p>
+      <div class="flex gap-2 mt-3 overflow-x-auto grp-row" style="padding-bottom:2px">
+        <template x-for="c in intlCountries" :key="c.code"><span class="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.14)" x-text="(c.flag||'')+' '+(c.en||c.name)"></span></template>
+      </div>
+    </div>
+    <div class="grid grid-cols-3 gap-2 mt-3">
+      <template x-for="f in intlFeats" :key="f.title"><div class="rounded-2xl p-2.5 text-center" style="background:var(--card);border:1px solid var(--border)"><i class="fa-solid text-lg" :class="f.icon||'fa-box'" style="color:var(--accent)"></i><p class="text-xs font-bold mt-1" x-text="f.title"></p><p class="mt-0.5" style="font-size:10px;color:var(--fg3);line-height:1.3" x-text="f.text"></p></div></template>
+    </div>
+  </div>
+  <!-- Search -->
+  <div class="px-4 mt-4"><div class="search-glass" style="background:var(--bg2)"><i class="fa-solid fa-magnifying-glass text-xs" style="color:var(--fg3)"></i><input x-model="intlQ" type="search" placeholder="ইন্টারন্যাশনাল পণ্য খুঁজুন..." style="color:var(--fg)"/></div></div>
+  <!-- Top categories -->
+  <div class="px-4 mt-4" x-show="intlTopCats.length>0&&intlQ===''">
+    <p class="section-title mb-2" x-text="intlCat==='সব'?'ক্যাটাগরি':'ক্যাটাগরি বদলান'"></p>
+    <div class="grid grid-cols-4 gap-3" x-show="intlCat==='সব'">
+      <template x-for="c in intlTopCats" :key="c.fbKey">
+        <div @click="intlPick(c)" class="text-center cursor-pointer">
+          <div class="aspect-square rounded-2xl flex items-center justify-center overflow-hidden relative" style="background:linear-gradient(160deg,#E0F2FE,#EDE9FE);border:2px solid transparent">
+            <img x-show="c.img" :src="c.img" class="w-full h-full object-cover" onerror="this.style.display='none'"/>
+            <i x-show="!c.img" class="text-3xl" :class="emoFa(c.emoji,'fa-box-open')"></i>
+            <span x-show="intlSubsOf(c).length>0" class="absolute bottom-1 right-1 text-white font-bold rounded-full px-1.5" style="background:rgba(15,23,42,.65);font-size:9px" x-text="intlSubsOf(c).length+' সাব'"></span>
+          </div>
+          <p class="text-xs font-semibold mt-1 leading-tight" x-text="c.name"></p>
         </div>
-        <p class="text-xs font-semibold mt-1 leading-tight" x-text="c.name"></p>
-      </div>
-    </template>
+      </template>
+    </div>
+    <div class="flex gap-2 overflow-x-auto grp-row" x-show="intlCat!=='সব'" style="padding-bottom:4px">
+      <button type="button" class="sub-chip" @click="intlCat='সব';intlSub=''">সব ক্যাটাগরি</button>
+      <template x-for="c in intlTopCats" :key="'t'+c.fbKey"><button type="button" class="sub-chip" :class="intlCat===c.name?'on':''" @click="intlSub='';intlCat=c.name"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
+    </div>
   </div>
-  <p x-show="!intlCatsActive.length" class="text-center text-sm py-12" style="color:var(--fg3)">শীঘ্রই আসছে...</p>
-  <div class="px-4 mt-5 grid grid-cols-2 gap-3">
-    <template x-for="p in intlFiltered" :key="p.fbKey">
-      <div class="rounded-2xl overflow-hidden" style="background:var(--card);border:1px solid var(--border)" @click="openDetailSheet(p)">
-        <img :src="optImg(p.images?.[0]||p.img||'',380)" class="w-full aspect-square object-cover" loading="lazy" onerror="this.onerror=null;this.src=DD_PH"/>
-        <div class="p-2.5"><p class="text-xs font-semibold" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name"></p>
-          <div class="flex items-center gap-1.5 mt-1"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice>p.price" class="price-old" x-text="'৳'+p.oldPrice.toLocaleString()"></span></div></div>
-      </div>
-    </template>
+  <!-- Sub categories of the selected category -->
+  <div class="px-4 mt-4" x-show="intlCat!=='সব'&&intlCurSubs.length>0&&intlQ===''" x-cloak>
+    <p class="section-title mb-2">সাব-ক্যাটাগরি</p>
+    <div class="sub-cat-scroll">
+      <div class="sub-cat-item" :class="!intlSub?'active':''" @click="intlSub=''"><div class="sub-cat-img-wrap" :style="!intlSub?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><i class="fa-solid fa-border-all"></i></div><span class="sub-cat-name">সব</span></div>
+      <template x-for="s in intlCurSubs" :key="s.fbKey"><div class="sub-cat-item" :class="intlSub===s.name?'active':''" @click="intlSub=(intlSub===s.name?'':s.name)"><div class="sub-cat-img-wrap" :style="intlSub===s.name?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><img x-show="s.img" :src="s.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/><i x-show="!s.img" :class="emoFa(s.emoji,'fa-box-open')"></i></div><span class="sub-cat-name" x-text="s.name"></span></div></template>
+    </div>
+  </div>
+  <p x-show="!intlTopCats.length" class="text-center text-sm py-12" style="color:var(--fg3)">শীঘ্রই আসছে...</p>
+  <!-- Products -->
+  <div class="px-4 mt-5" x-show="intlTopCats.length>0||intlProducts.length>0">
+    <div class="flex items-center justify-between mb-2"><p class="section-title" x-text="intlSub||(intlCat!=='সব'?intlCat:'সব পণ্য')"></p><span class="text-xs" style="color:var(--fg3)" x-text="intlFiltered.length+'টি পণ্য'"></span></div>
+    <div class="grid grid-cols-2 gap-3">
+      <template x-for="p in intlFiltered" :key="p.fbKey">
+        <div class="rounded-2xl overflow-hidden" style="background:var(--card);border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.04)">
+          <div style="position:relative;cursor:pointer" @click="openDetailSheet(p)">
+            <img :src="optImg(p.images?.[0]||p.img||'',380)" class="w-full aspect-square object-cover" loading="lazy" onerror="this.onerror=null;this.src=DD_PH"/>
+            <span x-show="p.badge" class="prod-badge" x-text="p.badge"></span>
+            <span class="absolute left-2 bottom-2 text-white font-bold rounded-full px-2 py-0.5" style="background:rgba(15,23,42,.7);font-size:10px"><i class="fa-solid fa-earth-asia"></i> Global</span>
+          </div>
+          <div class="p-2.5"><p class="text-xs font-semibold" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem;cursor:pointer" x-text="p.name" @click="openDetailSheet(p)"></p>
+            <div class="flex items-center gap-1.5 mt-1"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice>p.price" class="price-old" x-text="'৳'+p.oldPrice.toLocaleString()"></span></div>
+            <div class="grid grid-cols-2 gap-1 mt-2"><button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-eye" style="font-size:9px"></i></button><button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button></div></div>
+        </div>
+      </template>
+    </div>
+    <p x-show="intlFiltered.length===0&&intlTopCats.length>0" class="text-center text-sm py-10" style="color:var(--fg3)">এই ক্যাটাগরিতে এখনো কোনো পণ্য নেই — শীঘ্রই আসছে</p>
+  </div>
+  <!-- Countries & delivery -->
+  <div class="px-4 mt-6" x-show="intlCat==='সব'&&intlQ===''" x-cloak>
+    <p class="section-title mb-2"><i class="fa-solid fa-plane-departure" style="color:var(--accent);margin-right:6px"></i>কোন কোন দেশে ডেলিভারি</p>
+    <div class="space-y-2">
+      <template x-for="c in intlCountries" :key="c.code">
+        <details class="rounded-2xl p-3" style="background:var(--card);border:1px solid var(--border)">
+          <summary class="flex items-center gap-2 cursor-pointer" style="list-style:none"><span class="text-xl" x-text="c.flag||'🌍'"></span><span class="text-sm font-bold flex-1" x-text="c.name"></span><span class="text-xs font-bold" style="color:var(--accent)" x-show="intlFeeOf(c.code)!=null" x-text="'৳'+Number(intlFeeOf(c.code)).toLocaleString('bn-BD')"></span><i class="fa-solid fa-chevron-down text-xs" style="color:var(--fg3)"></i></summary>
+          <div class="mt-2 text-xs" style="color:var(--fg2)"><p x-show="c.days"><i class="fa-regular fa-clock"></i> সময়: <b x-text="c.days"></b></p><div class="flex flex-wrap gap-1.5 mt-2"><template x-for="r in c.regions" :key="r"><span class="px-2 py-0.5 rounded-full" style="background:var(--bg2);border:1px solid var(--border)" x-text="r"></span></template></div></div>
+        </details>
+      </template>
+    </div>
+    <p class="text-xs mt-3" style="color:var(--fg3)" x-show="intlCfg&&intlCfg.notice" x-text="intlCfg&&intlCfg.notice"></p>
+    <p class="text-xs mt-3" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> কার্টে গিয়ে ডেলিভারি জায়গায় "🌍 বিদেশে পাঠান" বেছে নিলে দেশ ও ঠিকানা দিতে পারবেন।</p>
   </div>
 </section>
 
@@ -2893,8 +2977,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div class="mb-8" x-show="getSectionProducts(section).length>0||getSectionCategories(section).length>0">
           <!-- Section Header -->
           <div class="gender-divider">
-            <div class="gender-section-icon" :style="'background:linear-gradient(135deg,'+(section.color||'#6B7280')+','+(section.color2||section.color||'#9CA3AF')+')'">
-              <i :class="emoFa(section.icon,'fa-bag-shopping')"></i>
+            <div class="gender-section-icon" :style="'background:linear-gradient(135deg,'+(section.color||'#6B7280')+','+(section.color2||section.color||'#9CA3AF')+')'" style="overflow:hidden">
+              <img x-show="section.img" :src="section.img" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
+              <i x-show="!section.img" :class="emoFa(section.icon,'fa-bag-shopping')"></i>
             </div>
             <div>
               <p class="gender-section-title" x-text="section.name"></p>
@@ -3104,12 +3189,33 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div class="p-4 space-y-3">
           <div><label class="dd-label">পূর্ণ নাম *</label><input class="dd-input" x-model="form.name" placeholder="আপনার সম্পূর্ণ নাম"/></div>
           <div x-show="(form.name||'').trim().length>1" x-transition.opacity.duration.250ms><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
-          <div>
+          <div x-show="canAbroad" x-cloak>
+            <label class="dd-label">কোথায় ডেলিভারি নেবেন?</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" @click="setDest('')" class="py-2.5 rounded-xl text-xs font-bold" :style="!destAbroad?'background:var(--accent);color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:1px solid var(--border)'" style="cursor:pointer">🇧🇩 বাংলাদেশে</button>
+              <button type="button" @click="setDest(form.country||(localStorage.getItem('dd_intl_dest')||intlCountries[0].code))" class="py-2.5 rounded-xl text-xs font-bold" :style="destAbroad?'background:var(--accent);color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:1px solid var(--border)'" style="cursor:pointer">🌍 বিদেশে পাঠান</button>
+            </div>
+          </div>
+          <div x-show="destAbroad" x-cloak class="space-y-3 p-3 rounded-2xl" style="background:var(--bg2);border:1.5px dashed var(--accent)">
+            <div><label class="dd-label">দেশ *</label>
+              <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.country" @change="setDest(form.country)"><template x-for="c in intlCountries.filter(x=>intlFeeOf(x.code)!=null)" :key="c.code"><option :value="c.code" x-text="(c.flag||'')+' '+c.name"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
+            </div>
+            <div><label class="dd-label">শহর / এলাকা *</label>
+              <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.city"><option value="">— বেছে নিন —</option><template x-for="r in (destCountry?destCountry.regions:[])" :key="r"><option :value="r" x-text="r"></option></template><option value="__other">অন্য শহর/এলাকা (লিখুন)</option></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+              <input x-show="form.city==='__other'" x-cloak class="dd-input mt-2" x-model="form.cityOther" placeholder="শহর/এলাকার নাম"/>
+            </div>
+            <div><label class="dd-label">প্রাপকের নাম (ঐচ্ছিক)</label><input class="dd-input" x-model="form.recvName" placeholder="খালি রাখলে আপনার নামই যাবে"/></div>
+            <div><label class="dd-label">প্রাপকের ফোন (দেশের কোডসহ) *</label><input class="dd-input" type="tel" x-model="form.recvPhone" :placeholder="'+'+(destCountry?destCountry.phone:'')+' XXXXXXXX'"/></div>
+            <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
+            <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
+          </div>
+          <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
             <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
           </div>
-          <div x-show="form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
-          <div x-show="form.district" x-transition.opacity.duration.250ms><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
+          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad&&form.district" x-transition.opacity.duration.250ms><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
       </div>
       <!-- INSTALLMENT BREAKDOWN -->
@@ -3196,13 +3302,34 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div class="p-4 space-y-3">
           <div><label class="dd-label">পূর্ণ নাম *</label><input class="dd-input" x-model="form.name" placeholder="আপনার সম্পূর্ণ নাম"/></div>
           <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
-          <div>
+          <div x-show="canAbroad" x-cloak>
+            <label class="dd-label">কোথায় ডেলিভারি নেবেন?</label>
+            <div class="grid grid-cols-2 gap-2">
+              <button type="button" @click="setDest('')" class="py-2.5 rounded-xl text-xs font-bold" :style="!destAbroad?'background:var(--accent);color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:1px solid var(--border)'" style="cursor:pointer">🇧🇩 বাংলাদেশে</button>
+              <button type="button" @click="setDest(form.country||(localStorage.getItem('dd_intl_dest')||intlCountries[0].code))" class="py-2.5 rounded-xl text-xs font-bold" :style="destAbroad?'background:var(--accent);color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:1px solid var(--border)'" style="cursor:pointer">🌍 বিদেশে পাঠান</button>
+            </div>
+          </div>
+          <div x-show="destAbroad" x-cloak class="space-y-3 p-3 rounded-2xl" style="background:var(--bg2);border:1.5px dashed var(--accent)">
+            <div><label class="dd-label">দেশ *</label>
+              <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.country" @change="setDest(form.country)"><template x-for="c in intlCountries.filter(x=>intlFeeOf(x.code)!=null)" :key="c.code"><option :value="c.code" x-text="(c.flag||'')+' '+c.name"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
+            </div>
+            <div><label class="dd-label">শহর / এলাকা *</label>
+              <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.city"><option value="">— বেছে নিন —</option><template x-for="r in (destCountry?destCountry.regions:[])" :key="r"><option :value="r" x-text="r"></option></template><option value="__other">অন্য শহর/এলাকা (লিখুন)</option></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+              <input x-show="form.city==='__other'" x-cloak class="dd-input mt-2" x-model="form.cityOther" placeholder="শহর/এলাকার নাম"/>
+            </div>
+            <div><label class="dd-label">প্রাপকের নাম (ঐচ্ছিক)</label><input class="dd-input" x-model="form.recvName" placeholder="খালি রাখলে আপনার নামই যাবে"/></div>
+            <div><label class="dd-label">প্রাপকের ফোন (দেশের কোডসহ) *</label><input class="dd-input" type="tel" x-model="form.recvPhone" :placeholder="'+'+(destCountry?destCountry.phone:'')+' XXXXXXXX'"/></div>
+            <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
+            <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
+          </div>
+          <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
             <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
             <div x-show="form.division" class="mt-1.5 flex items-center gap-1.5 text-xs font-bold" :style="form.division==='ঢাকা'?'color:#16A34A':'color:#D97706'"><i class="fa-solid fa-truck text-xs"></i><span x-text="form.division==='ঢাকা'?'ঢাকা — ডেলিভারি: ৳৮০':'অন্য বিভাগ — ডেলিভারি: ৳১৫০'"></span></div>
           </div>
-          <div x-show="form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
-          <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
+          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad"><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
       </div>
       <!-- CHECKOUT PROMO BANNERS -->
@@ -3218,7 +3345,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div class="px-4 py-3.5" style="background:var(--header)"><p class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-credit-card" style="color:var(--accent)"></i>পেমেন্ট পদ্ধতি</p></div>
         <div class="p-4 space-y-2">
           <!-- COD option -->
-          <label x-show="codOn" x-cloak for="pm-cod" class="pm-card" :class="form.pay==='cod'?'on':''" style="--pmc:#334155">
+          <label x-show="codOn&&!destAbroad" x-cloak for="pm-cod" class="pm-card" :class="form.pay==='cod'?'on':''" style="--pmc:#334155">
             <input type="radio" id="pm-cod" value="cod" x-model="form.pay" class="sr-only"/>
             <span class="pm-logo"><b style="background:linear-gradient(135deg,#334155,#1E293B)"><i class="fa-solid fa-money-bill-wave" style="font-size:16px"></i></b></span>
             <div class="flex-1 min-w-0"><p class="pm-name">ক্যাশ অন ডেলিভারি</p><p class="pm-sub">পণ্য হাতে পেয়ে টাকা দিন</p></div>
@@ -4062,12 +4189,12 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <!-- CATEGORY BUTTONS -->
             <div x-show="resellCategories.length>0" x-cloak>
               <div class="cat-scroll-wrap">
-                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellActiveCat='সব'">
+                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellActiveCat='সব';resellActiveSec=''">
                   <div class="cat-all-circle"><i class="fa-solid fa-bag-shopping"></i></div>
                   <span class="cat-label">সব পণ্য</span>
                 </div>
                 <template x-for="c in resellCategories" :key="c.fbKey||c.name">
-                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellActiveCat=c.name">
+                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellActiveCat=c.name;resellActiveSec=''">
                     <div class="cat-circle">
                       <img x-show="c.img" :src="c.img" :alt="c.name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
                       <div class="cat-circle-emoji" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div>
@@ -4079,7 +4206,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </div>
 
 <div>
-              <p class="section-title mb-2" x-text="resellSearchQuery?'সার্চ ফলাফল':(resellActiveCat==='সব'?'সকল রিসেলিং পোস্ট':resellActiveCat)"></p>
+              <p class="section-title mb-2" x-text="resellSearchQuery?'সার্চ ফলাফল':(resellActiveCat==='সব'?(resellActiveSec?((allSections.find(s=>(s.fbKey||s.id)===resellActiveSec)||{}).name||'সেকশন'):'সকল রিসেলিং পোস্ট'):resellActiveCat)"></p>
               <div x-show="feedList.length===0" class="text-center py-10" style="color:var(--fg3)"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-30"></i><p class="text-sm">এখানে কোনো পোস্ট নেই</p></div>
               <div class="space-y-3.5">
                 <template x-for="p in feedList" :key="p.fbKey||p.id">
@@ -4482,11 +4609,16 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div>
 <div x-show="resellCategoryCounts.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">এখনো কোনো ক্যাটাগরি নেই</p></div>
             <template x-for="section in allSections" :key="section.fbKey||section.id">
-              <div class="rs-sec" x-show="resellSecCats(section).length>0">
+              <div class="rs-sec" x-show="resellSecCats(section).length>0||resellSecProds(section).length>0">
                 <div class="rs-head" :style="'--c1:'+(section.color||'#ec4899')"><span x-text="section.name+' ('+resellSecCats(section).reduce((a,c)=>a+(c.count||0),0).toLocaleString('bn-BD')+')'"></span></div>
                 <div class="rs-grid">
+                <div class="rs-card" x-show="resellSecProds(section).length>0" @click="resellActiveCat='সব';resellActiveSec=(section.fbKey||section.id);resellSubTab='post'">
+                  <span class="rs-cnt" x-text="Number(resellSecProds(section).length).toLocaleString('bn-BD')"></span>
+                  <div class="rs-img"><div class="rs-ic"><i class="fa-solid fa-border-all"></i></div></div>
+                  <span class="rs-name">সব পণ্য</span>
+                </div>
                 <template x-for="c in resellSecCats(section)" :key="c.fbKey||c.name">
-                  <div class="rs-card" @click="resellActiveCat=c.name;resellSubTab='post'">
+                  <div class="rs-card" @click="resellActiveCat=c.name;resellActiveSec='';resellSubTab='post'">
                     <span class="rs-cnt" x-text="Number(c.count||0).toLocaleString('bn-BD')"></span>
                     <div class="rs-img"><img x-show="c.img" :src="c.img" :alt="c.name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="rs-ic" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div></div>
                     <span class="rs-name" x-text="c.name"></span>
@@ -4499,7 +4631,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <div class="rs-head"><span>অন্যান্য ক্যাটাগরি</span></div>
               <div class="rs-grid">
                 <template x-for="c in resellOtherCats()" :key="c.fbKey||c.name">
-                  <div class="rs-card" @click="resellActiveCat=c.name;resellSubTab='post'">
+                  <div class="rs-card" @click="resellActiveCat=c.name;resellActiveSec='';resellSubTab='post'">
                     <span class="rs-cnt" x-text="Number(c.count||0).toLocaleString('bn-BD')"></span>
                     <div class="rs-img"><img x-show="c.img" :src="c.img" :alt="c.name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="rs-ic" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div></div>
                     <span class="rs-name" x-text="c.name"></span>
@@ -4938,6 +5070,8 @@ Object.assign(DD_PM_LOGO,{ibbl:DD_BK('#00753A','IBBL'),dbbl:DD_BK('#00A651','DBB
 const DD_BOX_SVG='<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="ddbT" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE2B0"/><stop offset="1" stop-color="#F2B662"/></linearGradient><linearGradient id="ddbL" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E5A04A"/><stop offset="1" stop-color="#C27B2A"/></linearGradient><linearGradient id="ddbR" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C47F2E"/><stop offset="1" stop-color="#8E5314"/></linearGradient></defs><polygon points="6,19 32,32 32,60 6,46" fill="url(#ddbL)"/><polygon points="58,19 32,32 32,60 58,46" fill="url(#ddbR)"/><polygon points="32,6 58,19 32,32 6,19" fill="url(#ddbT)"/><polygon points="26,9 32,6 38,9 38,29 32,32 26,29" fill="#FFF3D6" opacity=".78"/><polygon points="32,32 38,29 38,57 32,60" fill="#FFF3D6" opacity=".38"/><polygon points="32,6 58,19 32,32 6,19" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1"/></svg>';
 </script>
 <script>
+const DD_INTL_COUNTRIES=[{"code":"AE","name":"সংযুক্ত আরব আমিরাত (দুবাই)","en":"UAE","flag":"🇦🇪","fee":1800,"days":"৭–১২ দিন","phone":"971","regions":["দুবাই","আবুধাবি","শারজাহ","আজমান","রাস আল খাইমাহ","ফুজাইরাহ","উম্মুল কুওয়াইন","আল আইন"],"active":true,"order":10},{"code":"SA","name":"সৌদি আরব","en":"Saudi Arabia","flag":"🇸🇦","fee":1800,"days":"৭–১৪ দিন","phone":"966","regions":["রিয়াদ","জেদ্দা","মক্কা","মদিনা","দাম্মাম","আল খোবার","জুবাইল","তাবুক","আবহা","হাইল"],"active":true,"order":20},{"code":"QA","name":"কাতার","en":"Qatar","flag":"🇶🇦","fee":1900,"days":"৭–১২ দিন","phone":"974","regions":["দোহা","আল ওয়াকরাহ","আল খোর","আল রাইয়ান","উম্ম সালাল","মেসাইদ"],"active":true,"order":30},{"code":"KW","name":"কুয়েত","en":"Kuwait","flag":"🇰🇼","fee":1900,"days":"৭–১২ দিন","phone":"965","regions":["কুয়েত সিটি","হাওয়ালি","ফারওয়ানিয়া","আহমাদি","জাহরা","সালমিয়া"],"active":true,"order":40},{"code":"OM","name":"ওমান","en":"Oman","flag":"🇴🇲","fee":1900,"days":"৭–১৪ দিন","phone":"968","regions":["মাস্কাট","সালালাহ","সোহার","নিজওয়া","সুর"],"active":true,"order":50},{"code":"BH","name":"বাহরাইন","en":"Bahrain","flag":"🇧🇭","fee":1900,"days":"৭–১২ দিন","phone":"973","regions":["মানামা","মুহাররাক","রিফা","ইসা টাউন"],"active":true,"order":60},{"code":"MY","name":"মালয়েশিয়া","en":"Malaysia","flag":"🇲🇾","fee":2200,"days":"৭–১২ দিন","phone":"60","regions":["কুয়ালালামপুর","সেলাঙ্গর","পেনাং","জোহর বাহরু","মালাক্কা","ইপো"],"active":true,"order":70},{"code":"SG","name":"সিঙ্গাপুর","en":"Singapore","flag":"🇸🇬","fee":2400,"days":"৬–১০ দিন","phone":"65","regions":["সেন্ট্রাল","জুরং","টাম্পাইনস","উডল্যান্ডস","গেইলাং"],"active":true,"order":80},{"code":"US","name":"যুক্তরাষ্ট্র (আমেরিকা)","en":"USA","flag":"🇺🇸","fee":3800,"days":"১০–২০ দিন","phone":"1","regions":["নিউ ইয়র্ক","নিউ জার্সি","ক্যালিফোর্নিয়া","টেক্সাস","ফ্লোরিডা","মিশিগান","ইলিনয়","জর্জিয়া","ভার্জিনিয়া"],"active":true,"order":90},{"code":"GB","name":"যুক্তরাজ্য (ইউকে)","en":"United Kingdom","flag":"🇬🇧","fee":3500,"days":"১০–১৮ দিন","phone":"44","regions":["লন্ডন","বার্মিংহাম","ম্যানচেস্টার","ওল্ডহ্যাম","ব্র্যাডফোর্ড","লিডস","লুটন","কার্ডিফ"],"active":true,"order":100},{"code":"IT","name":"ইতালি","en":"Italy","flag":"🇮🇹","fee":3500,"days":"১০–১৮ দিন","phone":"39","regions":["রোম","মিলান","নেপলস","ফ্লোরেন্স","ভেনিস","তুরিন","ব্রেশিয়া"],"active":true,"order":110},{"code":"CA","name":"কানাডা","en":"Canada","flag":"🇨🇦","fee":3800,"days":"১০–২০ দিন","phone":"1","regions":["টরন্টো","মন্ট্রিয়ল","ভ্যাঙ্কুভার","ক্যালগারি","অটোয়া","উইনিপেগ"],"active":true,"order":120},{"code":"AU","name":"অস্ট্রেলিয়া","en":"Australia","flag":"🇦🇺","fee":3800,"days":"১০–২০ দিন","phone":"61","regions":["সিডনি","মেলবোর্ন","ব্রিসবেন","পার্থ","অ্যাডিলেড","ক্যানবেরা"],"active":true,"order":130},{"code":"JP","name":"জাপান","en":"Japan","flag":"🇯🇵","fee":2800,"days":"৭–১২ দিন","phone":"81","regions":["টোকিও","ওসাকা","ইয়োকোহামা","নাগোয়া","ফুকুওকা"],"active":true,"order":140},{"code":"KR","name":"দক্ষিণ কোরিয়া","en":"South Korea","flag":"🇰🇷","fee":2800,"days":"৭–১২ দিন","phone":"82","regions":["সিউল","বুসান","ইনচন","দাইগু"],"active":true,"order":150},{"code":"MV","name":"মালদ্বীপ","en":"Maldives","flag":"🇲🇻","fee":1800,"days":"৭–১২ দিন","phone":"960","regions":["মালে","হুলহুমালে","আড্ডু"],"active":true,"order":160},{"code":"DE","name":"জার্মানি","en":"Germany","flag":"🇩🇪","fee":3500,"days":"১০–১৮ দিন","phone":"49","regions":["বার্লিন","মিউনিখ","ফ্রাঙ্কফুর্ট","হামবুর্গ"],"active":true,"order":170},{"code":"FR","name":"ফ্রান্স","en":"France","flag":"🇫🇷","fee":3500,"days":"১০–১৮ দিন","phone":"33","regions":["প্যারিস","লিয়ঁ","মার্সেই"],"active":true,"order":180},{"code":"BN","name":"ব্রুনেই","en":"Brunei","flag":"🇧🇳","fee":2400,"days":"৮–১৪ দিন","phone":"673","regions":["বন্দর শ্রী বেগাওয়ান","কুয়ালা বেলাইত"],"active":true,"order":190}];
+const DD_INTL_FEATS=[{"icon":"fa-plane-departure","title":"এয়ার এক্সপ্রেস","text":"দ্রুত আন্তর্জাতিক ডেলিভারি"},{"icon":"fa-ship","title":"সি-কার্গো","text":"বড়/ভারী পণ্যে সাশ্রয়ী"},{"icon":"fa-door-open","title":"ডোর ডেলিভারি","text":"প্রাপকের ঠিকানায় পৌঁছে দেওয়া"},{"icon":"fa-location-crosshairs","title":"ট্র্যাকিং","text":"অর্ডার আইডি দিয়ে ট্র্যাক করুন"},{"icon":"fa-shield-halved","title":"নিরাপদ পেমেন্ট","text":"bKash/Nagad প্রি-পেমেন্ট"},{"icon":"fa-headset","title":"সাপোর্ট","text":"সমস্যায় সাপোর্ট পাবেন"}];
 function App(){return{
   activeTab:'home',intlCats:[],intlCat:'সব',q:'',allProdsQ:'',allProdsSort:'newest',activeCat:'সব',oFilt:'সব',
   menCatFilter:'',womenCatFilter:'',
@@ -5080,7 +5214,7 @@ function App(){return{
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:''},
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:''},intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -5267,9 +5401,50 @@ function App(){return{
   get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl)},
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
   get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
-  get intlFiltered(){return this.intlCat==='সব'?this.intlProducts:this.intlProducts.filter(p=>p.intlCat===this.intlCat)},
+  // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
+  get intlTopCats(){const ids=new Set(this.intlCatsActive.map(c=>c.fbKey));return this.intlCatsActive.filter(c=>!c.parent||!ids.has(c.parent))},
+  intlSubsOf(c){return c?this.intlCatsActive.filter(x=>x.parent===c.fbKey):[]},
+  get intlCurCat(){return this.intlTopCats.find(c=>c.name===this.intlCat)||null},
+  get intlCurSubs(){return this.intlSubsOf(this.intlCurCat)},
+  intlCatCount(c){const names=new Set([c.name,...this.intlSubsOf(c).map(s=>s.name)]);return this.intlProducts.filter(p=>names.has(p.intlCat)||names.has(p.intlSub)).length},
+  get intlFiltered(){
+    let L=this.intlProducts;const cc=this.intlCurCat;
+    if(cc){
+      if(this.intlSub){const sub=this.intlCurSubs.find(s=>s.name===this.intlSub);L=L.filter(p=>p.intlSub===this.intlSub||(p.intlCat===this.intlSub)||(sub&&p.intlSub===sub.name))}
+      else{const names=new Set([cc.name,...this.intlCurSubs.map(s=>s.name)]);L=L.filter(p=>names.has(p.intlCat)||names.has(p.intlSub))}
+    }else if(this.intlCat!=='সব'){L=L.filter(p=>p.intlCat===this.intlCat)}
+    const q=String(this.intlQ||'').trim().toLowerCase();if(q)L=L.filter(p=>String(p.name||'').toLowerCase().includes(q));
+    return L},
+  intlPick(c){this.intlSub='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
+  // ইন্টারন্যাশনাল ডেলিভারি কনফিগ (অ্যাডমিন সেভ করলে আসে; না থাকলে ডিফল্ট শুধু তথ্য হিসেবে দেখায়)
+  get intlCfgSaved(){const f=this.intlCfg&&this.intlCfg.fees;return !!(f&&typeof f==='object'&&Object.keys(f).length)},
+  get intlCountries(){
+    const c=this.intlCfg&&this.intlCfg.countries;let L=[];
+    if(c&&typeof c==='object')L=Object.entries(c).map(([k,v])=>({...v,code:k}));
+    if(!L.length)L=DD_INTL_COUNTRIES.map(x=>({...x}));
+    return L.filter(x=>x&&x.name&&x.active!==false).map(x=>({...x,regions:this._arr(x.regions).map(String).filter(Boolean)})).sort((a,b)=>(Number(a.order)||99)-(Number(b.order)||99))},
+  get intlFeats(){const f=this._arr(this.intlCfg&&this.intlCfg.features).filter(x=>x&&x.title);return f.length?f:DD_INTL_FEATS},
+  get canAbroad(){return this.intlCfgSaved&&this.intlCountries.some(c=>this.intlFeeOf(c.code)!=null)},
+  intlFeeOf(code){const f=this.intlCfg&&this.intlCfg.fees,v=f&&f[code];return(v!==undefined&&v!==null&&v!==''&&!isNaN(Number(v)))?Number(v):null},
+  get destCountry(){return this.form.country?(this.intlCountries.find(c=>c.code===this.form.country)||null):null},
+  get destAbroad(){return !!this.destCountry&&this.intlFeeOf(this.form.country)!=null},
+  setDest(code){
+    this.form.country=code||'';this.form.city='';this.form.cityOther='';
+    if(code){try{localStorage.setItem('dd_intl_dest',code)}catch(e){}if(this.form.pay==='cod'){const m=this.payMethods[0];if(m)this.form.pay=m.id}}
+  },
+  _intlCheck(){
+    const f=this.form,c=this.destCountry;
+    if(!c)return'দেশ বেছে নিন!';
+    const city=f.city==='__other'?String(f.cityOther||'').trim():String(f.city||'').trim();
+    if(!city)return'শহর/এলাকা দিন!';
+    const ph=String(f.recvPhone||'').replace(/[^\d]/g,'');
+    if(ph.length<7||ph.length>15)return'প্রাপকের সঠিক ফোন নম্বর দিন (দেশের কোডসহ)!';
+    if(String(f.address||'').trim().length<6)return'বিস্তারিত ঠিকানা দিন!';
+    return'';
+  },
   _secGender(s){const n=String(s.name||'');if(s.gender==='men'||s.gender==='women')return s.gender;if(/ছেলে|পুরুষ|জেন্টস|men|boy|male/i.test(n)&&!/মেয়ে|women/i.test(n))return'men';if(/মেয়ে|মহিলা|লেডিস|women|girl|female|ladies/i.test(n))return'women';return''},
   _catSec(c,d=0){const ids=this._realSecs.map(s=>s.fbKey||s.id),own=c.section||c.sectionId;if(own&&ids.includes(own))return own;if(c.parent&&d<3){const pr=this.allCategories.find(x=>x.name===c.parent);if(pr){const r=this._catSec(pr,d+1);if(r)return r}}if(c.gender==='men'||c.gender==='women'){const s=this._realSecs.find(s=>this._secGender(s)===c.gender);if(s)return s.fbKey||s.id}return''},
+  get homeSecObj(){return this.homeSec?(this._realSecs.find(s=>(s.fbKey||s.id)===this.homeSec)||null):null},
   get _realSecs(){return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>(a.order||99)-(b.order||99))},
   get allSections(){
     const r=this._realSecs,ids=new Set(r.map(s=>s.fbKey||s.id));
@@ -5317,7 +5492,7 @@ function App(){return{
   get sellShipping(){if(!this.sellForm.division)return 0;return this.shipRate(this.sellForm.division)},
   get cartCount(){return this.cart.reduce((s,i)=>s+i.qty,0)},
   get cartSubtotal(){return this.cart.reduce((s,i)=>s+i.price*i.qty,0)},
-  get shipping(){if(!this.form.division)return 0;return this.shipRate(this.form.division)},
+  get shipping(){if(this.destAbroad)return this.intlFeeOf(this.form.country);if(!this.form.division)return 0;return this.shipRate(this.form.division)},
   get grandTotal(){return Math.max(0,this.cartSubtotal+this.shipping+this.codExtraCharge-this.prepaidDiscountAmount-this.advanceShipDiscount-this.promoDiscountAmount)},
   get promoDiscountAmount(){
     if(!this.appliedPromo)return 0;
@@ -5345,7 +5520,7 @@ function App(){return{
   get resellCategories(){return this.allCategories},
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
-  get resellFilteredProducts(){if(this.resellActiveCat==='সব')return this.resellableProducts;const t=this._catTree(this._cn(this.resellActiveCat));return this.resellableProducts.filter(p=>t.has(p.cat))},
+  get resellFilteredProducts(){if(this.resellActiveCat==='সব'){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecProds(sec)}return this.resellableProducts}const t=this._catTree(this._cn(this.resellActiveCat));return this.resellableProducts.filter(p=>t.has(p.cat))},
   get resellSearchResults(){
     const q=(this.resellSearchQuery||'').trim().toLowerCase(),m=this.resellSearchMode;
     if(m==='image')return this.imgSearch.done?this.imgSearch.ids.map(k=>this.resellableProducts.find(p=>(p.fbKey||p.id)===k)).filter(Boolean):[];
@@ -5399,9 +5574,10 @@ function App(){return{
   getSectionProducts(section){
     const sid=section.fbKey||section.id,ids=new Set(this._realSecs.map(s=>s.fbKey||s.id));
     if(sid==='__other'){const rc=new Set(this.allCategories.filter(c=>this._catSec(c)).map(c=>c.name));return this.allProducts.filter(p=>!ids.has(p.section||p.sectionId)&&!rc.has(p.cat))}
-    const cats=new Set(this.getSectionCategories(section).map(c=>c.name));
-    return this.allProducts.filter(p=>p.section===sid||p.sectionId===sid||(!ids.has(p.section||p.sectionId)&&cats.has(p.cat)));
+    const cats=new Set(this.getSectionCategories(section).map(c=>this._cn(c.name)));
+    return this.allProducts.filter(p=>p.section===sid||p.sectionId===sid||(!ids.has(p.section||p.sectionId)&&cats.has(this._cn(p.cat))));
   },
+  resellSecProds(section){const ids=new Set(this.getSectionProducts(section).map(p=>p.fbKey||p.id));return this.resellableProducts.filter(p=>ids.has(p.fbKey||p.id))},
   resellSecCats(section){const n=new Set(this.getSectionCategories(section).map(c=>c.name));return this.resellCategoryCounts.filter(c=>n.has(c.name))},
   resellOtherCats(){const u=new Set();this.allSections.forEach(s=>this.getSectionCategories(s).forEach(c=>u.add(c.name)));return this.resellCategoryCounts.filter(c=>!u.has(c.name))},
   getSectionCategories(section){
@@ -5539,7 +5715,7 @@ function App(){return{
         try{this._openDeepLink()}catch(e){}
         if(full){try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}}
       });
-      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenReviews(r=>{this.fbReviews=r});
+      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true});
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false)});
@@ -5857,12 +6033,16 @@ function App(){return{
   _thrReset(key){try{localStorage.removeItem('dd_thr_'+key)}catch(e){}},
 
   async placeOrder(){
+    if(this.installmentActive&&this.destAbroad)return this.showToast('বিদেশে ডেলিভারিতে কিস্তি প্রযোজ্য নয়','error');
     if(this.installmentActive)return this.placeInstallmentOrder();
     if(!this.form.name.trim())return this.showToast('নাম লিখুন!','error');
     if(!this.form.phone.trim())return this.showToast('মোবাইল নম্বর দিন!','error');
+    if(this.destAbroad){const _ie=this._intlCheck();if(_ie)return this.showToast(_ie,'error');if(this.form.pay==='cod')return this.showToast('বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে','error')}
+    else{
     if(!this.form.division)return this.showToast('বিভাগ সিলেক্ট করুন!','error');
     if(!this.form.district)return this.showToast('জেলা সিলেক্ট করুন!','error');
     if(!this.form.address.trim())return this.showToast('ঠিকানা দিন!','error');
+    }
     if(this.form.pay==='cod'&&!this.codOn)return this.showToast('ক্যাশ অন ডেলিভারি এখন চালু নেই, প্রি-পেমেন্ট মেথড বেছে নিন।','error');
     if(this.form.pay!=='cod'&&!this.form.trxId.trim())return this.showToast('পেমেন্ট করে ট্রানজেকশন ID দিন!','error');
     if(!this.cart.length)return this.showToast('কার্ট খালি!','error');
@@ -5882,6 +6062,13 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
+    if(this.destAbroad){
+      const cc=this.destCountry,city=this.form.city==='__other'?String(this.form.cityOther||'').trim():String(this.form.city||'').trim();
+      const rp=String(this.form.recvPhone||'').trim(),rn=String(this.form.recvName||'').trim()||this.form.name.trim();
+      order.division=cc.name.slice(0,90);order.district=city.slice(0,90);
+      order.address=(this.form.address.trim().slice(0,330)+' | প্রাপক: '+rn.slice(0,60)+' | ফোন: '+rp.slice(0,30)).slice(0,490);
+      order.intlDest={country:cc.code,countryName:cc.name.slice(0,60),city:city.slice(0,90),address:this.form.address.trim().slice(0,400),phone:rp.slice(0,30),name:rn.slice(0,80)};
+    }
     const ar=this.activeReferral;
     if(ar&&ar.ref){
       const owner=await window.$db.lookupReferralOwner(ar.ref);
@@ -6872,8 +7059,8 @@ function App(){return{
       case 'home': this.resellSubTab='home';break;
       case 'exitToSite': this.resellSubTab='home';this.activeTab='home';break;
       case 'shop': this.resellSubTab='shop';break;
-      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellFeedMode='all';this.resellSubTab='post';break;
-      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellFeedMode='new';this.resellSubTab='post';break;
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='post';break;
+      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='new';this.resellSubTab='post';break;
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
       case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
       case 'report': this.resellOrdersSubTab='report';this.resellSubTab='orders';break;
@@ -6892,8 +7079,8 @@ function App(){return{
     if(this._pinGate(b.action))return;
     if(this._actOff(b.action))return this.featBlock(this._actFeat[b.action]);
     switch(b.action){
-      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellFeedMode='all';this.resellSubTab='post';break;
-      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellFeedMode='new';this.resellSubTab='post';break;
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='post';break;
+      case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='new';this.resellSubTab='post';break;
       case 'search': this.resellFeedMode='all';this.resellSubTab='post';this.$nextTick(()=>document.getElementById('resell-search-input')?.focus());break;
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
       case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
@@ -6902,8 +7089,8 @@ function App(){return{
       case 'withdraw': this.resellSubTab='withdraw';break;
       case 'referral': this.resellSubTab='referral';break;
       case 'support': this.resellSubTab='support';break;
-      case 'boosting': this.resellFeedMode='boost';this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
-      case 'topselling': this.resellFeedMode='top';this.resellSearchQuery='';this.resellActiveCat='সব';this.resellSubTab='post';break;
+      case 'boosting': this.resellFeedMode='boost';this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellSubTab='post';break;
+      case 'topselling': this.resellFeedMode='top';this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellSubTab='post';break;
       case 'recharge': this.openRecharge();break;
       case 'freelance': this.svcStep='';this.svcView=null;this.svcTab='list';this.resellSubTab='freelance';break;
       case 'print': case 'guideline': case 'ecom': case 'learning': case 'faq': this.pageKey=b.action;this.resellSubTab='page';break;
