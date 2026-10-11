@@ -150,6 +150,7 @@ window.$db={pushReview:async(d)=>{await authReady;const cu=auth.currentUser;cons
   },
 listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])}),
   getOnce:(path)=>new Promise(async(res)=>{try{const s=await get(ref(db,path));res(s.exists()?s.val():null)}catch(e){res(null)}}),
+  healReferralIndex:async(code,phone)=>{try{const s=await get(ref(db,'referralCodes/'+code));if(!s.exists())await set(ref(db,'referralCodes/'+code),{resellerPhone:phone})}catch(e){}},
   lookupReferralOwner:async(code)=>{if(!code)return null;const v=await window.$db.getOnce('referralCodes/'+code);return v&&v.resellerPhone?{fbKey:v.resellerPhone}:null},
   listenMyOrders:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyResellOrders:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'orders'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
@@ -6307,6 +6308,7 @@ function App(){return{
     window.$db.listenReseller(this.resellSession,r=>{
       this.reseller=r;
       if(r){
+        if(r.status==='approved'&&r.myReferralCode&&!this._rcHealed){this._rcHealed=true;window.$auth.authReady.then(()=>window.$db.healReferralIndex(r.myReferralCode,this.resellSession))}
         this.resellShopNameInput=r.shopName||r.name||'';
         this.resellProfileForm={shopName:r.shopName||r.name||'',supportNumber:r.supportNumber||this.resellSession,showSupportOnInvoice:r.showSupportOnInvoice||'হ্যাঁ',email:r.email||'',district:r.district||'',address:r.address||''};
       }
