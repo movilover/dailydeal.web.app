@@ -3211,6 +3211,12 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
             <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
           </div>
+          <div x-show="!destAbroad" class="rounded-2xl p-3" style="background:var(--accentL);border:1px dashed var(--accent)">
+            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="w-full flex items-center justify-center gap-2 text-sm font-bold py-2.5 rounded-xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
+            <p class="text-xs mt-1.5" style="color:var(--fg2)" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
+            <p class="text-xs mt-1.5 font-semibold" style="color:#16A34A" x-show="form.loc"><i class="fa-solid fa-circle-check"></i> লোকেশন নেওয়া হয়েছে <span x-text="form.loc?'(±'+form.loc.acc+' মি.)':''"></span></p>
+            <p class="text-xs mt-1" style="color:var(--fg2)" x-show="locMsg" x-text="locMsg"></p>
+          </div>
           <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
             <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
@@ -3323,6 +3329,12 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div><label class="dd-label">প্রাপকের ফোন (দেশের কোডসহ) *</label><input class="dd-input" type="tel" x-model="form.recvPhone" :placeholder="'+'+(destCountry?destCountry.phone:'')+' XXXXXXXX'"/></div>
             <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
             <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
+          </div>
+          <div x-show="!destAbroad" class="rounded-2xl p-3" style="background:var(--accentL);border:1px dashed var(--accent)">
+            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="w-full flex items-center justify-center gap-2 text-sm font-bold py-2.5 rounded-xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
+            <p class="text-xs mt-1.5" style="color:var(--fg2)" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
+            <p class="text-xs mt-1.5 font-semibold" style="color:#16A34A" x-show="form.loc"><i class="fa-solid fa-circle-check"></i> লোকেশন নেওয়া হয়েছে <span x-text="form.loc?'(±'+form.loc.acc+' মি.)':''"></span></p>
+            <p class="text-xs mt-1" style="color:var(--fg2)" x-show="locMsg" x-text="locMsg"></p>
           </div>
           <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
@@ -4187,15 +4199,22 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               </div>
               <div x-show="resellFeedMode!=='all'&&!resellSearchQuery" x-cloak class="flex items-center justify-between rounded-xl px-3 py-2" style="background:var(--accentL)"><p class="text-xs font-bold" style="color:var(--accent)" x-text="resellFeedTitle"></p><button @click="resellFeedMode='all'" class="text-xs font-bold" style="background:none;border:none;color:var(--accent);cursor:pointer">সব প্রোডাক্ট দেখুন</button></div>
             </div>
+            <!-- SECTION CHIPS (অ্যাডমিনের তৈরি সব সেকশন; নতুন সেকশন নিজে নিজে যোগ হয়) -->
+            <div x-show="allSections.length>0&&!resellSearchQuery" x-cloak class="flex gap-2 overflow-x-auto pb-2 mb-1" style="scrollbar-width:none">
+              <button type="button" class="sub-chip" :class="!resellActiveSec?'on':''" @click="resellActiveSec='';resellActiveCat='সব'">সব সেকশন</button>
+              <template x-for="s in allSections" :key="'rsc'+(s.fbKey||s.id)">
+                <button type="button" class="sub-chip" :class="resellActiveSec===(s.fbKey||s.id)?'on':''" @click="resellActiveSec=(s.fbKey||s.id);resellActiveCat='সব'"><img x-show="s.img" :src="s.img" alt=""/><span x-text="(s.img?'':(s.icon&&!/^fa-/.test(s.icon)?s.icon+' ':''))+s.name"></span></button>
+              </template>
+            </div>
             <!-- CATEGORY BUTTONS -->
-            <div x-show="resellCategories.length>0" x-cloak>
+            <div x-show="resellFeedCats.length>0" x-cloak>
               <div class="cat-scroll-wrap">
-                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellActiveCat='সব';resellActiveSec=''">
+                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellActiveCat='সব'">
                   <div class="cat-all-circle"><i class="fa-solid fa-bag-shopping"></i></div>
                   <span class="cat-label">সব পণ্য</span>
                 </div>
-                <template x-for="c in resellCategories" :key="c.fbKey||c.name">
-                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellActiveCat=c.name;resellActiveSec=''">
+                <template x-for="c in resellFeedCats" :key="c.fbKey||c.name">
+                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellActiveCat=c.name">
                     <div class="cat-circle">
                       <img x-show="c.img" :src="c.img" :alt="c.name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
                       <div class="cat-circle-emoji" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div>
@@ -4619,7 +4638,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
                   <span class="rs-name">সব পণ্য</span>
                 </div>
                 <template x-for="c in resellSecCats(section)" :key="c.fbKey||c.name">
-                  <div class="rs-card" @click="resellActiveCat=c.name;resellActiveSec='';resellSubTab='post'">
+                  <div class="rs-card" @click="resellActiveCat=c.name;resellActiveSec=(section.fbKey||section.id);resellSubTab='post'">
                     <span class="rs-cnt" x-text="Number(c.count||0).toLocaleString('bn-BD')"></span>
                     <div class="rs-img"><img x-show="c.img" :src="c.img" :alt="c.name" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="rs-ic" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div></div>
                     <span class="rs-name" x-text="c.name"></span>
@@ -5215,7 +5234,7 @@ function App(){return{
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:''},intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null},locBusy:false,locMsg:'',intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -5578,6 +5597,41 @@ function App(){return{
     const cats=new Set(this.getSectionCategories(section).map(c=>this._cn(c.name)));
     return this.allProducts.filter(p=>p.section===sid||p.sectionId===sid||(!ids.has(p.section||p.sectionId)&&cats.has(this._cn(p.cat))));
   },
+  // 📍 বর্তমান লোকেশন (GPS) → ঠিকানা, বিভাগ, জেলা অটো-ফিল; অর্ডারে স্থানাঙ্ক সেভ হয়
+  useMyLocation(){
+    if(!navigator.geolocation)return this.showToast('এই ডিভাইস/ব্রাউজারে লোকেশন সাপোর্ট নেই','error');
+    if(this.locBusy)return;this.locBusy=true;this.locMsg='';
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const lat=Number(pos.coords.latitude.toFixed(6)),lng=Number(pos.coords.longitude.toFixed(6)),acc=Math.round(pos.coords.accuracy||0);
+      this.form.loc={lat,lng,acc,address:''};
+      try{
+        const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),9000);
+        const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=bn&lat='+lat+'&lon='+lng,{signal:ctl.signal});clearTimeout(tm);
+        const j=await r.json(),a=j.address||{};
+        const norm=s=>String(s||'').replace(/\s*(বিভাগ|জেলা|সিটি কর্পোরেশন|Division|District|City Corporation)\s*/gi,'').trim();
+        const EN={dhaka:'ঢাকা',chattogram:'চট্টগ্রাম',chittagong:'চট্টগ্রাম',rajshahi:'রাজশাহী',khulna:'খুলনা',barishal:'বরিশাল',barisal:'বরিশাল',sylhet:'সিলেট',rangpur:'রংপুর',mymensingh:'ময়মনসিংহ'};
+        const st=norm(a.state),stl=st.toLowerCase();
+        let dv=Object.keys(this.bdLoc).find(d=>st&&(st.includes(d)||d.includes(st)))||EN[Object.keys(EN).find(k=>stl.includes(k))||''];
+        if(dv&&this.bdLoc[dv]){
+          this.form.division=dv;
+          const cands=[a.state_district,a.county,a.city,a.municipality,a.town,a.city_district].map(norm).filter(Boolean);
+          const di=this.bdLoc[dv].find(d=>cands.some(c=>c.includes(d)||d.includes(c)));
+          this.form.district=di||'';
+        }
+        const parts=[a.house_number,a.road,a.neighbourhood,a.suburb,a.village,a.hamlet,a.town||a.city_district].filter(Boolean);
+        const txt=(parts.length?parts.join(', '):String(j.display_name||'').split(',').slice(0,3).join(',')).slice(0,250);
+        this.form.loc.address=txt;
+        if(txt&&!String(this.form.address||'').trim())this.form.address=txt;
+        this.locMsg=(dv?('বিভাগ: '+dv+(this.form.district?', জেলা: '+this.form.district:'')+'। '):'')+(txt?'ঠিকানা: '+txt:'')+' — ঠিক না হলে নিজে বদলে নিন।';
+      }catch(e){this.locMsg='লোকেশন পাওয়া গেছে (স্থানাঙ্ক সেভ হবে), তবে ঠিকানা নিজে লিখুন।'}
+      this.locBusy=false;this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
+    },err=>{
+      this.locBusy=false;
+      const m=err&&err.code===1?'লোকেশন অনুমতি (Allow) দেওয়া হয়নি — ব্রাউজার/ফোনের সেটিংসে অনুমতি দিন':(err&&err.code===3?'লোকেশন পেতে দেরি হচ্ছে, আবার চেষ্টা করুন':'লোকেশন পাওয়া যায়নি, ঠিকানা নিজে লিখুন');
+      this.locMsg=m;this.showToast(m,'error');
+    },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+  },
+  get resellFeedCats(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec){const n=new Set(this.getSectionCategories(sec).map(c=>c.name));return this.resellCategories.filter(c=>n.has(c.name))}}return this.resellCategories},
   resellSecProds(section){const ids=new Set(this.getSectionProducts(section).map(p=>p.fbKey||p.id));return this.resellableProducts.filter(p=>ids.has(p.fbKey||p.id))},
   resellSecCats(section){const n=new Set(this.getSectionCategories(section).map(c=>c.name));return this.resellCategoryCounts.filter(c=>n.has(c.name))},
   resellOtherCats(){const u=new Set();this.allSections.forEach(s=>this.getSectionCategories(s).forEach(c=>u.add(c.name)));return this.resellCategoryCounts.filter(c=>!u.has(c.name))},
@@ -6063,6 +6117,7 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
+    if(!this.destAbroad&&this.form.loc&&isFinite(this.form.loc.lat)&&isFinite(this.form.loc.lng)){const L=this.form.loc;order.location={lat:L.lat,lng:L.lng,acc:Number(L.acc)||0,address:String(L.address||'').slice(0,250),url:('https://www.google.com/maps?q='+L.lat+','+L.lng)}}
     if(this.destAbroad){
       const cc=this.destCountry,city=this.form.city==='__other'?String(this.form.cityOther||'').trim():String(this.form.city||'').trim();
       const rp=String(this.form.recvPhone||'').trim(),rn=String(this.form.recvName||'').trim()||this.form.name.trim();
@@ -7061,7 +7116,7 @@ function App(){return{
       case 'home': this.resellSubTab='home';break;
       case 'exitToSite': this.resellSubTab='home';this.activeTab='home';break;
       case 'shop': this.resellSubTab='shop';break;
-      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='post';break;
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='products';break;
       case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='new';this.resellSubTab='post';break;
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
       case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
@@ -7081,7 +7136,7 @@ function App(){return{
     if(this._pinGate(b.action))return;
     if(this._actOff(b.action))return this.featBlock(this._actFeat[b.action]);
     switch(b.action){
-      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='post';break;
+      case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='products';break;
       case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='new';this.resellSubTab='post';break;
       case 'search': this.resellFeedMode='all';this.resellSubTab='post';this.$nextTick(()=>document.getElementById('resell-search-input')?.focus());break;
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
