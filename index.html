@@ -385,6 +385,13 @@ body{background:var(--bg);color:var(--fg)}
 .section-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--fg);font-weight:700}
 
 /* ═══ GENDER SECTION (All Products Page) ═══ */
+
+/* ── সকল পণ্য: ক্যাটাগরি গ্রিড (এক লাইনে ৫টি) ── */
+.cx-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 6px;padding:2px 0 4px}
+.cx-it{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;min-width:0}
+.cx-it .sub-cat-img-wrap{width:100%;max-width:62px;height:auto;aspect-ratio:1/1}
+.cx-it .sub-cat-name{max-width:100%;font-size:10.5px;line-height:1.25}
+.cx-it:active .sub-cat-img-wrap{transform:scale(.94);border-color:var(--accent)}
 .gender-divider{display:flex;align-items:center;gap:12px;padding:14px 4px 10px}
 .gender-section-icon{width:40px;height:40px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .gender-section-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:900;color:var(--fg)}
@@ -2222,7 +2229,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       <div style="height:3px;background:linear-gradient(90deg,#B8860B,#F5D27A,#B8860B)"></div>
 
       <div class="stl-cancel" x-show="inv.order.status==='বাতিল'"><i class="fa-solid fa-circle-exclamation"></i><span>এই অর্ডারটি বাতিল করা হয়েছে।</span></div>
-      <div x-show="inv.order.status!=='বাতিল'" style="background:#fff;padding:6px 0 2px"><div x-show="(trkUrl(inv.order)||inv.order.trackNote||inv.order.courier||inv.order.trackId||(inv.order.trackLog&&inv.order.trackLog.length))" x-cloak x-data="{tl:false}" style="margin:8px" class="trk3d">
+      <div x-show="inv.order.status!=='বাতিল'" style="background:#fff;padding:6px 0 2px"><div class="ord-hero mx-2 mt-1 rounded-2xl" style="background:#F8FAFC" x-html="trackHero(effStatus(inv.order),false)"></div><p x-show="inv.order.trackNote" class="text-xs font-bold text-center px-3 py-2 mx-2 mt-2 rounded-xl" style="background:#FFFBEB;border:1px solid #FCD34D;color:#92400E" x-text="inv.order.trackNote"></p><div x-show="(trkUrl(inv.order)||inv.order.trackNote||inv.order.courier||inv.order.trackId||(inv.order.trackLog&&inv.order.trackLog.length))" x-cloak x-data="{tl:false}" style="margin:8px" class="trk3d">
           <div class="trk3d-top">
             <div class="trk3d-cube"><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="flex-1 min-w-0">
@@ -3012,10 +3019,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     </div>
     <!-- Sections view -->
     <div x-show="allProdsQ===''&&prodsFull&&secLoaded">
-      <!-- Dynamic sections from admin -->
+      <!-- সেকশন অনুযায়ী শুধু ক্যাটাগরি (কোনো পণ্য নয়) — এক লাইনে ৫টি -->
       <template x-for="section in allSections" :key="section.fbKey||section.id">
-        <div class="mb-8" x-show="getSectionProducts(section).length>0||getSectionCategories(section).length>0">
-          <!-- Section Header -->
+        <div class="mb-6" x-show="getSectionCategories(section).length>0">
           <div class="gender-divider">
             <div class="gender-section-icon" :style="'background:linear-gradient(135deg,'+(section.color||'#6B7280')+','+(section.color2||section.color||'#9CA3AF')+')'" style="overflow:hidden">
               <img x-show="section.img" :src="section.img" alt="" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'"/>
@@ -3023,58 +3029,20 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </div>
             <div>
               <p class="gender-section-title" x-text="section.name"></p>
-              <p class="text-xs" style="color:var(--fg3)" x-text="getSectionProducts(section).length+'টি পণ্য'"></p>
+              <p class="text-xs" style="color:var(--fg3)" x-text="getSectionCategories(section).length+'টি ক্যাটাগরি'"></p>
             </div>
           </div>
-
-          <!-- Section sub-categories -->
-          <div x-show="getSectionCategories(section).length>0" class="mb-4">
-            <div class="sub-cat-scroll">
-              <div class="sub-cat-item" :class="sectionCatFilters[section.fbKey||section.id]===''||!sectionCatFilters[section.fbKey||section.id]?'active':''" @click="setSectionFilter(section,'')">
-                <div class="sub-cat-img-wrap" :style="(!sectionCatFilters[section.fbKey||section.id])?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><i class="fa-solid fa-bag-shopping"></i></div>
-                <span class="sub-cat-name">সব</span>
-              </div>
-              <template x-for="c in getSectionCategories(section)" :key="c.fbKey||c.name">
-                <div class="sub-cat-item" :class="sectionCatFilters[section.fbKey||section.id]===c.name?'active':''" @click="setSectionFilter(section,c.name);secFetchCat(c.name)">
-                  <div class="sub-cat-img-wrap" :style="sectionCatFilters[section.fbKey||section.id]===c.name?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'">
-                    <img x-show="c.img" :src="c.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/>
-                    <i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i>
-                  </div>
-                  <span class="sub-cat-name" x-text="c.name"></span>
+          <div class="cx-grid">
+            <template x-for="c in getSectionCategories(section)" :key="c.fbKey||c.name">
+              <div class="cx-it" @click="openCatFromAll(c)">
+                <div class="sub-cat-img-wrap">
+                  <img x-show="c.img" :src="optImg(c.img,120)" alt="" loading="lazy" onerror="this.style.display='none'"/>
+                  <i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i>
                 </div>
-              </template>
-            </div>
-          </div>
-
-          <!-- Products grid -->
-          <div class="grid gap-3" :class="gridClass">
-            <template x-for="p in getFilteredSectionProducts(section)" :key="p.fbKey||p.id">
-              <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
-                <div @click="openDetailSheet(p)" style="cursor:pointer">
-                  <template x-if="(p.images||[]).length>1">
-                    <div x-data="{cidx:0,ct:null}" x-init="ct=setInterval(()=>cidx=(cidx+1)%(p.images||[]).length,2800);$cleanup(()=>clearInterval(ct))" class="prod-gallery">
-                      <div class="prod-gallery-inner" :style="'transform:translateX(-'+cidx*100+'%)'">
-                        <template x-for="(img,ii) in (p.images||[])" :key="ii"><div class="prod-gallery-slide"><img :src="optImg(img,380)" loading="lazy" :alt="p.name" onerror="this.onerror=null;this.src=DD_PH"/></div></template>
-                      </div>
-                      <div x-show="p.badge" class="prod-badge" x-text="p.badge"></div>
-                    </div>
-                  </template>
-                  <template x-if="(p.images||[]).length<=1">
-                    <div class="prod-img-wrap" x-data="{cidx:0}" x-init="if((p.images||[]).length>1){let _t=setInterval(()=>cidx=(cidx+1)%p.images.length,2500);$cleanup(()=>clearInterval(_t))}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><img :src="optImg((p.images&&p.images.length)?p.images[cidx]:(p.img||''),380)" class="prod-img" loading="lazy" onerror="this.onerror=null;this.src=DD_PH" :alt="p.name"/><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
-                  </template>
-                </div>
-                <div class="p-2.5">
-                  <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
-                  <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
-                  <div class="grid grid-cols-2 gap-1">
-                    <button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button>
-                    <button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button>
-                  </div>
-                </div>
+                <span class="sub-cat-name" x-text="c.name"></span>
               </div>
             </template>
           </div>
-<div class="text-center mt-3" x-show="secTotal(section)>(secLimit[section.fbKey||section.id]||24)"><button type="button" @click="secMore(section)" class="btn-ghost" style="padding:10px 26px;font-weight:700">আরও দেখুন ▾</button></div>
         </div>
       </template>
 
@@ -3478,7 +3446,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status"></span>
           <i class="fa-solid fa-chevron-down ord-chev" :style="open?'transform:rotate(180deg)':''"></i>
         </div>
-        <div x-show="open&&o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(effStatus(o),true)"></div>
+        <div x-show="o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(effStatus(o),true)"></div>
         <div x-show="open&&o.adjustments&&o.adjustments.length" x-cloak class="mx-3 mt-2 rounded-2xl p-2.5" style="background:#FFFBEB;border:1px solid #F59E0B">
           <p class="text-xs font-bold mb-1.5" style="color:#92400E"><i class="fa-solid fa-scale-balanced"></i> অ্যাডমিন মূল্য সমন্বয়</p>
           <template x-for="(e,i) in (o.adjustments||[])" :key="'adj'+i"><div class="flex items-start justify-between gap-2 text-xs py-1" style="border-top:1px dashed #FCD34D"><span style="color:var(--fg)"><b x-text="e.kind==='delivery'?'ডেলিভারি চার্জ':'পণ্যের দাম'"></b><span x-text="e.reason?' — '+e.reason:''"></span></span><b class="font-mono flex-shrink-0" :style="e.amount<0?'color:#16A34A':'color:#DC2626'" x-text="(e.amount<0?'−৳':'+৳')+Math.abs(e.amount).toLocaleString()"></b></div></template>
@@ -5130,6 +5098,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     <div class="kps-tabs" role="tablist">
       <button type="button" role="tab" :class="kSheet.gender==='men'?'on':''" :aria-selected="kSheet.gender==='men'" @click="kSheet.gender='men'"><i class="fa-solid fa-user-tie"></i>ছেলেদের<em x-text="kxn(kProdsFor('men').length)"></em></button>
       <button type="button" role="tab" :class="kSheet.gender==='women'?'on':''" :aria-selected="kSheet.gender==='women'" @click="kSheet.gender='women'"><i class="fa-solid fa-person-dress"></i>মেয়েদের<em x-text="kxn(kProdsFor('women').length)"></em></button>
+      <button type="button" role="tab" x-show="kProdsFor('kids').length>0" :class="kSheet.gender==='kids'?'on':''" :aria-selected="kSheet.gender==='kids'" @click="kSheet.gender='kids'"><i class="fa-solid fa-child"></i>বাচ্চাদের<em x-text="kxn(kProdsFor('kids').length)"></em></button>
     </div>
     <div class="kps-body">
       <div class="kps-grid">
@@ -5149,7 +5118,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 <script>
 /* ═══ ইমোজি → প্রিমিয়াম আইকন সহায়ক ═══ */
 const DD_EMO_RE=/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{2B05}\u{2705}\u{274C}\u{2728}\u{2139}\u{23F0}\u{23F3}\u{FE0F}\u{200D}]/gu;
-const DD_EMO_FA={'🔥':'fa-fire-flame-curved','🚚':'fa-truck-fast','✅':'fa-circle-check','💳':'fa-credit-card','🎁':'fa-gift','⭐':'fa-star','🛍':'fa-bag-shopping','📦':'fa-box-open','🎉':'fa-wand-magic-sparkles','🌙':'fa-moon','🌍':'fa-earth-asia','🏪':'fa-store','⏳':'fa-hourglass-half','😔':'fa-face-frown','🚫':'fa-ban','📢':'fa-bullhorn','❌':'fa-circle-xmark','🤍':'fa-heart','👔':'fa-user-tie','👗':'fa-person-dress','🚀':'fa-rocket','💬':'fa-comment-dots','📞':'fa-phone','🔑':'fa-key','🔔':'fa-bell','🧾':'fa-receipt','🗓':'fa-calendar-days','🙏':'fa-hands-praying','💰':'fa-sack-dollar','👥':'fa-user-group','🏧':'fa-building-columns','⬆':'fa-arrow-up','✨':'fa-wand-magic-sparkles','📋':'fa-clipboard-list','🛒':'fa-cart-shopping','📥':'fa-inbox','📅':'fa-calendar','👤':'fa-user','📍':'fa-location-dot','✉':'fa-envelope','🔗':'fa-link','👕':'fa-shirt','👖':'fa-person','👟':'fa-shoe-prints','👜':'fa-bag-shopping','💄':'fa-wand-magic-sparkles','⌚':'fa-clock','📱':'fa-mobile-screen','🎧':'fa-headphones','🏠':'fa-house','🧴':'fa-pump-soap','💎':'fa-gem','👑':'fa-crown','🕌':'fa-mosque','☀':'fa-sun','❤':'fa-heart'};
+const DD_EMO_FA={'👶':'fa-baby','🧒':'fa-child','🔥':'fa-fire-flame-curved','🚚':'fa-truck-fast','✅':'fa-circle-check','💳':'fa-credit-card','🎁':'fa-gift','⭐':'fa-star','🛍':'fa-bag-shopping','📦':'fa-box-open','🎉':'fa-wand-magic-sparkles','🌙':'fa-moon','🌍':'fa-earth-asia','🏪':'fa-store','⏳':'fa-hourglass-half','😔':'fa-face-frown','🚫':'fa-ban','📢':'fa-bullhorn','❌':'fa-circle-xmark','🤍':'fa-heart','👔':'fa-user-tie','👗':'fa-person-dress','🚀':'fa-rocket','💬':'fa-comment-dots','📞':'fa-phone','🔑':'fa-key','🔔':'fa-bell','🧾':'fa-receipt','🗓':'fa-calendar-days','🙏':'fa-hands-praying','💰':'fa-sack-dollar','👥':'fa-user-group','🏧':'fa-building-columns','⬆':'fa-arrow-up','✨':'fa-wand-magic-sparkles','📋':'fa-clipboard-list','🛒':'fa-cart-shopping','📥':'fa-inbox','📅':'fa-calendar','👤':'fa-user','📍':'fa-location-dot','✉':'fa-envelope','🔗':'fa-link','👕':'fa-shirt','👖':'fa-person','👟':'fa-shoe-prints','👜':'fa-bag-shopping','💄':'fa-wand-magic-sparkles','⌚':'fa-clock','📱':'fa-mobile-screen','🎧':'fa-headphones','🏠':'fa-house','🧴':'fa-pump-soap','💎':'fa-gem','👑':'fa-crown','🕌':'fa-mosque','☀':'fa-sun','❤':'fa-heart'};
 function emoFa(s,d){s=String(s==null?'':s);if(/(^|\s)fa-/.test(s))return /fa-(solid|regular|brands)/.test(s)?s:'fa-solid '+s;const m=s.replace(/\uFE0F/g,'').match(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B50}\u{2B06}\u{2705}\u{274C}\u{2728}]/u);return 'fa-solid '+((m&&DD_EMO_FA[m[0]])||d||'fa-tag')}
 function emoTx(s){return String(s==null?'':s).replace(DD_EMO_RE,'').replace(/\s{2,}/g,' ').trim()}
 /* ত্রিমাত্রিক প্যাকেজ (SVG) — অ্যানিমেশনে ব্যবহৃত */
@@ -5546,8 +5515,8 @@ function App(){return{
     if(String(f.address||'').trim().length<6)return'বিস্তারিত ঠিকানা দিন!';
     return'';
   },
-  _secGender(s){const n=String(s.name||'');if(s.gender==='men'||s.gender==='women')return s.gender;if(/ছেলে|পুরুষ|জেন্টস|men|boy|male/i.test(n)&&!/মেয়ে|women/i.test(n))return'men';if(/মেয়ে|মহিলা|লেডিস|women|girl|female|ladies/i.test(n))return'women';return''},
-  _catSec(c,d=0){const ids=this._realSecs.map(s=>s.fbKey||s.id),own=c.section||c.sectionId;if(own&&ids.includes(own))return own;if(c.parent&&d<3){const pr=this.allCategories.find(x=>x.name===c.parent);if(pr){const r=this._catSec(pr,d+1);if(r)return r}}if(c.gender==='men'||c.gender==='women'){const s=this._realSecs.find(s=>this._secGender(s)===c.gender);if(s)return s.fbKey||s.id}return''},
+  _secGender(s){const n=String(s.name||'');if(s.gender==='men'||s.gender==='women'||s.gender==='kids')return s.gender;if(/বাচ্চা|শিশু|কিডস|কিড|kids?\b|child|baby|toddler/i.test(n))return'kids';if(/ছেলে|পুরুষ|জেন্টস|men|boy|male/i.test(n)&&!/মেয়ে|women/i.test(n))return'men';if(/মেয়ে|মহিলা|লেডিস|women|girl|female|ladies/i.test(n))return'women';return''},
+  _catSec(c,d=0){const ids=this._realSecs.map(s=>s.fbKey||s.id),own=c.section||c.sectionId;if(own&&ids.includes(own))return own;if(c.parent&&d<3){const pr=this.allCategories.find(x=>x.name===c.parent);if(pr){const r=this._catSec(pr,d+1);if(r)return r}}if(c.gender==='men'||c.gender==='women'||c.gender==='kids'){const s=this._realSecs.find(s=>this._secGender(s)===c.gender);if(s)return s.fbKey||s.id}return''},
   get homeSecObj(){return this.homeSec?(this._realSecs.find(s=>(s.fbKey||s.id)===this.homeSec)||null):null},
   get _realSecs(){const o=s=>{const n=Number(s.order);return Number.isFinite(n)&&s.order!==''&&s.order!==null&&s.order!==undefined?n:99};return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>o(a)-o(b))},
   get allSections(){
@@ -5577,19 +5546,20 @@ function App(){return{
     return [...list].sort((a,b)=>this._ts(b)-this._ts(a));},
   get searchChips(){const d=['ছেলেদের পণ্য','মেয়েদের পণ্য','কসমেটিক আইটেম'];this.allSections.filter(s=>s.active!==false&&s.name).forEach(s=>{if(!d.includes(s.name))d.push(s.name)});return d.slice(0,8)},
   chipIcon(c){return c.includes('ছেলে')?'fa-person':c.includes('মেয়ে')?'fa-person-dress':c.includes('কসমেটিক')?'fa-spray-can-sparkles':'fa-tag'},
-  prodSearchText(p){const sec=this.allSections.find(s=>(s.fbKey||s.id)===(p.section||p.sectionId));const g=p.gender==='women'?'মেয়েদের':p.gender==='men'?'ছেলেদের':'';return [p.name,p.cat,sec&&sec.name,g,p.badge].filter(Boolean).join(' ').toLowerCase()},
+  prodSearchText(p){const sec=this.allSections.find(s=>(s.fbKey||s.id)===(p.section||p.sectionId));const g=p.gender==='women'?'মেয়েদের':p.gender==='men'?'ছেলেদের':p.gender==='kids'?'বাচ্চাদের কিডস':'';return [p.name,p.cat,sec&&sec.name,g,p.badge].filter(Boolean).join(' ').toLowerCase()},
   get homeGroups(){
     const g=[],used=new Set();
     this.allSections.filter(s=>s.active!==false).forEach(s=>{const items=this.getSectionProducts(s).filter(p=>this.hasValidData(p));if(items.length){items.forEach(p=>used.add(p.fbKey));g.push({key:s.fbKey||s.id,title:s.name,icon:s.icon,c1:s.color||'#E8320A',c2:s.color2||s.color||'#FF6B45',items})}});
     const rest=this.allProducts.filter(p=>!used.has(p.fbKey)&&this.hasValidData(p));
-    [['women','মেয়েদের পণ্য','fa-person-dress'],['men','ছেলেদের পণ্য','fa-person'],['other','অন্যান্য পণ্য','fa-bag-shopping']].forEach(([k,t,fa])=>{const items=rest.filter(p=>k==='other'?(p.gender!=='men'&&p.gender!=='women'):p.gender===k);if(items.length)g.push({key:'g_'+k,title:t,fa,c1:'#E8320A',c2:'#FF6B45',items})});
+    [['women','মেয়েদের পণ্য','fa-person-dress'],['men','ছেলেদের পণ্য','fa-person'],['kids','বাচ্চাদের পণ্য','fa-child'],['other','অন্যান্য পণ্য','fa-bag-shopping']].forEach(([k,t,fa])=>{const items=rest.filter(p=>k==='other'?(p.gender!=='men'&&p.gender!=='women'&&p.gender!=='kids'):p.gender===k);if(items.length)g.push({key:'g_'+k,title:t,fa,c1:'#E8320A',c2:'#FF6B45',items})});
     const nw=this.newestProducts.filter(p=>this.hasValidData(p)).slice(0,10);if(nw.length)g.unshift({key:'g_new',title:this.t('newIn'),fa:'fa-bolt',c1:'#16A34A',c2:'#22C55E',items:nw});
     return g},
   get wishlistProducts(){return this.allProducts.filter(p=>this.wish.includes(p.fbKey||p.id))},
   get pinnedGroups(){const ps=this.pinnedProducts;return [
     {key:'men',title:'ছেলেদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='men')},
     {key:'women',title:'মেয়েদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='women')},
-    {key:'other',title:'ভাইরাল পণ্য',items:ps.filter(p=>p.gender!=='men'&&p.gender!=='women')}].filter(g=>g.items.length)},
+    {key:'kids',title:'বাচ্চাদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='kids')},
+    {key:'other',title:'ভাইরাল পণ্য',items:ps.filter(p=>p.gender!=='men'&&p.gender!=='women'&&p.gender!=='kids')}].filter(g=>g.items.length)},
   get newestProducts(){const pin=new Set(this.pinnedProducts.map(p=>p.fbKey));return this.allProducts.filter(p=>!pin.has(p.fbKey)).sort((a,b)=>(Number(b.createdAt)||0)-(Number(a.createdAt)||0)||String(b.fbKey).localeCompare(String(a.fbKey)))},
   get displayedHomeProducts(){return this.newestProducts.slice(10,10+this.homeShown)},
   shipRate(div){const s=(this.settings&&this.settings.shipping)||{};const pick=(v,d)=>(v!==undefined&&v!==null&&v!==''&&!isNaN(Number(v))&&Number(v)>=0)?Number(v):d;return div==='ঢাকা'?pick(s.dhaka,80):pick(s.outside,150)},
@@ -5810,6 +5780,8 @@ function App(){return{
     else if(btn.link){const _s=this.safeUrl(btn.link);if(_s)window.open(_s,'_blank','noopener');}
   },
 
+  catProdCount(c){try{const t=this._catTree(c.name);return this.allProducts.filter(p=>t.has(p.cat)).length}catch(e){return 0}},
+  openCatFromAll(c){this.activeCat=c.parent?c.parent:c.name;this.activeSub=c.parent?c.name:'';this.q='';this.activeTab='home';this.$nextTick(()=>{try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){}})},
   retryEarlyLink(){this._elStarted=false;this._dlChecked=false;this.linkOrder={...this.linkOrder,netFail:false,loading:true};this._earlyLink()},
   async _earlyLink(){
     const l=new URLSearchParams(location.search).get('l');if(!l||this._elStarted)return;this._elStarted=true;
@@ -7168,7 +7140,7 @@ function App(){return{
   kxTk(n){return '৳'+this.kxn(n)},
   kxRel(ts){const d=this.emiDaysLeft(ts);if(d===null||d===undefined)return '';if(d<0)return this.kxn(-d)+' দিন ওভারডিউ';if(d===0)return 'আজই শেষ দিন';return this.kxn(d)+' দিন বাকি'},
   kxDue(i){const d=new Date(),day=d.getDate();d.setDate(1);d.setMonth(d.getMonth()+i);const last=new Date(d.getFullYear(),d.getMonth()+1,0).getDate();d.setDate(Math.min(day,last));return d.getTime()},
-  kProdsFor(g){return this.kxProducts.filter(p=>p.gender===g||!p.gender||['both','general','unisex'].includes(p.gender))},
+  kProdsFor(g){return this.kxProducts.filter(p=>p.gender===g||(g!=='kids'&&(!p.gender||['both','general','unisex'].includes(p.gender))))},
   openKSheet(){const m=this.kProdsFor('men').length,w=this.kProdsFor('women').length;this.kSheet={open:true,gender:(m||!w)?'men':'women'}},
   pickKProd(p){this.openDetailSheet(p)},
   emiOk(p){return this.installmentEligible(p)||!!(p&&p.installmentSettings&&p.installmentSettings.tenureOptions&&p.installmentSettings.tenureOptions.length)},
