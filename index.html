@@ -172,7 +172,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenMySupportTickets:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'supportTickets'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMySavings:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'savingsWallets'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
-  saveOrder:async(data,key)=>{const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
+  saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   listenProducts:(cb)=>{
     const toArr=s=>{const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]};
@@ -6168,7 +6168,11 @@ function App(){return{
       if(!orderKey)orderKey=window.$db.newKey('orders');
       try{await window.$db.setOrderRate({at:Date.now(),refKey:orderKey})}catch(e){this.placing=false;return this.showToast('একটু অপেক্ষা করে (২০ সেকেন্ড) আবার চেষ্টা করুন','error')}
     }
-    try{if(window.$db){await window.$db.saveOrder(order,orderKey);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e)}
+    try{if(window.$db){await window.$db.saveOrder(order,orderKey);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);
+      try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
+      this.placing=false;
+      const _c=(e&&e.code)||'';
+      return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c:'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c),'error')}
     this._autoSaveCustomerAccount(order);
     this.myOrders.unshift(order);
     localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
@@ -6637,7 +6641,7 @@ function App(){return{
       this.sellForm={customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''};
       this.showInvoice(order);
       this.showToast('অর্ডার সফলভাবে বসানো হয়েছে! ✅','success');
-    }catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন।','error')}
+    }catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন। '+((e&&e.code)||''),'error')}
     this.sellPlacing=false;
   },
 
@@ -7345,7 +7349,7 @@ function App(){return{
       await window.$db.saveOrder(order);
       this.myOrders.unshift(order);try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}
       this.linkOrder.done=order;
-    }catch(e){this.showToast('অর্ডার ব্যর্থ! আবার চেষ্টা করুন।','error')}
+    }catch(e){this.showToast('অর্ডার ব্যর্থ! আবার চেষ্টা করুন। '+((e&&e.code)||''),'error')}
     this.linkOrder.placing=false;
   },
   closeLinkOrder(){this.linkOrder={...this.linkOrder,open:false};try{history.replaceState(null,'',location.pathname)}catch(e){}},
