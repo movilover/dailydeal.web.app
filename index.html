@@ -172,6 +172,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenMySupportTickets:(phone,cb)=>{if(!phone)return cb([]);return onValue(query(ref(db,'supportTickets'),orderByChild('resellerPhone'),equalTo(phone)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMySavings:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'savingsWallets'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
+  getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()&&!cu.email){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
   saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   listenProducts:(cb)=>{
@@ -6143,6 +6144,7 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
+    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);if(_um!==undefined)order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap/{auth.uid}-এর সমান হতে হবে
     if(!this.destAbroad&&this.form.loc&&isFinite(this.form.loc.lat)&&isFinite(this.form.loc.lng)){const L=this.form.loc;order.location={lat:L.lat,lng:L.lng,acc:Number(L.acc)||0,address:String(L.address||'').slice(0,250),url:('https://www.google.com/maps?q='+L.lat+','+L.lng)}}
     if(this.destAbroad){
       const cc=this.destCountry,city=this.form.city==='__other'?String(this.form.cityOther||'').trim():String(this.form.city||'').trim();
@@ -6172,7 +6174,9 @@ function App(){return{
       try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
       this.placing=false;
       const _c=(e&&e.code)||'';
-      return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c:'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c),'error')}
+      let _why='';try{if(/permission/i.test(_c))_why=await this._wt(this._orderDiag(order,orderKey),5000,'')}catch(_){}
+      if(_why)console.warn('order diag:',_why);
+      return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c+(_why?' — সম্ভাব্য কারণ: '+_why:''):'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c),'error')}
     this._autoSaveCustomerAccount(order);
     this.myOrders.unshift(order);
     localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
@@ -6184,6 +6188,28 @@ function App(){return{
       this.showInvoice(order);
       this.showToast('অর্ডার সফল! ✅','success');
     },2200);
+  },
+
+  /* অর্ডার PERMISSION_DENIED হলে — রুলসের শর্তগুলো ক্লায়েন্টে মিলিয়ে দেখে কোনটা ভাঙছে তা জানায় (শুধু ব্যর্থ হলে চলে) */
+  async _orderDiag(o,key){
+    const r=[],n=v=>Number(v)||0,g=p=>window.$db.getOnce(p);
+    const cu=window.$auth.auth.currentUser;
+    if(!cu)return'লগইন/অ্যানোনিমাস অথ নেই — পেজ রিফ্রেশ করুন';
+    if(!/^01[0-9]{9}$/.test(String(o.phone||'')))r.push('মোবাইল নম্বর ০১XXXXXXXXX (১১ ডিজিট) ফরম্যাটে নয়');
+    const um=await g('uidMap/'+cu.uid);
+    if(o.uid&&o.uid!==um)r.push('অর্ডারের uid আর uidMap মিলছে না');
+    const st=(await g('settings/settings'))||{},sh=st.shipping||{};
+    const d=(typeof sh.dhaka==='number')?sh.dhaka:80,out=(typeof sh.outside==='number')?sh.outside:150;
+    if(!o.intlDest&&o.shipping!==d&&o.shipping!==out)r.push('ডেলিভারি চার্জ ('+o.shipping+') অ্যাডমিন সেটিংসের ('+d+'/'+out+') সাথে মেলে না — পেজ রিফ্রেশ করুন');
+    const exp=n(o.subtotal)+n(o.shipping)+n(o.codExtraCharge)-n(o.prepaidDiscount)-n(o.advanceShipDiscount)-n(o.promoDiscount);
+    if(!(exp<0&&o.total===0)&&Math.abs(exp-n(o.total))>1)r.push('টোটাল ('+o.total+') হিসাব ('+exp+') এর সাথে মেলে না');
+    if(o.payType==='prepaid'){
+      const c=await window.$db.getTrxClaim(o.trxId);
+      if(!c)r.push('TrxID লক (usedTrx) পাওয়া যায়নি');
+      else{if(c.refKey!==key)r.push('TrxID অন্য অর্ডার কী-এর সাথে বাঁধা');if(c.uid!==cu.uid)r.push('TrxID অন্য ইউজারের নামে লক');}
+    }
+    if(st.orderRateLimit===true){const rt=await g('orderRate/'+cu.uid);if(!rt||rt.refKey!==key)r.push('অর্ডার-ফ্লাড ব্রেক চালু — ২০ সেকেন্ড পরে আবার চেষ্টা করুন')}
+    return r.join('; ');
   },
 
   showInvoice(o){
