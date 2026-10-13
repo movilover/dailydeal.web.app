@@ -2237,7 +2237,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </template>
           </div>
           <div class="flex gap-2 mt-3">
-            <a x-show="trkUrl(inv.order)" :href="trkUrl(inv.order)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> ট্র্যাকিং দেখুন</a>
+            <a x-show="trkUrl(inv.order)" :href="trkUrl(inv.order)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> কুরিয়ার ট্র্যাকিং</a>
             <button type="button" x-show="inv.order.trackLog&&inv.order.trackLog.length>2" @click="tl=!tl" class="trk3d-btn trk3d-btn2" x-text="tl?'কম দেখুন ▲':'আরও দেখুন ('+inv.order.trackLog.length+') ▼'"></button>
           </div>
           <div x-show="inv.order.trackLog&&inv.order.trackLog.length" class="trk3d-log">
@@ -2269,6 +2269,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
         <div class="flex justify-between text-xs mb-1" x-show="inv.order.prepaidDiscount>0"><span style="color:#16A34A">অগ্রিম পেমেন্ট ছাড়</span><span class="font-semibold" style="color:#16A34A" x-text="'−৳'+(inv.order.prepaidDiscount||0).toLocaleString()"></span></div>
         <div class="flex justify-between text-xs mb-1" x-show="inv.order.advanceShipDiscount>0"><span style="color:#16A34A">ডেলিভারি ছাড়</span><span class="font-semibold" style="color:#16A34A" x-text="'−৳'+(inv.order.advanceShipDiscount||0).toLocaleString()"></span></div>
         <template x-for="(e,i) in (inv.order.adjustments||[])" :key="'ia'+i"><div class="flex justify-between text-xs mb-1"><span style="color:#92400E" x-text="(e.kind==='delivery'?'ডেলিভারি চার্জ সমন্বয়':'মূল্য সমন্বয়')+(e.reason?' — '+e.reason:'')"></span><span class="font-semibold" :style="e.amount<0?'color:#16A34A':'color:#DC2626'" x-text="(e.amount<0?'−৳':'+৳')+Math.abs(e.amount).toLocaleString()"></span></div></template>
+        <div class="flex justify-between text-xs mb-1" x-show="inv.order.origTotal&&Number(inv.order.origTotal)!==ordTotal(inv.order)"><span style="color:#666">আগের মোট</span><span class="font-semibold" style="color:#666;text-decoration:line-through" x-text="'৳'+Number(inv.order.origTotal||0).toLocaleString()"></span></div>
       <div class="flex justify-between items-baseline font-bold text-sm pt-2 mt-1" style="border-top:1.5px solid rgba(0,0,0,.12)"><span style="color:#111">সর্বমোট</span><span class="font-display text-lg" style="color:var(--accent)" x-text="'৳'+ordTotal(inv.order).toLocaleString()"></span></div>
         <div class="flex justify-between text-xs mt-2" x-show="inv.order.advancePaid>0"><span style="color:#666">অগ্রিম পরিশোধ</span><span class="font-bold" style="color:#16A34A" x-text="'৳'+(inv.order.advancePaid||0).toLocaleString()"></span></div>
         <div class="flex justify-between text-xs mt-1" x-show="inv.order.dueOnDelivery>0"><span style="color:#666">ডেলিভারিতে বাকি</span><span class="font-bold" style="color:#111" x-text="'৳'+(inv.order.dueOnDelivery||0).toLocaleString()"></span></div>
@@ -3512,7 +3513,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </template>
           </div>
           <div class="flex gap-2 mt-3">
-            <a x-show="trkUrl(o)" :href="trkUrl(o)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> ট্র্যাকিং দেখুন</a>
+            <a x-show="trkUrl(o)" :href="trkUrl(o)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> কুরিয়ার ট্র্যাকিং</a>
             <button type="button" x-show="o.trackLog&&o.trackLog.length>2" @click="tl=!tl" class="trk3d-btn trk3d-btn2" x-text="tl?'কম দেখুন ▲':'আরও দেখুন ('+o.trackLog.length+') ▼'"></button>
           </div>
           <div x-show="o.trackLog&&o.trackLog.length" class="trk3d-log">
@@ -3536,6 +3537,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <p x-show="emiOf(o).done" class="text-xs font-bold" style="color:#16A34A">সম্পূর্ণ পরিশোধ হয়েছে ✓</p>
           </div>
         </template>
+        <div x-show="o.status==='প্রসেসিং'||o.status==='পাঠানো হচ্ছে'" class="mx-3 mb-1 mt-1 rounded-xl px-3 py-2 text-[11px] font-semibold" style="background:#FFFBEB;border:1px solid #FCD34D;color:#92400E"><i class="fa-solid fa-lock mr-1"></i>অর্ডার গ্রহণ হয়ে গেছে — বাতিল বা পরিবর্তনের জন্য সাপোর্টে যোগাযোগ করুন।<a x-show="settings.supportPhone||settings.shopPhone" :href="'tel:'+(settings.supportPhone||settings.shopPhone)" @click.stop class="ml-1 font-bold" style="color:#16A34A;text-decoration:none"><i class="fa-solid fa-phone"></i> কল</a></div>
         <div class="flex items-center justify-between px-3 py-2">
           <div><p class="text-xs" style="color:var(--fg3)" x-text="(o.district||'')+' · '+(o.payMethod||'')"></p><p class="font-display text-lg mt-0.5" style="color:var(--accent)" ><span x-text="'৳'+ordTotal(o).toLocaleString()"></span> <span x-show="o.origTotal&&Number(o.origTotal)!==ordTotal(o)" class="ord-old" x-text="'৳'+Number(o.origTotal).toLocaleString()"></span> <span x-show="o.adjustments&&o.adjustments.length" class="ord-adj"><i class="fa-solid fa-scale-balanced"></i> সমন্বয়</span></p></div>
           <div class="flex items-center gap-2">
@@ -4961,7 +4963,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   <template x-if="linkOrder.open&&linkOrder.loading">
     <div class="lo-dead"><div class="lo-logo" style="animation:ddPulse 1.2s infinite"><i class="fa-solid fa-bag-shopping"></i></div>
       <p class="font-display text-2xl" style="color:var(--fg)">Daily <span style="color:var(--accent)">Deal</span></p>
-      <p class="text-sm mt-2" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin mr-1"></i>আপনার প্রোডাক্ট লোড হচ্ছে...</p></div>
+      <p class="text-sm mt-2" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin mr-1"></i>আপনার প্রোডাক্ট লোড হচ্ছে...</p>
+      <p class="text-xs mt-3" style="color:var(--fg3)" x-show="linkOrder.netFail">ইন্টারনেট ধীর — লোড হতে দেরি হচ্ছে।</p>
+      <button x-show="linkOrder.netFail" class="btn-primary mt-3" style="max-width:240px" @click="retryEarlyLink()"><i class="fa-solid fa-rotate-right mr-2"></i>আবার চেষ্টা করুন</button></div>
   </template>
   <template x-if="linkOrder.open&&(linkOrder.gone||linkOrder.expired)&&!linkOrder.done&&!linkOrder.loading">
     <div class="lo-dead">
@@ -5023,16 +5027,32 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     </div>
   </template>
   <template x-if="linkOrder.open&&linkOrder.done">
-    <div class="px-5 pt-16 text-center">
-      <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto text-3xl" style="background:#D1FAE5;color:#059669"><i class="fa-solid fa-check"></i></div>
-      <p class="font-display text-xl mt-4">অর্ডার পাঠানো হয়েছে!</p>
-      <p class="text-sm mt-2" style="color:var(--fg2)" x-text="'অর্ডার আইডি #'+linkOrder.done.id"></p>
-      <p class="text-xs mt-3 leading-relaxed" style="color:var(--fg3)">বিক্রেতা অর্ডারটি কনফার্ম করলে আমরা আপনার ঠিকানায় প্রোডাক্ট পাঠিয়ে দেব। আপনি এখন এই পেজ থেকে ব্যাক করে বের হয়ে যেতে পারেন।</p>
-      <button @click="exitLinkOrder()" class="btn-primary w-full mt-6" style="justify-content:center"><i class="fa-solid fa-xmark mr-2"></i>বন্ধ করুন</button>
-    </div>
+    <div class="dlg-back" style="position:fixed;z-index:360;background:var(--bg)"><div class="dlg" style="max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.18)">
+      <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto text-3xl trk-pop" style="background:#D1FAE5;color:#059669"><i class="fa-solid fa-check"></i></div>
+      <p class="font-display text-xl mt-4" x-text="'ধন্যবাদ, '+(linkOrder.name||'').trim().split(' ')[0]+'! 🎉'"></p>
+      <p class="text-sm mt-1 font-bold" style="color:#059669">আপনার অর্ডার সফলভাবে পাঠানো হয়েছে</p>
+      <p class="text-sm mt-2 font-mono font-bold" style="color:var(--accent)" x-text="'অর্ডার আইডি #'+linkOrder.done.id"></p>
+      <p class="text-xs mt-1" style="color:var(--fg2)" x-text="linkOrder.done.items&&linkOrder.done.items[0]?linkOrder.done.items[0].name+' × '+linkOrder.done.items[0].qty:''"></p>
+      <p class="text-xs mt-1" style="color:var(--fg2)" x-show="linkOrder.link&&linkOrder.link.shopName" x-text="'বিক্রেতা: '+(linkOrder.link&&linkOrder.link.shopName||'')"></p>
+      <p class="text-xs mt-3 leading-relaxed" style="color:var(--fg3)">বিক্রেতা অর্ডারটি কনফার্ম করলে আমরা আপনার ঠিকানায় প্রোডাক্ট পাঠিয়ে দেব। বিক্রেতা আপনার সাথে যোগাযোগ করতে পারেন।</p>
+      <p class="text-xs mt-3 font-semibold" style="color:#B45309" x-show="linkOrder.closeHint">এখন আপনি এই ট্যাব/অ্যাপ বন্ধ করে দিতে পারেন।</p>
+      <button @click="exitLinkOrder()" class="btn-primary w-full mt-5" style="justify-content:center"><i class="fa-solid fa-xmark mr-2"></i>বন্ধ করুন</button>
+    </div></div>
   </template>
 </div>
 
+<!-- ORDER STATUS POPUP (অ্যাডমিন স্ট্যাটাস বদলালে) -->
+<div x-show="ordPop.open" x-cloak class="dlg-back" style="z-index:340" @click.self="ordPopClose()"><div class="dlg" style="max-width:360px" x-show="ordPop.o">
+  <div x-show="ordPop.st!=='বাতিল'" class="ord-hero rounded-2xl" style="background:var(--bg2)" x-html="ordPop.o?trackHero(ordPop.st,true):''"></div>
+  <div x-show="ordPop.st==='বাতিল'" class="dlg-ic" style="background:#FEE2E2;color:#DC2626"><i class="fa-solid fa-circle-xmark"></i></div>
+  <p class="dlg-t mt-3" x-text="ordPopTxt().t"></p>
+  <p class="text-xs font-mono font-bold mt-1" style="color:var(--accent)" x-text="'অর্ডার #'+(ordPop.o?.id||'')+(ordPopPid()?' · পণ্য ID #'+ordPopPid():'')"></p>
+  <p class="dlg-p" x-text="ordPopTxt().d"></p>
+  <p class="text-xs mt-1" style="color:var(--fg3)" x-show="ordPop.o?.items?.[0]?.name" x-text="ordPop.o?.items?.[0]?.name"></p>
+  <div x-show="ordPop.st==='প্রসেসিং'" class="mt-3 rounded-xl p-2.5 text-xs font-semibold" style="background:#FFFBEB;border:1px solid #F59E0B;color:#92400E;text-align:left"><i class="fa-solid fa-lock mr-1"></i>অর্ডার গ্রহণ হয়ে যাওয়ায় এখন আর বাতিল বা পরিবর্তন করা যাবে না। প্রয়োজনে সাপোর্টে যোগাযোগ করুন।<a x-show="settings.supportPhone||settings.shopPhone" :href="'tel:'+(settings.supportPhone||settings.shopPhone)" class="block mt-1.5 font-bold" style="color:#16A34A;text-decoration:none"><i class="fa-solid fa-phone mr-1"></i><span x-text="settings.supportPhone||settings.shopPhone"></span></a></div>
+  <a x-show="ordPop.o&&ordPop.st!=='বাতিল'&&trkUrl(ordPop.o)" :href="ordPop.o?trkUrl(ordPop.o):'#'" target="_blank" rel="noopener" class="trk3d-btn mt-3" style="display:flex;justify-content:center;text-decoration:none"><i class="fa-solid fa-location-arrow"></i> কুরিয়ার ট্র্যাকিং</a>
+  <div class="flex gap-2 mt-4"><button @click="ordPopClose()" class="dlg-b2">ঠিক আছে</button><button @click="ordPopView()" class="dlg-b1">অর্ডার দেখুন</button></div>
+</div></div>
 <!-- PRICE POPUP -->
 <div x-show="pvPopup" x-cloak class="dlg-back" @click.self="pvPopup=''"><div class="dlg" x-show="postView">
   <div class="dlg-ic" :style="pvPopup==='low'?'background:#FEE2E2;color:#DC2626':'background:#FEF3C7;color:#B45309'"><i class="fa-solid" :class="pvPopup==='low'?'fa-circle-xmark':'fa-triangle-exclamation'"></i></div>
@@ -5252,6 +5272,7 @@ function App(){return{
   sellLinkModal:{open:false,url:'',price:0,p:null,busy:false,saving:false,saveErr:''},
   resellBlocked:false,activeLinkRec:null,
   resellGate:false,rgPop:false,resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
+  ordPop:{open:false,o:null,st:'',q:[]},
   linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null},
   _dlChecked:false,_dlMiss:0,
   resellFeedMode:'all',resellSearchMode:'name',
@@ -5600,7 +5621,7 @@ function App(){return{
     this.showToast('প্রোমো কোড প্রয়োগ হয়েছে! 🎉','success');
   },
   _ordScan(o){
-    const pn=((o.items||[])[0]||{}).name,sfx=pn?' — '+pn:'',add=(k,ic,ti,bd,ts)=>{if(this._ordN.some(x=>x.fbKey===k))return;this._ordN.push({fbKey:k,icon:ic,title:ti,body:bd,orderId:o.id,date:new Date(ts).toISOString()})};
+    const _i0=(o.items||[])[0]||{},pn=_i0.name,sfx=(pn?' — '+pn:'')+(_i0.productId?' · পণ্য ID #'+_i0.productId:''),add=(k,ic,ti,bd,ts)=>{if(this._ordN.some(x=>x.fbKey===k))return;this._ordN.push({fbKey:k,icon:ic,title:ti,body:bd,orderId:o.id,date:new Date(ts).toISOString()})};
     const M={'পেন্ডিং':['fa-solid fa-receipt','অর্ডার গ্রহণ করা হয়েছে'],'প্রসেসিং':['fa-solid fa-boxes-packing','প্যাকিং/প্রসেসিং শুরু হয়েছে'],'পাঠানো হচ্ছে':['fa-solid fa-truck-fast','কুরিয়ারে পাঠানো হয়েছে'],'ডেলিভারিতে':['fa-solid fa-truck-fast','ডেলিভারির জন্য বের হয়েছে'],'ডেলিভার্ড':['fa-solid fa-house-circle-check','ডেলিভারি সম্পন্ন হয়েছে'],'বাতিল':['fa-solid fa-circle-xmark','অর্ডার বাতিল হয়েছে']}[o.status];
     if(M)add('st'+o.id+'_'+o.status,M[0],'অর্ডার #'+o.id,M[1]+sfx,o.trackUpdatedAt||(this._ordFirst?0:Date.now()));
     (o.trackLog||[]).forEach(e=>add('trk'+o.id+'_'+e.t,'fa-solid fa-location-dot','অর্ডার #'+o.id+' — আপডেট',e.text+sfx,e.t||0));
@@ -5615,7 +5636,7 @@ function App(){return{
             const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
             if(localIdx>-1){
               const prev=this.myOrders[localIdx];
-              if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
+              if(prev.status!==fbOrder.status){this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');try{this._ordPopPush(fbOrder)}catch(e){}}
               if((fbOrder.adjustments||[]).length&&JSON.stringify(fbOrder.adjustments)!==JSON.stringify(prev.adjustments||[])){const _a=fbOrder.adjustments[fbOrder.adjustments.length-1];this.showToast('💰 #'+fbOrder.id+': মূল্য সমন্বয়'+(_a&&_a.reason?' — '+_a.reason:''),'success')}
               if(fbOrder.trackNote&&prev.trackNote!==fbOrder.trackNote)this.showToast('🚚 #'+fbOrder.id+': '+fbOrder.trackNote,'success');
               this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,fbKey:fbOrder.fbKey||prev.fbKey,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0,total:(fbOrder.total!==undefined?fbOrder.total:prev.total),adjustments:fbOrder.adjustments||[],origTotal:fbOrder.origTotal||null,dueOnDelivery:(fbOrder.dueOnDelivery!==undefined?fbOrder.dueOnDelivery:prev.dueOnDelivery),refundDue:fbOrder.refundDue||0};
@@ -5627,6 +5648,29 @@ function App(){return{
           if(this.inv&&this.inv.open){const l=this.myOrders.find(x=>String(x.id)===String(this.inv.order.id));if(l)this.inv.order=l}
           if(!this._qrDone){const q=new URLSearchParams(location.search).get('order');const l=q&&this.myOrders.find(x=>String(x.id)===q);if(l){this._qrDone=true;this.activeTab='orders';this.showInvoice(l)}}
           this._attachKeys();
+  },
+  // ══ অর্ডার স্ট্যাটাস পপআপ (অ্যাডমিন স্ট্যাটাস বদলালে তাৎক্ষণিক অ্যালার্ট) ══
+  _ordPopPush(fo){
+    if(!['প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড','বাতিল'].includes(fo.status))return;
+    const q=this.ordPop.q;
+    if(this.ordPop.open&&this.ordPop.o&&String(this.ordPop.o.id)===String(fo.id)&&this.ordPop.st===fo.status)return;
+    if(q.some(x=>String(x.id)===String(fo.id)&&x.status===fo.status))return;
+    q.push({...fo});
+    setTimeout(()=>this._ordPopNext(),350);
+  },
+  _ordPopNext(){const q=this.ordPop.q;if(this.ordPop.open||!q.length)return;const o=q.shift();this.ordPop={...this.ordPop,open:true,o,st:o.status};try{navigator.vibrate&&navigator.vibrate([60,40,60])}catch(e){}},
+  ordPopClose(){this.ordPop={...this.ordPop,open:false,o:null};setTimeout(()=>this._ordPopNext(),250)},
+  ordPopView(){this.ordPopClose();this.activeTab='orders';this.oFilt='সব'},
+  ordPopPid(){const it=((this.ordPop.o||{}).items||[])[0]||{};return it.productId||''},
+  ordPopTxt(){
+    const st=this.ordPop.st,o=this.ordPop.o||{};
+    const m={
+      'প্রসেসিং':{t:'অর্ডার গ্রহণ করা হয়েছে',d:'আপনার পণ্য এখন সাবধানে প্যাকিং করা হচ্ছে।'},
+      'পাঠানো হচ্ছে':{t:'পণ্য প্যাক হয়ে কুরিয়ারে গেছে',d:'আপনার পণ্য প্যাক করে কুরিয়ারের কাছে হস্তান্তর করা হয়েছে।'},
+      'ডেলিভার্ড':{t:'ডেলিভারি সম্পন্ন!',d:'আপনার পণ্য ডেলিভারি হয়েছে। আমাদের সাথে থাকার জন্য ধন্যবাদ।'},
+      'বাতিল':{t:'অর্ডার বাতিল হয়েছে',d:'এই অর্ডারটি বাতিল করা হয়েছে।'}
+    }[st]||{t:st,d:''};
+    return m;
   },
   _attachKeys(){this._keyL=this._keyL||{};(this.myOrders||[]).forEach(o=>{if(o.fbKey&&!this._keyL[o.fbKey]&&!this._hid.includes(String(o.id))){this._keyL[o.fbKey]=1;window.$db.listenOrderKey(o.fbKey,fo=>{if(fo)this._syncOrders([fo])})}})},
   ordTotal(o){const adj=(o.adjustments||[]).reduce((s,e)=>s+(Number(e.amount)||0),0),tt=Number(o.total)||0,og=Number(o.origTotal);return(adj&&og&&tt===og)?Math.max(0,og+adj):tt},
@@ -5766,18 +5810,20 @@ function App(){return{
     else if(btn.link){const _s=this.safeUrl(btn.link);if(_s)window.open(_s,'_blank','noopener');}
   },
 
+  retryEarlyLink(){this._elStarted=false;this._dlChecked=false;this.linkOrder={...this.linkOrder,netFail:false,loading:true};this._earlyLink()},
   async _earlyLink(){
     const l=new URLSearchParams(location.search).get('l');if(!l||this._elStarted)return;this._elStarted=true;
     this.linkOrder={...this.linkOrder,open:true,loading:true,gone:false,expired:false,p:null,link:null,done:null};
     for(let i=0;i<60&&!(window.$db&&window.$db.getSharedLink);i++)await new Promise(r=>setTimeout(r,100));
     const dead=(gone)=>{this._dlChecked=true;this.linkOrder={...this.linkOrder,open:true,loading:false,gone,expired:!gone,p:null,link:null,done:null}};
-    let link=null;try{link=await window.$db.getSharedLink(l)}catch(e){}
-    if(!link)return dead(true);
+    let link=null,_to=false;
+    for(let k=0;k<3&&!link;k++){try{const r=await this._wt(window.$db.getSharedLink(l),7000,undefined);if(r===undefined){_to=true;continue}_to=false;link=r;break}catch(e){_to=true}}
+    if(!link){if(_to){this.linkOrder={...this.linkOrder,open:true,loading:true,netFail:true};return}return dead(true)}
     const exp=Number(link.expiresAt)||0,now=Date.now();
     if(exp&&now>exp+864e5){window.$db.removeSharedLink(l);return dead(true)}
     if(exp&&now>exp){this._dlLink=link;return dead(false)}
-    let pr=null;try{pr=await window.$db.getOnce('products/'+link.productKey)}catch(e){}
-    if(!pr)return;   // সাধারণ পথে (সব প্রোডাক্ট লোড হলে) খুলবে
+    let pr=null;for(let k=0;k<2&&!pr;k++){try{pr=await this._wt(window.$db.getOnce('products/'+link.productKey),7000,null)}catch(e){}}
+    if(!pr){setTimeout(()=>{if(this.linkOrder.open&&this.linkOrder.loading&&!this.linkOrder.p)this.linkOrder={...this.linkOrder,netFail:true}},9000);return}   // সাধারণ পথে (সব প্রোডাক্ট লোড হলে) খুলবে
     const p={...pr,fbKey:link.productKey,sizes:this.splitList(pr.sizes||pr.size||pr.sizeList,true),colors:this.splitList(pr.colors),price:this._num(pr.price),oldPrice:this._num(pr.oldPrice),resellerPrice:this._num(pr.resellerPrice)};
     if(!(p.price>0)||!p.name)return;
     this._dlChecked=true;this._dlLink=link;this.openLinkOrder(p,link,l);
@@ -7424,7 +7470,7 @@ function App(){return{
     if(exp&&now>exp+864e5){window.$db.removeSharedLink(id);this.linkOrder={...this.linkOrder,open:true,gone:true,expired:false,p:null,link:null,done:null};return}   // ১ দিন পর পুরো উধাও
     this._linkTick();
     this.linkOrder={open:true,gone:false,expired:!!(exp&&now>exp),exp,left:exp?Math.max(0,Math.ceil((exp-now)/1000)):0,loading:false,p,link,linkId:id,size:'',color:'',vi:0,qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null}},
-  get loShipping(){const d=this.linkOrder.division;return d?(d==='ঢাকা'?80:150):0},
+  get loShipping(){const d=this.linkOrder.division;return d?this.shipRate(d):0},
   get loGrand(){const o=this.linkOrder;return o.p&&o.link?(Number(o.link.price)||0)*o.qty+this.loShipping:0},
   get loTotal(){const o=this.linkOrder;if(!(o.p&&o.link))return 0;const sub=(Number(o.link.price)||0)*o.qty;return o.advance==='yes'?sub:sub+this.loShipping},
   loCatPath(){const p=this.linkOrder.p;if(!p||!p.cat)return '';try{const c=this.allCategories.find(x=>x.name===this._cn(p.cat));return (c&&c.parent)?(c.parent+' › '+c.name):String(p.cat)}catch(e){return String(p.cat)}},
@@ -7443,7 +7489,7 @@ function App(){return{
     o.placing=true;
     const price=Number(l.price),img=(p.images&&p.images[0])||p.img||'';
     const order={
-      id:Math.floor(10000+Math.random()*90000),
+      id:(o.oid||(o.oid=Math.floor(10000+Math.random()*90000))),
       date:new Date().toLocaleDateString('bn-BD',{year:'numeric',month:'long',day:'numeric'}),
       timestamp:new Date().toISOString(),
       status:'রিসেলার অ্যাপ্রুভাল',uid:localStorage.getItem('dd_uid')||'',
@@ -7453,15 +7499,24 @@ function App(){return{
       items:[{id:p.id||p.fbKey,name:p.name,price:p.price,resellerPrice:p.resellerPrice||0,resellerSellPrice:price,genCommission1:p.genCommission1||0,genCommission2:p.genCommission2||0,genCommission3:p.genCommission3||0,qty:o.qty,size:o.size||'',color:o.color||'',variantImg:((p.images||[])[o.vi]||''),variantNo:(o.vi||0)+1,productId:p.productId||'',img,images:p.images||[]}],
       subtotal:price*o.qty,shipping:this.loShipping,total:this.loGrand,trackingLink:null,
     };
+    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);if(_um!==undefined)order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap-এর সমান
+    const _k=o.key||(o.key='lk'+Date.now().toString(36)+Math.random().toString(36).slice(2,7));
     try{
-      await window.$db.saveOrder(order);
+      let _ok=false;
+      try{_ok=!!(await this._wt(window.$db.saveOrder(order,_k).then(()=>true),20000,false))}
+      catch(e){
+        if(/permission/i.test(String((e&&(e.code||e.message))||''))){const ex=await this._wt(window.$db.getOnce('orders/'+_k),5000,null);if(ex&&String(ex.id)===String(order.id))_ok=true;else throw e}else throw e;
+      }
+      if(!_ok){this.showToast('নেটওয়ার্ক ধীর — আবার "অর্ডার কনফার্ম করুন" চাপুন (ডুপ্লিকেট হবে না)','error');o.placing=false;this.linkOrder.placing=false;return}
       this.myOrders.unshift(order);try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}
       this.linkOrder.done=order;
+      // ধন্যবাদ পপআপ চলাকালীন মূল সাইটে ফেরা আটকানো (ব্যাক চাপলেও)
+      try{history.pushState({lo:1},'',location.href);const _g=()=>{if(this.linkOrder.done){try{history.pushState({lo:1},'',location.href)}catch(e){}this.linkOrder.closeHint=true}else window.removeEventListener('popstate',_g)};window.addEventListener('popstate',_g)}catch(e){}
     }catch(e){this.showToast('অর্ডার ব্যর্থ! আবার চেষ্টা করুন। '+((e&&e.code)||''),'error')}
     this.linkOrder.placing=false;
   },
   closeLinkOrder(){this.linkOrder={...this.linkOrder,open:false};try{history.replaceState(null,'',location.pathname)}catch(e){}},
-  exitLinkOrder(){const done=!!this.linkOrder.done;let left=false;const onHide=()=>{left=true};window.addEventListener('pagehide',onHide,{once:true});
+  exitLinkOrder(){const done=!!this.linkOrder.done;if(done){try{window.close()}catch(e){}setTimeout(()=>{this.linkOrder.closeHint=true},400);return}let left=false;const onHide=()=>{left=true};window.addEventListener('pagehide',onHide,{once:true});
     try{if(history.length>1){history.back()}else{window.close()}}catch(e){}
     setTimeout(()=>{if(left)return;try{window.close()}catch(e){}setTimeout(()=>{if(!left&&!done)this.closeLinkOrder()},250)},450)},
   get pendingLinkOrders(){return this.myResellOrders.filter(o=>o.status==='রিসেলার অ্যাপ্রুভাল')},
