@@ -6177,7 +6177,7 @@ function App(){return{
       try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
       this.placing=false;
       const _c=(e&&e.code)||'';
-      let _why='';try{if(/permission/i.test(_c))_why=await this._wt(this._orderDiag(order,orderKey),5000,'')}catch(_){}
+      let _why='';try{if(/permission/i.test(_c))_why=await this._wt(this._orderDiag(order,orderKey),9000,'[v3] পরীক্ষা শেষ হয়নি (ধীর নেট)')}catch(_){}
       if(!_why&&this._reusedKey)_why='এই TrxID দিয়ে আগের চেষ্টায় অর্ডার সার্ভারে সেভ হয়ে থাকতে পারে — "অর্ডার" ট্যাবে দেখুন, নইলে নতুন TrxID দিন';
       if(_why)console.warn('order diag:',_why);
       return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c+(_why?' — সম্ভাব্য কারণ: '+_why:''):'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c),'error')}
@@ -6213,7 +6213,8 @@ function App(){return{
       else{if(c.refKey!==key)r.push('TrxID অন্য অর্ডার কী-এর সাথে বাঁধা');if(c.uid!==cu.uid)r.push('TrxID অন্য ইউজারের নামে লক');}
     }
     if(st.orderRateLimit===true){const rt=await g('orderRate/'+cu.uid);if(!rt||rt.refKey!==key)r.push('অর্ডার-ফ্লাড ব্রেক চালু — ২০ সেকেন্ড পরে আবার চেষ্টা করুন')}
-    return r.join('; ');
+    if(!r.length)return'[v3] সাইটের দিকের সব শর্ত ঠিক আছে (অথ:'+(cu.email?'email':'anon')+', uid:'+(o.uid?'আছে':'ফাঁকা')+', চার্জ:'+o.shipping+'/'+d+'-'+out+', টোটাল:'+o.total+', ধরন:'+o.payType+', কী:'+(this._reusedKey?'পুরনো':'নতুন')+') — Firebase-এ লাইভ Rules সম্ভবত আপনার rulss ফাইলের থেকে আলাদা';
+    return'[v3] '+r.join('; ');
   },
 
   showInvoice(o){
