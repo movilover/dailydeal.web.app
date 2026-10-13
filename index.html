@@ -181,7 +181,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
     // পূর্ণ লিস্টেনার — এরর হলে নিজে থেকে আবার চেষ্টা করে
     let tries=0;
     const full=()=>{try{onValue(ref(db,'products'),s=>{cb(toArr(s),true)},e=>{console.warn('products full',e&&e.code);if(tries++<4)setTimeout(full,2000+tries*1500);else cb(null,false,true)},{onlyOnce:false})}catch(e){cb(null,false,true)}};
-    full();
+    setTimeout(full,900);
   },
   // ইনডেক্সড কুয়েরি: নির্দিষ্ট ক্যাটাগরি/সেকশন/ফ্ল্যাগের পণ্য সরাসরি আনে (পুরো লিস্ট লোডের অপেক্ষা ছাড়াই)
   getProductsByChild:async(child,val)=>{try{const s=await get(query(ref(db,'products'),orderByChild(child),equalTo(val)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('byChild',child,e&&e.code);return[]}},
@@ -3222,6 +3222,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
           </div>
           <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad&&form.district" x-cloak><label class="dd-label">উপজেলা / থানা *</label><input class="dd-input" x-model="form.upazila" maxlength="80" placeholder="যেমন: সাভার / মিরপুর থানা (লোকেশন না নিলে নিজে লিখুন)" autocomplete="off"/></div>
           <div x-show="!destAbroad&&form.district" x-transition.opacity.duration.250ms><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
       </div>
@@ -3342,6 +3343,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div x-show="form.division" class="mt-1.5 flex items-center gap-1.5 text-xs font-bold" :style="form.division==='ঢাকা'?'color:#16A34A':'color:#D97706'"><i class="fa-solid fa-truck text-xs"></i><span x-text="form.division==='ঢাকা'?'ঢাকা — ডেলিভারি: ৳৮০':'অন্য বিভাগ — ডেলিভারি: ৳১৫০'"></span></div>
           </div>
           <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad&&form.district" x-cloak><label class="dd-label">উপজেলা / থানা *</label><input class="dd-input" x-model="form.upazila" maxlength="80" placeholder="যেমন: সাভার / মিরপুর থানা (লোকেশন না নিলে নিজে লিখুন)" autocomplete="off"/></div>
           <div x-show="!destAbroad"><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
       </div>
@@ -3437,6 +3439,12 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status"></span>
         </div>
         <div x-show="o.status!=='বাতিল'&&o.status!=='ডেলিভার্ড'" class="mx-4 mt-3 rounded-2xl pt-2" style="background:var(--bg2)" x-html="trackHero(o.status,true)"></div>
+        <div x-show="o.adjustments&&o.adjustments.length" x-cloak class="mx-4 mt-3 rounded-2xl p-3" style="background:#FFFBEB;border:1px solid #F59E0B">
+          <p class="text-xs font-bold mb-1.5" style="color:#92400E"><i class="fa-solid fa-scale-balanced"></i> অ্যাডমিন মূল্য সমন্বয়</p>
+          <template x-for="(e,i) in (o.adjustments||[])" :key="'adj'+i"><div class="flex items-start justify-between gap-2 text-xs py-1" style="border-top:1px dashed #FCD34D"><span style="color:var(--fg)"><b x-text="e.kind==='delivery'?'ডেলিভারি চার্জ':'পণ্যের দাম'"></b><span x-text="e.reason?' — '+e.reason:''"></span></span><b class="font-mono flex-shrink-0" :style="e.amount<0?'color:#16A34A':'color:#DC2626'" x-text="(e.amount<0?'−৳':'+৳')+Math.abs(e.amount).toLocaleString()"></b></div></template>
+          <p class="text-xs font-bold mt-1.5" style="color:var(--fg)">বর্তমান মোট ৳<span x-text="Number(o.total||0).toLocaleString()"></span><span x-show="o.origTotal" style="color:var(--fg3);font-weight:600" x-text="' (আগে ৳'+Number(o.origTotal||0).toLocaleString()+')'"></span></p>
+          <p class="text-xs font-semibold mt-0.5" style="color:#15803D" x-show="o.refundDue>0" x-text="'অতিরিক্ত পরিশোধিত ৳'+Number(o.refundDue).toLocaleString()+' সমন্বয়/ফেরত করা হবে'"></p>
+        </div>
         <div x-show="trkUrl(o)||o.trackNote||(o.trackLog&&o.trackLog.length)" class="mx-4 mt-3 rounded-2xl p-3" style="background:var(--accentL);border:1px solid var(--accent)" x-data="{tl:false}">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accent)"><i class="fa-solid fa-truck-fast text-white text-sm"></i></div>
@@ -4629,8 +4637,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div>
 <div x-show="resellCategoryCounts.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">এখনো কোনো ক্যাটাগরি নেই</p></div>
             <template x-for="section in allSections" :key="section.fbKey||section.id">
-              <div class="rs-sec" x-show="resellSecCats(section).length>0||resellSecProds(section).length>0">
-                <div class="rs-head" :style="'--c1:'+(section.color||'#ec4899')"><span x-text="section.name+' ('+resellSecCats(section).reduce((a,c)=>a+(c.count||0),0).toLocaleString('bn-BD')+')'"></span></div>
+              <div class="rs-sec">
+                <div class="rs-head" :style="'--c1:'+resellHeadColor"><span x-text="section.name+' ('+Number(resellSecProds(section).length).toLocaleString('bn-BD')+')'"></span></div>
+                <p class="text-xs text-center py-3" style="color:var(--fg3)" x-show="resellSecCats(section).length===0&&resellSecProds(section).length===0">এই সেকশনে এখনো ক্যাটাগরি যোগ হয়নি</p>
                 <div class="rs-grid">
                 <div class="rs-card" x-show="resellSecProds(section).length>0" @click="resellActiveCat='সব';resellActiveSec=(section.fbKey||section.id);resellSubTab='post'">
                   <span class="rs-cnt" x-text="Number(resellSecProds(section).length).toLocaleString('bn-BD')"></span>
@@ -5234,7 +5243,7 @@ function App(){return{
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null},locBusy:false,locMsg:'',intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -5465,7 +5474,7 @@ function App(){return{
   _secGender(s){const n=String(s.name||'');if(s.gender==='men'||s.gender==='women')return s.gender;if(/ছেলে|পুরুষ|জেন্টস|men|boy|male/i.test(n)&&!/মেয়ে|women/i.test(n))return'men';if(/মেয়ে|মহিলা|লেডিস|women|girl|female|ladies/i.test(n))return'women';return''},
   _catSec(c,d=0){const ids=this._realSecs.map(s=>s.fbKey||s.id),own=c.section||c.sectionId;if(own&&ids.includes(own))return own;if(c.parent&&d<3){const pr=this.allCategories.find(x=>x.name===c.parent);if(pr){const r=this._catSec(pr,d+1);if(r)return r}}if(c.gender==='men'||c.gender==='women'){const s=this._realSecs.find(s=>this._secGender(s)===c.gender);if(s)return s.fbKey||s.id}return''},
   get homeSecObj(){return this.homeSec?(this._realSecs.find(s=>(s.fbKey||s.id)===this.homeSec)||null):null},
-  get _realSecs(){return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>(a.order||99)-(b.order||99))},
+  get _realSecs(){const o=s=>{const n=Number(s.order);return Number.isFinite(n)&&s.order!==''&&s.order!==null&&s.order!==undefined?n:99};return this.fbSections.filter(s=>s&&s.name).sort((a,b)=>o(a)-o(b))},
   get allSections(){
     const r=this._realSecs,ids=new Set(r.map(s=>s.fbKey||s.id));
     const orph=this.allCategories.some(c=>!c.parent&&!this._catSec(c));
@@ -5518,17 +5527,21 @@ function App(){return{
     if(!this.appliedPromo)return 0;
     const code=this.appliedPromo.toUpperCase();
     return this.cart.reduce((s,it)=>{
-      if((it.promoCode||'').toUpperCase()===code&&it.promoDiscountPct){
-        return s+Math.round(it.price*it.qty*this._num(it.promoDiscountPct)/100);
+      const pr=this._livePromo(it);
+      if(pr.code===code&&pr.pct>0){
+        return s+Math.round(it.price*it.qty*pr.pct/100);
       }
       return s;
     },0);
   },
+  // কার্টের কপি পুরনো হতে পারে — প্রমো কোড/ছাড় সবসময় লাইভ পণ্য থেকে নেওয়া হয়
+  _livePromo(it){const k=it.fbKey||it.id,lp=this.fbProducts.find(p=>(p.fbKey||p.id)===k)||it;return{code:String(lp.promoCode||'').trim().toUpperCase(),pct:Number(this._num(lp.promoDiscountPct))||0}},
   applyPromoCode(){
-    const code=(this.form.promoCode||'').trim().toUpperCase();
+    const code=(this.form.promoCode||'').trim().toUpperCase().replace(/\s+/g,'');
     if(!code)return this.showToast('একটি প্রোমো কোড লিখুন!','error');
-    const match=this.cart.some(it=>(it.promoCode||'').toUpperCase()===code);
-    if(!match)return this.showToast('কোডটি সঠিক নয় অথবা এই পণ্যে প্রযোজ্য নয়!','error');
+    const match=this.cart.some(it=>this._livePromo(it).code===code);
+    if(!match)return this.showToast('কোডটি সঠিক নয় অথবা কার্টের কোনো পণ্যে প্রযোজ্য নয়!','error');
+    if(!this.cart.some(it=>this._livePromo(it).code===code&&this._livePromo(it).pct>0))return this.showToast('এই কোডে এখন কোনো ছাড় নেই','error');
     this.appliedPromo=code;
     this.showToast('প্রোমো কোড প্রয়োগ হয়েছে! 🎉','success');
   },
@@ -5620,9 +5633,10 @@ function App(){return{
         }
         const parts=[a.house_number,a.road,a.neighbourhood,a.suburb,a.village,a.hamlet,a.town||a.city_district].filter(Boolean);
         const txt=(parts.length?parts.join(', '):String(j.display_name||'').split(',').slice(0,3).join(',')).slice(0,250);
+        {const nz=s=>String(s||'').replace(/\s*(উপজেলা|থানা|Upazila|Thana|সদর)\s*/gi,' ').trim();const dn=nz(this.form.district);const uc=[a.county,a.suburb,a.city_district,a.town,a.municipality,a.village].map(nz).filter(x=>x&&x!==dn);if(uc[0]&&!String(this.form.upazila||'').trim())this.form.upazila=uc[0].slice(0,80)}
         this.form.loc.address=txt;
         if(txt&&!String(this.form.address||'').trim())this.form.address=txt;
-        this.locMsg=(dv?('বিভাগ: '+dv+(this.form.district?', জেলা: '+this.form.district:'')+'। '):'')+(txt?'ঠিকানা: '+txt:'')+' — ঠিক না হলে নিজে বদলে নিন।';
+        this.locMsg=(dv?('বিভাগ: '+dv+(this.form.district?', জেলা: '+this.form.district:'')+(this.form.upazila?', উপজেলা: '+this.form.upazila:'')+'। '):'')+(txt?'ঠিকানা: '+txt:'')+' — ঠিক না হলে নিজে বদলে নিন।';
       }catch(e){this.locMsg='লোকেশন পাওয়া গেছে (স্থানাঙ্ক সেভ হবে), তবে ঠিকানা নিজে লিখুন।'}
       this.locBusy=false;this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
     },err=>{
@@ -5631,6 +5645,7 @@ function App(){return{
       this.locMsg=m;this.showToast(m,'error');
     },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
   },
+  get resellHeadColor(){const w=this._realSecs.find(s=>this._secGender(s)==='women')||this._realSecs.find(s=>/মেয়ে|মহিলা|লেডিস|women|girl|ladies/i.test(s.name||''));return (w&&w.color)||'#6B7280'},
   get resellFeedCats(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec){const n=new Set(this.getSectionCategories(sec).map(c=>c.name));return this.resellCategories.filter(c=>n.has(c.name))}}return this.resellCategories},
   resellSecProds(section){const ids=new Set(this.getSectionProducts(section).map(p=>p.fbKey||p.id));return this.resellableProducts.filter(p=>ids.has(p.fbKey||p.id))},
   resellSecCats(section){const n=new Set(this.getSectionCategories(section).map(c=>c.name));return this.resellCategoryCounts.filter(c=>n.has(c.name))},
@@ -5702,6 +5717,14 @@ function App(){return{
     /* দ্রুত প্রথম পেইন্ট: আগের ভিজিটে ক্যাশ করা প্রোডাক্ট থাকলে সঙ্গে সঙ্গে দেখানো হয়,
        নেটওয়ার্ক রেসপন্স আসা পর্যন্ত অপেক্ষা না করেই — Firebase রেসপন্স এলে সাইলেন্টলি আপডেট হয়ে যাবে। */
     try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;this.prodsFull=true;}}}catch(e){}
+    /* স্টেল-হোয়াইল-রিভ্যালিডেট: আগের ভিজিটের ছোট ডাটা (সেকশন, ক্যাটাগরি, বাটন কনফিগ, সেটিংস) সঙ্গে সঙ্গে দেখানো; নেটওয়ার্ক ডাটা এলে বদলে যায় */
+    try{const rd=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
+      const cc=rd('dd_c_cats');if(Array.isArray(cc)&&cc.length)this.fbCategories=cc;
+      const cs=rd('dd_c_secs');if(Array.isArray(cs)&&cs.length){this.fbSections=cs;this.secLoaded=true}
+      const cr=rd('dd_c_rcfg');if(cr&&typeof cr==='object')this.rcfg=cr;
+      const cb=rd('dd_c_btns');if(Array.isArray(cb))this.customButtons=cb;
+      const ct=rd('dd_c_set');if(ct){if(ct.settings)Object.assign(this.settings,ct.settings);if(ct.banners&&ct.banners.length)this.banners=ct.banners;if(ct.homepageLimit)this.homepageLimit=ct.homepageLimit;if(ct.gridCols)this.gridCols=ct.gridCols;if(ct.marqueeText){this.marqueeText=ct.marqueeText;this.marqueeEnabled=true}if(ct.tickers&&ct.tickers.length)this.tickers=ct.tickers}
+    }catch(e){}
     this._initHistoryNav();
     const sp=localStorage.getItem('dd_profile');if(sp)this.profile=JSON.parse(sp);
     this._dbReady().then(()=>{try{window.$auth.authReady.then(()=>{
@@ -5759,21 +5782,12 @@ function App(){return{
         this.fbKyc=mine?[mine]:[];
       });
       this._captureReferral();
-      window.$db.listenResellerConfig(c=>{this.rcfg=c||{};this._checkRPop()});
+      window.$db.listenResellerConfig(c=>{this.rcfg=c||{};try{localStorage.setItem('dd_c_rcfg',JSON.stringify(c||{}))}catch(e){}this._checkRPop()});
       window.$db.listenServices(s=>{this.fbServices=s.sort((a,b)=>(a.order||0)-(b.order||0))});
-      window.$db.listenProducts((prods,full,failed)=>{
-        if(failed){this.prodsFull=true;this.loading=false;return}
-        const n=this._normProds(prods);
-        if(full){this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
-        else{this._mergeProds(n);this.prodsFull=true}
-        this.loading=false;
-        try{this._openDeepLink()}catch(e){}
-        if(full){try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}}
-      });
-      window.$db.listenCategories(cats=>{this.fbCategories=cats});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
-      window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true});
+      window.$db.listenCategories(cats=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
+      window.$db.listenSections(sections=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true;try{localStorage.setItem('dd_c_secs',JSON.stringify(this.fbSections))}catch(e){}});
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
-      window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false)});
+      window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
       window.$db.listenPinnedProducts(pins=>{this.pinnedProductKeys=pins.map(p=>p.productKey||p.fbKey).filter(Boolean)});
       window.$auth.authReady.then(()=>{
         const myUid=localStorage.getItem('dd_uid')||'';
@@ -5785,7 +5799,7 @@ function App(){return{
               const prev=this.myOrders[localIdx];
               if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
               if(fbOrder.trackNote&&prev.trackNote!==fbOrder.trackNote)this.showToast('🚚 #'+fbOrder.id+': '+fbOrder.trackNote,'success');
-              this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0};
+              this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0,total:(fbOrder.total!==undefined?fbOrder.total:prev.total),adjustments:fbOrder.adjustments||[],origTotal:fbOrder.origTotal||null,dueOnDelivery:(fbOrder.dueOnDelivery!==undefined?fbOrder.dueOnDelivery:prev.dueOnDelivery),refundDue:fbOrder.refundDue||0};
             }
           });
           localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
@@ -5799,11 +5813,22 @@ function App(){return{
         if(s.gridCols)this.gridCols=s.gridCols;
         if(s.marqueeText){this.marqueeText=s.marqueeText;this.marqueeEnabled=true;}
         if(s.tickers&&s.tickers.length)this.tickers=s.tickers;
+        try{localStorage.setItem('dd_c_set',JSON.stringify({settings:s.settings,banners:s.banners,homepageLimit:s.homepageLimit,gridCols:s.gridCols,marqueeText:s.marqueeText,tickers:s.tickers}))}catch(e){}
       });
       window.$db.listenNotifications(notifs=>{
         const prev=this.notifications.length;
         this.notifications=notifs.sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));
         if(notifs.length>prev&&prev>0)this.unreadNotifs+=(notifs.length-prev);
+      });
+      /* ভারী প্রোডাক্ট লিস্ট সবশেষে (ছোট জরুরি ডাটার পেছনে আটকে রাখে না) */
+      window.$db.listenProducts((prods,full,failed)=>{
+        if(failed){this.prodsFull=true;this.loading=false;return}
+        const n=this._normProds(prods);
+        if(full){this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
+        else{this._mergeProds(n);this.prodsFull=true}
+        this.loading=false;
+        try{this._openDeepLink()}catch(e){}
+        if(full){try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}}
       });
       setTimeout(()=>{if(this.loading)this.loading=false},1200);
     },{once:true});
@@ -6096,6 +6121,7 @@ function App(){return{
     else{
     if(!this.form.division)return this.showToast('বিভাগ সিলেক্ট করুন!','error');
     if(!this.form.district)return this.showToast('জেলা সিলেক্ট করুন!','error');
+    if(!String(this.form.upazila||'').trim())return this.showToast('উপজেলা/থানা লিখুন!','error');
     if(!this.form.address.trim())return this.showToast('ঠিকানা দিন!','error');
     }
     if(this.form.pay==='cod'&&!this.codOn)return this.showToast('ক্যাশ অন ডেলিভারি এখন চালু নেই, প্রি-পেমেন্ট মেথড বেছে নিন।','error');
@@ -6110,7 +6136,7 @@ function App(){return{
       timestamp:new Date().toISOString(),
       status:'পেন্ডিং',uid:localStorage.getItem('dd_uid')||'',
       customerName:this.form.name,phone:this.otpNormPhone(this.form.phone),
-      division:this.form.division,district:this.form.district,address:this.form.address,
+      division:this.form.division,district:this.form.district,upazila:String(this.form.upazila||'').trim().slice(0,80),address:this.form.address,
       payMethod:pLabel,payType:this.form.pay==='cod'?'cod':'prepaid',trxId:this.form.pay!=='cod'?this.form.trxId:'',
       items:this.cart.map(i=>({id:i.id||i.fbKey,name:i.name,price:i.price,qty:i.qty,size:i.size||'',variantImg:i.variantImg||'',variantNo:i.variantNo||1,productId:i.productId||'',img:i.variantImg||i.images?.[0]||i.img||'',images:i.images||[]})),
       subtotal:this.cartSubtotal,shipping:this.shipping,codExtraCharge:this.codExtraCharge,prepaidDiscount:this.prepaidDiscountAmount,advanceShipDiscount:this.advanceShipDiscount,
@@ -6147,7 +6173,7 @@ function App(){return{
     this.myOrders.unshift(order);
     localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
     this.cart=[];localStorage.removeItem('dd_cart');
-    this.form.trxId='';this.form.promoCode='';this.appliedPromo=null;this.placing=false;
+    this.form.trxId='';this.form.promoCode='';this.form.loc=null;this.locMsg='';this.appliedPromo=null;this.placing=false;
     this.processingOrder=true;
     setTimeout(()=>{
       this.processingOrder=false;
@@ -6863,6 +6889,7 @@ function App(){return{
     if(!this.form.phone.trim())return this.showToast('মোবাইল নম্বর দিন!','error');
     if(!this.form.division)return this.showToast('বিভাগ সিলেক্ট করুন!','error');
     if(!this.form.district)return this.showToast('জেলা সিলেক্ট করুন!','error');
+    if(!String(this.form.upazila||'').trim())return this.showToast('উপজেলা/থানা লিখুন!','error');
     if(!this.form.address.trim())return this.showToast('ঠিকানা দিন!','error');
     if(!pi.trxId.trim())return this.showToast('ডাউনপেমেন্টের ট্রানজেকশন ID দিন!','error');
     if(this.kycRequiredForPending&&this.kycRecord?.status!=='approved'){
@@ -6878,7 +6905,7 @@ function App(){return{
       timestamp:new Date().toISOString(),
       status:'পেন্ডিং',uid,
       customerName:this.form.name,phone:this.otpNormPhone(this.form.phone),
-      division:this.form.division,district:this.form.district,address:this.form.address,
+      division:this.form.division,district:this.form.district,upazila:String(this.form.upazila||'').trim().slice(0,80),address:this.form.address,
       payMethod:'কিস্তি — '+this.paymentMethodLabel(pi.payMethod),payType:'installment',trxId:pi.trxId,
       items:[{id:p.fbKey||p.id,name:p.name,price:pi.total,qty:1,size:'',variantImg:(p.images&&p.images[0])||p.img||'',img:(p.images&&p.images[0])||p.img||''}],
       subtotal:pi.total,shipping,codExtraCharge:0,prepaidDiscount:0,advanceShipDiscount:0,
