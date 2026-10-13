@@ -199,6 +199,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenIntlCats:(cb)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenOrderKey:(k,cb)=>onValue(ref(db,'orders/'+k),s=>{const v=s.val();cb(v?{fbKey:k,...v}:null)},e=>{console.warn('orderKey',e&&e.code)}),
   listenUserNotifs:(u,cb)=>{if(!u)return cb([]);return onValue(ref(db,'userNotifs/'+u),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},e=>{console.warn('userNotifs',e&&e.code)})},
   listenNotifications:(cb)=>onValue(ref(db,'notifications'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCustomButtons:(cb)=>onValue(ref(db,'customButtons'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -5605,6 +5606,29 @@ function App(){return{
     (o.trackLog||[]).forEach(e=>add('trk'+o.id+'_'+e.t,'fa-solid fa-location-dot','অর্ডার #'+o.id+' — আপডেট',e.text+sfx,e.t||0));
     (o.adjustments||[]).forEach((e,i)=>add('adj'+o.id+'_'+(e.t||i)+'_'+e.amount,'fa-solid fa-scale-balanced','অর্ডার #'+o.id+' — '+(e.amount<0?'টাকা কমানো/ডিসকাউন্ট':'মূল্য সমন্বয়'),(e.kind==='delivery'?'ডেলিভারি চার্জ ':'পণ্যের দাম ')+(e.amount<0?'−৳':'+৳')+Math.abs(e.amount||0).toLocaleString()+(e.reason?' · কারণ: '+e.reason:'')+' · বর্তমান মোট ৳'+Number(o.total||0).toLocaleString(),e.t||(this._ordFirst?0:Date.now())));
   },
+  _syncOrders(orders){
+          orders.forEach(fbOrder=>{
+            ['trackLog','adjustments','items'].forEach(k=>{if(fbOrder[k]&&!Array.isArray(fbOrder[k]))fbOrder[k]=Object.values(fbOrder[k])});
+            if(this._hid.includes(String(fbOrder.id)))return;
+            fbOrder.status=this.normSt(fbOrder.status);
+            this._ordScan(fbOrder);
+            const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
+            if(localIdx>-1){
+              const prev=this.myOrders[localIdx];
+              if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
+              if((fbOrder.adjustments||[]).length&&JSON.stringify(fbOrder.adjustments)!==JSON.stringify(prev.adjustments||[])){const _a=fbOrder.adjustments[fbOrder.adjustments.length-1];this.showToast('💰 #'+fbOrder.id+': মূল্য সমন্বয়'+(_a&&_a.reason?' — '+_a.reason:''),'success')}
+              if(fbOrder.trackNote&&prev.trackNote!==fbOrder.trackNote)this.showToast('🚚 #'+fbOrder.id+': '+fbOrder.trackNote,'success');
+              this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,fbKey:fbOrder.fbKey||prev.fbKey,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0,total:(fbOrder.total!==undefined?fbOrder.total:prev.total),adjustments:fbOrder.adjustments||[],origTotal:fbOrder.origTotal||null,dueOnDelivery:(fbOrder.dueOnDelivery!==undefined?fbOrder.dueOnDelivery:prev.dueOnDelivery),refundDue:fbOrder.refundDue||0};
+            }else{this.myOrders.unshift({...fbOrder,trackLog:fbOrder.trackLog||[],adjustments:fbOrder.adjustments||[]})}
+          });
+          localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
+          try{localStorage.setItem('dd_ordN',JSON.stringify(this._ordN.slice(-300)))}catch(e){}
+          this._mergeNotifs();this._ordFirst=false;
+          if(this.inv&&this.inv.open){const l=this.myOrders.find(x=>String(x.id)===String(this.inv.order.id));if(l)this.inv.order=l}
+          if(!this._qrDone){const q=new URLSearchParams(location.search).get('order');const l=q&&this.myOrders.find(x=>String(x.id)===q);if(l){this._qrDone=true;this.activeTab='orders';this.showInvoice(l)}}
+          this._attachKeys();
+  },
+  _attachKeys(){this._keyL=this._keyL||{};(this.myOrders||[]).forEach(o=>{if(o.fbKey&&!this._keyL[o.fbKey]&&!this._hid.includes(String(o.id))){this._keyL[o.fbKey]=1;window.$db.listenOrderKey(o.fbKey,fo=>{if(fo)this._syncOrders([fo])})}})},
   ordTotal(o){const adj=(o.adjustments||[]).reduce((s,e)=>s+(Number(e.amount)||0),0),tt=Number(o.total)||0,og=Number(o.origTotal);return(adj&&og&&tt===og)?Math.max(0,og+adj):tt},
   _deriveNotifs(){return this._ordN},
   _mergeNotifs(){const prev=(this.notifications||[]).length,lim=Date.now()-this.notifDays*864e5;const all=[...(this._gN||[]),...(this._userNotifs||[]).map(n=>({...n,fbKey:'u'+n.fbKey,icon:n.icon||'fa-solid fa-envelope'})),...this._ordN].filter(n=>{const d=new Date(n.date||0).getTime();return !n.date||isNaN(d)||d>=lim}).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));this.notifications=all;if(all.length>prev&&prev>0&&this._ordFirst===false)this.unreadNotifs+=(all.length-prev)},
@@ -5857,28 +5881,8 @@ function App(){return{
         let myUid=localStorage.getItem('dd_uid')||'';
         try{const _m=await window.$db.getUidMap();if(_m)myUid=String(_m)}catch(e){}
         window.$db.listenUserNotifs(myUid,l=>{this._userNotifs=l;this._mergeNotifs()});
-        window.$db.listenMyOrders(myUid,orders=>{
-          this.fbMyOrders=orders;
-          orders.forEach(fbOrder=>{
-            ['trackLog','adjustments','items'].forEach(k=>{if(fbOrder[k]&&!Array.isArray(fbOrder[k]))fbOrder[k]=Object.values(fbOrder[k])});
-            if(this._hid.includes(String(fbOrder.id)))return;
-            fbOrder.status=this.normSt(fbOrder.status);
-            this._ordScan(fbOrder);
-            const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
-            if(localIdx>-1){
-              const prev=this.myOrders[localIdx];
-              if(prev.status!==fbOrder.status)this.showToast('অর্ডার #'+fbOrder.id+' — '+fbOrder.status,'success');
-              if((fbOrder.adjustments||[]).length&&JSON.stringify(fbOrder.adjustments)!==JSON.stringify(prev.adjustments||[])){const _a=fbOrder.adjustments[fbOrder.adjustments.length-1];this.showToast('💰 #'+fbOrder.id+': মূল্য সমন্বয়'+(_a&&_a.reason?' — '+_a.reason:''),'success')}
-              if(fbOrder.trackNote&&prev.trackNote!==fbOrder.trackNote)this.showToast('🚚 #'+fbOrder.id+': '+fbOrder.trackNote,'success');
-              this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0,total:(fbOrder.total!==undefined?fbOrder.total:prev.total),adjustments:fbOrder.adjustments||[],origTotal:fbOrder.origTotal||null,dueOnDelivery:(fbOrder.dueOnDelivery!==undefined?fbOrder.dueOnDelivery:prev.dueOnDelivery),refundDue:fbOrder.refundDue||0};
-            }else{this.myOrders.unshift({...fbOrder,trackLog:fbOrder.trackLog||[],adjustments:fbOrder.adjustments||[]})}
-          });
-          localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
-          try{localStorage.setItem('dd_ordN',JSON.stringify(this._ordN.slice(-300)))}catch(e){}
-          this._mergeNotifs();this._ordFirst=false;
-          if(this.inv&&this.inv.open){const l=this.myOrders.find(x=>String(x.id)===String(this.inv.order.id));if(l)this.inv.order=l}
-          if(!this._qrDone){const q=new URLSearchParams(location.search).get('order');const l=q&&this.myOrders.find(x=>String(x.id)===q);if(l){this._qrDone=true;this.activeTab='orders';this.showInvoice(l)}}
-        });
+        window.$db.listenMyOrders(myUid,orders=>{this.fbMyOrders=orders;this._syncOrders(orders)});
+        this._attachKeys();
       });
       window.$db.listenSettings(s=>{
         if(s.settings)Object.assign(this.settings,s.settings);
@@ -6127,14 +6131,14 @@ function App(){return{
   async cancelMyOrder(o){
     if(o.status!=='পেন্ডিং')return;
     if(!(await this.askConfirm({title:'অর্ডার বাতিল করবেন?',msg:'অর্ডার #'+o.id+' বাতিল করলে আর ফেরানো যাবে না।',icon:'fa-solid fa-ban',yesText:'হ্যাঁ, বাতিল করুন',yesIcon:'fa-solid fa-ban',noText:'না, রেখে দিন'})))return;
-    const fbOrder=(this.fbMyOrders||[]).find(fo=>String(fo.id)===String(o.id));
+    const fbOrder=(this.fbMyOrders||[]).find(fo=>String(fo.id)===String(o.id))||(o.fbKey?{fbKey:o.fbKey}:null);
     if(!fbOrder||!fbOrder.fbKey)return this.showToast('অর্ডার খুঁজে পাওয়া যায়নি, একটু পরে চেষ্টা করুন!','error');
     try{
       await window.$db.updateOrder(fbOrder.fbKey,{status:'বাতিল'});
       o.status='বাতিল';
       localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
-      this.showToast('অর্ডার বাতিল করা হয়েছে।','success');
-    }catch(e){this.showToast('বাতিল করতে ব্যর্থ, আবার চেষ্টা করুন!','error')}
+      this.showToast('অর্ডার বাতিল করা হয়েছে।','success');this._ordScan({...o,status:'বাতিল'});this._mergeNotifs();
+    }catch(e){this.showToast('বাতিল করা যায়নি — এখন প্রসেসিংয়ে থাকলে হেল্পলাইনে যোগাযোগ করুন','error')}
   },
   reorder(o){
     if(!o.items||!o.items.length)return;
@@ -6255,7 +6259,7 @@ function App(){return{
       if(_why)console.warn('order diag:',_why);
       return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c+(_why?' — সম্ভাব্য কারণ: '+_why:''):'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c),'error')}
     this._autoSaveCustomerAccount(order);
-    this.myOrders.unshift(order);
+    this.myOrders.unshift(typeof orderKey!=='undefined'?{...order,fbKey:orderKey}:order);
     localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
     this.cart=[];localStorage.removeItem('dd_cart');
     this.form.trxId='';this.form.promoCode='';this.form.loc=null;this.locMsg='';this.appliedPromo=null;this.placing=false;
