@@ -2225,18 +2225,18 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div class="trk3d-top">
             <div class="trk3d-cube"><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="flex-1 min-w-0">
-              <p class="trk3d-ttl" x-text="inv.order.trackNote||(['অর্ডার গ্রহণ করা হয়েছে','প্যাকিং চলছে','পার্সেল পথে আছে','ডেলিভারি সম্পন্ন'][orderStatusStep(inv.order.status)])"></p>
+              <p class="trk3d-ttl" x-text="inv.order.trackNote||(['অর্ডার গ্রহণ করা হয়েছে','প্যাকিং চলছে','পার্সেল পথে আছে','ডেলিভারি সম্পন্ন'][orderStatusStep(effStatus(inv.order))])"></p>
               <p class="trk3d-sub" x-show="inv.order.courier||inv.order.trackId"><span x-text="inv.order.courier||'কুরিয়ার'"></span><template x-if="inv.order.trackId"><span> · <b x-text="inv.order.trackId"></b> <button type="button" @click="navigator.clipboard&&navigator.clipboard.writeText(inv.order.trackId);showToast('ID কপি হয়েছে','success')" class="trk3d-cp"><i class="fa-regular fa-copy"></i></button></span></template></p>
             </div>
           </div>
           <div class="trk3d-steps">
-            <div class="trk3d-line"><div class="trk3d-fill" :style="'width:'+orderStatusPct(inv.order.status)+'%'"></div></div>
+            <div class="trk3d-line"><div class="trk3d-fill" :style="'width:'+orderStatusPct(effStatus(inv.order))+'%'"></div></div>
             <template x-for="(s,i) in ['অর্ডার','প্রসেসিং','পথে','ডেলিভারি']" :key="s">
-              <div class="trk3d-st"><div class="trk3d-dot" :class="i<orderStatusStep(inv.order.status)?'on':(i===orderStatusStep(inv.order.status)?'cur':'')"><i class="fa-solid" :class="['fa-box','fa-boxes-packing','fa-truck-fast','fa-house-circle-check'][i]"></i></div><span x-text="s"></span></div>
+              <div class="trk3d-st"><div class="trk3d-dot" :class="i<orderStatusStep(effStatus(inv.order))?'on':(i===orderStatusStep(effStatus(inv.order))?'cur':'')"><i class="fa-solid" :class="['fa-box','fa-boxes-packing','fa-truck-fast','fa-house-circle-check'][i]"></i></div><span x-text="s"></span></div>
             </template>
           </div>
           <div class="flex gap-2 mt-3">
-            <a x-show="trkUrl(inv.order)" :href="trkUrl(inv.order)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> লাইভ ট্র্যাক করুন</a>
+            <a x-show="trkUrl(inv.order)" :href="trkUrl(inv.order)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> ট্র্যাকিং দেখুন</a>
             <button type="button" x-show="inv.order.trackLog&&inv.order.trackLog.length>2" @click="tl=!tl" class="trk3d-btn trk3d-btn2" x-text="tl?'কম দেখুন ▲':'আরও দেখুন ('+inv.order.trackLog.length+') ▼'"></button>
           </div>
           <div x-show="inv.order.trackLog&&inv.order.trackLog.length" class="trk3d-log">
@@ -3476,7 +3476,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status"></span>
           <i class="fa-solid fa-chevron-down ord-chev" :style="open?'transform:rotate(180deg)':''"></i>
         </div>
-        <div x-show="open&&o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(o.status,true)"></div>
+        <div x-show="open&&o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(effStatus(o),true)"></div>
         <div x-show="open&&o.adjustments&&o.adjustments.length" x-cloak class="mx-3 mt-2 rounded-2xl p-2.5" style="background:#FFFBEB;border:1px solid #F59E0B">
           <p class="text-xs font-bold mb-1.5" style="color:#92400E"><i class="fa-solid fa-scale-balanced"></i> অ্যাডমিন মূল্য সমন্বয়</p>
           <template x-for="(e,i) in (o.adjustments||[])" :key="'adj'+i"><div class="flex items-start justify-between gap-2 text-xs py-1" style="border-top:1px dashed #FCD34D"><span style="color:var(--fg)"><b x-text="e.kind==='delivery'?'ডেলিভারি চার্জ':'পণ্যের দাম'"></b><span x-text="e.reason?' — '+e.reason:''"></span></span><b class="font-mono flex-shrink-0" :style="e.amount<0?'color:#16A34A':'color:#DC2626'" x-text="(e.amount<0?'−৳':'+৳')+Math.abs(e.amount).toLocaleString()"></b></div></template>
@@ -3492,26 +3492,26 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           </div>
         </template>
         <div x-show="o.status!=='বাতিল'" class="ord-live" @click="open=!open">
-          <span class="ord-ic" :class="{'p':o.status==='পেন্ডিং','g':o.status==='প্রসেসিং','t':o.status==='পাঠানো হচ্ছে'||o.status==='ডেলিভারিতে','d':o.status==='ডেলিভার্ড'}"><i class="fa-solid" :class="{'fa-hourglass-half':o.status==='পেন্ডিং','fa-gear':o.status==='প্রসেসিং','fa-truck-fast':o.status==='পাঠানো হচ্ছে'||o.status==='ডেলিভারিতে','fa-circle-check':o.status==='ডেলিভার্ড'}"></i></span>
-          <div class="flex-1 min-w-0"><p class="ord-lt" x-text="o.trackNote||((o.trackLog&&o.trackLog.length)?o.trackLog[o.trackLog.length-1].text:({'পেন্ডিং':'অর্ডার কনফার্ম হয়েছে — অনুমোদনের অপেক্ষায়','প্রসেসিং':'প্যাকিং ও প্রসেসিং চলছে','পাঠানো হচ্ছে':'কুরিয়ারে পাঠানো হয়েছে','ডেলিভারিতে':'ডেলিভারির পথে','ডেলিভার্ড':'ডেলিভারি সম্পন্ন'}[o.status]||''))"></p><p class="ord-ls" x-text="open?'কম দেখুন':'বিস্তারিত ও সব আপডেট দেখতে ট্যাপ করুন'"></p></div>
+          <span class="ord-ic" :class="{'p':effStatus(o)==='পেন্ডিং','g':effStatus(o)==='প্রসেসিং','t':effStatus(o)==='পাঠানো হচ্ছে'||effStatus(o)==='ডেলিভারিতে','d':effStatus(o)==='ডেলিভার্ড'}"><i class="fa-solid" :class="{'fa-hourglass-half':effStatus(o)==='পেন্ডিং','fa-gear':effStatus(o)==='প্রসেসিং','fa-truck-fast':effStatus(o)==='পাঠানো হচ্ছে'||effStatus(o)==='ডেলিভারিতে','fa-circle-check':effStatus(o)==='ডেলিভার্ড'}"></i></span>
+          <div class="flex-1 min-w-0"><p class="ord-lt" x-text="o.trackNote||((o.trackLog&&o.trackLog.length)?o.trackLog[o.trackLog.length-1].text:({'পেন্ডিং':'অর্ডার কনফার্ম হয়েছে — অনুমোদনের অপেক্ষায়','প্রসেসিং':'প্যাকিং ও প্রসেসিং চলছে','পাঠানো হচ্ছে':'কুরিয়ারে পাঠানো হয়েছে','ডেলিভারিতে':'ডেলিভারির পথে','ডেলিভার্ড':'ডেলিভারি সম্পন্ন'}[effStatus(o)]||''))"></p><p class="ord-ls" x-text="open?'কম দেখুন':'বিস্তারিত ও সব আপডেট দেখতে ট্যাপ করুন'"></p></div>
           <a x-show="trkUrl(o)" :href="trkUrl(o)" @click.stop target="_blank" rel="noopener" class="ord-trk"><i class="fa-solid fa-location-arrow"></i><span>ট্র্যাক করুন</span></a>
         </div>
         <div x-show="open&&o.status!=='বাতিল'&&(trkUrl(o)||o.trackNote||o.courier||o.trackId||(o.trackLog&&o.trackLog.length))" x-cloak x-data="{tl:false}" class="mx-3 mt-2 trk3d">
           <div class="trk3d-top">
             <div class="trk3d-cube"><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="flex-1 min-w-0">
-              <p class="trk3d-ttl" x-text="o.trackNote||(['অর্ডার গ্রহণ করা হয়েছে','প্যাকিং চলছে','পার্সেল পথে আছে','ডেলিভারি সম্পন্ন'][orderStatusStep(o.status)])"></p>
+              <p class="trk3d-ttl" x-text="o.trackNote||(['অর্ডার গ্রহণ করা হয়েছে','প্যাকিং চলছে','পার্সেল পথে আছে','ডেলিভারি সম্পন্ন'][orderStatusStep(effStatus(o))])"></p>
               <p class="trk3d-sub" x-show="o.courier||o.trackId"><span x-text="o.courier||'কুরিয়ার'"></span><template x-if="o.trackId"><span> · <b x-text="o.trackId"></b> <button type="button" @click="navigator.clipboard&&navigator.clipboard.writeText(o.trackId);showToast('ID কপি হয়েছে','success')" class="trk3d-cp"><i class="fa-regular fa-copy"></i></button></span></template></p>
             </div>
           </div>
           <div class="trk3d-steps">
-            <div class="trk3d-line"><div class="trk3d-fill" :style="'width:'+orderStatusPct(o.status)+'%'"></div></div>
+            <div class="trk3d-line"><div class="trk3d-fill" :style="'width:'+orderStatusPct(effStatus(o))+'%'"></div></div>
             <template x-for="(s,i) in ['অর্ডার','প্রসেসিং','পথে','ডেলিভারি']" :key="s">
-              <div class="trk3d-st"><div class="trk3d-dot" :class="i<orderStatusStep(o.status)?'on':(i===orderStatusStep(o.status)?'cur':'')"><i class="fa-solid" :class="['fa-box','fa-boxes-packing','fa-truck-fast','fa-house-circle-check'][i]"></i></div><span x-text="s"></span></div>
+              <div class="trk3d-st"><div class="trk3d-dot" :class="i<orderStatusStep(effStatus(o))?'on':(i===orderStatusStep(effStatus(o))?'cur':'')"><i class="fa-solid" :class="['fa-box','fa-boxes-packing','fa-truck-fast','fa-house-circle-check'][i]"></i></div><span x-text="s"></span></div>
             </template>
           </div>
           <div class="flex gap-2 mt-3">
-            <a x-show="trkUrl(o)" :href="trkUrl(o)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> লাইভ ট্র্যাক করুন</a>
+            <a x-show="trkUrl(o)" :href="trkUrl(o)" target="_blank" rel="noopener" class="trk3d-btn flex-1"><i class="fa-solid fa-location-arrow"></i> ট্র্যাকিং দেখুন</a>
             <button type="button" x-show="o.trackLog&&o.trackLog.length>2" @click="tl=!tl" class="trk3d-btn trk3d-btn2" x-text="tl?'কম দেখুন ▲':'আরও দেখুন ('+o.trackLog.length+') ▼'"></button>
           </div>
           <div x-show="o.trackLog&&o.trackLog.length" class="trk3d-log">
@@ -3539,7 +3539,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div><p class="text-xs" style="color:var(--fg3)" x-text="(o.district||'')+' · '+(o.payMethod||'')"></p><p class="font-display text-lg mt-0.5" style="color:var(--accent)" ><span x-text="'৳'+ordTotal(o).toLocaleString()"></span> <span x-show="o.origTotal&&Number(o.origTotal)!==ordTotal(o)" class="ord-old" x-text="'৳'+Number(o.origTotal).toLocaleString()"></span> <span x-show="o.adjustments&&o.adjustments.length" class="ord-adj"><i class="fa-solid fa-scale-balanced"></i> সমন্বয়</span></p></div>
           <div class="flex items-center gap-2">
             <button @click="cancelMyOrder(o)" x-show="o.status==='পেন্ডিং'" class="text-xs font-bold px-3 py-2 rounded-xl" style="background:#FEF2F2;color:#DC2626;border:none;cursor:pointer"><i class="fa-solid fa-ban mr-1"></i>বাতিল করুন</button>
-            <button @click="reorder(o)" x-show="o.status==='ডেলিভার্ড'" class="text-xs font-bold px-3 py-2 rounded-xl text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-rotate-right mr-1"></i>আবার অর্ডার</button>
+            <button @click="delMyOrder(o)" x-show="o.status==='বাতিল'" class="text-xs font-bold px-3 py-2 rounded-xl" style="background:#FEF2F2;color:#DC2626;border:none;cursor:pointer"><i class="fa-solid fa-trash mr-1"></i>মুছুন</button> <button @click="reorder(o)" x-show="o.status==='ডেলিভার্ড'" class="text-xs font-bold px-3 py-2 rounded-xl text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-rotate-right mr-1"></i>আবার অর্ডার</button>
             <button @click="showInvoice(o)" class="text-xs font-bold px-3 py-2 rounded-xl" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-file-invoice mr-1"></i>ইনভয়েস</button>
           </div>
         </div>
@@ -5275,7 +5275,7 @@ function App(){return{
   sellForm:{customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''},
   withdrawForm:{amount:'',method:'bkash',number:''},
   detailSheet:{open:false,prod:null},
-  notifDays:7,_ordFirst:!localStorage.getItem('dd_ordN'),_ordN:(()=>{try{return JSON.parse(localStorage.getItem('dd_ordN')||'[]')}catch(e){return[]}})(),inv:{open:false,order:{},meta:[]},
+  notifDays:7,_hid:(()=>{try{return JSON.parse(localStorage.getItem('dd_hid')||'[]')}catch(e){return[]}})(),_ordFirst:!localStorage.getItem('dd_ordN'),_ordN:(()=>{try{return JSON.parse(localStorage.getItem('dd_ordN')||'[]')}catch(e){return[]}})(),inv:{open:false,order:{},meta:[]},
   // ⭐ FIX: Start with empty siteName to avoid jump
   settings:{siteName:'',tagline:'',fbLink:'https://facebook.com',resellerLink:'https://t.me/',bkash:'',nagad:'',wa:'',appLink:'',shopAddress:'',shopPhone:'',shopPolicy:'',profileCover:'',kycThreshold:5000,
     paymentOptions:{codEnabled:true,prepaidEnabled:true},
@@ -5609,7 +5609,7 @@ function App(){return{
   _deriveNotifs(){return this._ordN},
   _mergeNotifs(){const prev=(this.notifications||[]).length,lim=Date.now()-this.notifDays*864e5;const all=[...(this._gN||[]),...(this._userNotifs||[]).map(n=>({...n,fbKey:'u'+n.fbKey,icon:n.icon||'fa-solid fa-envelope'})),...this._ordN].filter(n=>{const d=new Date(n.date||0).getTime();return !n.date||isNaN(d)||d>=lim}).sort((a,b)=>new Date(b.date||0)-new Date(a.date||0));this.notifications=all;if(all.length>prev&&prev>0&&this._ordFirst===false)this.unreadNotifs+=(all.length-prev)},
   openOrderItem(it){const p=(this.allProducts||[]).find(x=>String(x.fbKey||x.id)===String(it.id)||String(x.id)===String(it.id));if(!p)return this.showToast('পণ্যটি আর পাওয়া যাচ্ছে না','error');this.inv.open=false;this.detailSheet={open:true,prod:p}},
-  get filteredMyOrders(){if(this.oFilt==='সব')return this.myOrders;return this.myOrders.filter(o=>o.status===this.oFilt)},
+  get filteredMyOrders(){const l=this.myOrders.filter(o=>!this._hid.includes(String(o.id)));if(this.oFilt==='সব')return l;return l.filter(o=>this.normSt(o.status)===this.oFilt)},
 
   // ══ AUTH / RESELLER COMPUTED (NEW) ══
   get resellStatus(){return this.reseller?this.reseller.status||'none':'none'},
@@ -5861,6 +5861,8 @@ function App(){return{
           this.fbMyOrders=orders;
           orders.forEach(fbOrder=>{
             ['trackLog','adjustments','items'].forEach(k=>{if(fbOrder[k]&&!Array.isArray(fbOrder[k]))fbOrder[k]=Object.values(fbOrder[k])});
+            if(this._hid.includes(String(fbOrder.id)))return;
+            fbOrder.status=this.normSt(fbOrder.status);
             this._ordScan(fbOrder);
             const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
             if(localIdx>-1){
@@ -6022,7 +6024,10 @@ function App(){return{
     scene=scene.replace(/var\(--accent\)/g,acc);
     return '<div class="trk-svg" style="text-align:center"><svg viewBox="0 0 240 150" style="width:100%;max-width:'+(compact?260:330)+'px;height:'+H+'px;overflow:hidden;border-radius:12px" xmlns="http://www.w3.org/2000/svg">'+scene+'</svg><p class="trk-cap" style="'+(compact?'':'color:#374151')+'">'+caps[step]+'</p></div>';
   },
-  orderStatusStep(status){const m={'পেন্ডিং':0,'প্রসেসিং':1,'পাঠানো হচ্ছে':2,'ডেলিভার্ড':3};return m[status]??0},
+  orderStatusStep(status){const m={'পেন্ডিং':0,'প্রসেসিং':1,'কনফার্মড':1,'পাঠানো হচ্ছে':2,'ডেলিভারিতে':2,'ডেলিভার্ড':3};return m[status]??0},
+  normSt(s){return({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে'})[s]||s},
+  effStatus(o){const s=o.status;if(s==='বাতিল'||s==='ডেলিভার্ড')return s;let st=this.orderStatusStep(s);const tx=String(o.trackNote||(((o.trackLog||[]).slice(-1)[0])||{}).text||'');if(tx){if(/ডেলিভারি\s*(সম্পন্ন|হয়ে\s*গেছে)|পৌঁছে\s*(গেছে|দেওয়া)/.test(tx))st=3;else if(/কুরিয়ার|পাঠান|ডেলিভারি|রওনা|হাবে|সর্টিং|পথে|শিপ/.test(tx))st=Math.max(st,2);else if(/প্যাক|প্রসেস|প্রস্তুত/.test(tx))st=Math.max(st,1)}return['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড'][st]},
+  delMyOrder:async function(o){if(o.status!=='বাতিল')return;if(!(await this.askConfirm({title:'অর্ডার মুছবেন?',msg:'বাতিল অর্ডার #'+o.id+' আপনার তালিকা থেকে মুছে যাবে।',icon:'fa-solid fa-trash',yesText:'হ্যাঁ, মুছুন',yesIcon:'fa-solid fa-trash',noText:'না'})))return;this._hid=[...this._hid,String(o.id)];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==String(o.id));try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}this.showToast('অর্ডার মুছে ফেলা হয়েছে','success')},
   orderStatusPct(status){const step=this.orderStatusStep(status);return [0,33,66,100][step]||0},
   isWish(p){return this.wish.includes(p.fbKey||p.id)},
   toggleWish(p){const k=p.fbKey||p.id,has=this.wish.includes(k);this.wish=has?this.wish.filter(x=>x!==k):[...this.wish,k];try{localStorage.setItem('dd_wish',JSON.stringify(this.wish))}catch(e){}this.showToast(has?'পছন্দের তালিকা থেকে সরানো হয়েছে':'পছন্দের তালিকায় যোগ হয়েছে','success')},
@@ -7343,7 +7348,7 @@ function App(){return{
     else{this.detailSheet={open:true,prod:p};this._updateShareMeta(p)}
   },
   // ── রিসেলার: কাস্টম প্রাইসে লিংক জেনারেট ──
-  trkUrl(o){if(o.trackingLink)return this.safeUrl(o.trackingLink);const tp=(this.settings.trackUrlTemplate||'');return this.safeUrl((tp.includes('{id}')&&o.trackId)?tp.replace('{id}',encodeURIComponent(o.trackId)):'')},
+  trkUrl(o){const l=o.trackingLink?this.safeUrl(o.trackingLink):'';if(l)return l;const tp=(this.settings.trackUrlTemplate||'');const u=this.safeUrl((tp.includes('{id}')&&o.trackId)?tp.replace('{id}',encodeURIComponent(o.trackId)):'');if(u)return u;const c=String(o.courier||'').toLowerCase(),id=o.trackId;if(id){if(c.includes('steadfast'))return 'https://steadfast.com.bd/t/'+encodeURIComponent(id);if(c.includes('redx'))return 'https://redx.com.bd/track-global-parcel/?trackingId='+encodeURIComponent(id)}return ''},
   openResellForm(mode){
     if(this.rgPop)return;this.rgPop=true;
     try{navigator.vibrate&&navigator.vibrate(18)}catch(e){}
