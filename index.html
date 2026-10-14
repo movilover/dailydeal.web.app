@@ -142,6 +142,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()&&!cu.email){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
   saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
+  deleteOrder:async(key)=>{await authReady;await remove(ref(db,'orders/'+key));return true},   // শুধু বাতিল অর্ডার (রুলস নিশ্চিত করে)
   listenProducts:(cb)=>{
     const toArr=s=>{const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]};
     // দ্রুত প্রথম পেইন্ট: সর্বশেষ ৪০টা প্রোডাক্ট (push-key টাইম-অর্ডারে, তাই createdAt ছাড়া পুরনো পণ্যও ঠিকঠাক আসে)
@@ -251,7 +252,7 @@ window.dispatchEvent(new Event('firebase-ready'));
 html{font-family:'Hind Siliguri',sans-serif;min-height:100%;overflow-x:hidden;overflow-y:auto;scroll-behavior:smooth;background:#0F0D0A}
 body{font-family:'Hind Siliguri',sans-serif;max-width:480px;margin:0 auto;min-height:100vh;overflow-x:hidden;overscroll-behavior-y:auto;background:var(--header)}
 /* ══ টাচ/স্ক্রল স্মুথনেস ফিক্স (site-wide) ══ — মোবাইলে জমে যাওয়া/জ্যাম স্ক্রল ও সাইড-সোয়াইপ ফিক্স */
-html,body{touch-action:pan-y;-webkit-overflow-scrolling:touch}
+html,body{touch-action:manipulation;-webkit-overflow-scrolling:touch}
 *{-webkit-tap-highlight-color:transparent}
 a,button,.nav-btn,.product-card,.prod-img-wrap,.big-action-btn,.dp-var,.size-chip,.tenure-pill{touch-action:manipulation}
 .cat-scroll-wrap,.sub-cat-scroll,.pill-scroll,.dp-colors,.dp-vars,.pv-imgs,.acct-strip,.grp-row,.checkout-promo-scroll{-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;overscroll-behavior-x:contain;scroll-behavior:smooth}
@@ -774,7 +775,7 @@ html,body{
   overflow-x:hidden!important;
 }
 html,body,main,header,footer,#app,.bottom-nav{
-  touch-action:pan-y!important;
+  touch-action:manipulation!important;
   pointer-events:auto!important;
 }
 </style>
@@ -1476,6 +1477,8 @@ html.theme-dark .rh-soft,.theme-dark .rh-soft{background:rgba(255,255,255,.04)}
 .lo-due{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:6px;padding:11px 12px;border-radius:12px;background:#0F8F7A;color:#fff;font-weight:800;font-size:14px}
 .lo-due span:last-child{font-size:19px}
 </style>
+<script>/* ৬৪ জেলার নাম (বাংলা/ইংরেজি) ও কেন্দ্র — লোকেশন অটো-সিলেক্টে ব্যবহৃত */
+window.DD_GEO=[["ঢাকা","dhaka|dacca",23.81,90.41],["গাজীপুর","gazipur",24.0,90.42],["নারায়ণগঞ্জ","narayanganj",23.62,90.5],["মানিকগঞ্জ","manikganj",23.86,90.0],["মুন্সিগঞ্জ","munshiganj|munshigonj",23.55,90.53],["নরসিংদী","narsingdi|narsinghdi",23.92,90.72],["কিশোরগঞ্জ","kishoreganj|kishorganj",24.43,90.78],["ফরিদপুর","faridpur",23.6,89.84],["গোপালগঞ্জ","gopalganj",23.01,89.83],["মাদারীপুর","madaripur",23.17,90.2],["রাজবাড়ী","rajbari",23.76,89.64],["শরীয়তপুর","shariatpur|shariatpur",23.22,90.35],["টাঙ্গাইল","tangail",24.25,89.92],["চট্টগ্রাম","chattogram|chittagong|chattagram",22.36,91.78],["কক্সবাজার","cox's bazar|coxs bazar|cox bazar|coxsbazar",21.43,92.01],["ফেনী","feni",23.02,91.4],["নোয়াখালী","noakhali",22.87,91.1],["লক্ষ্মীপুর","lakshmipur|laxmipur",22.94,90.84],["কুমিল্লা","cumilla|comilla|kumilla",23.46,91.18],["চাঁদপুর","chandpur",23.23,90.67],["ব্রাহ্মণবাড়িয়া","brahmanbaria|brahmanbariya",23.96,91.11],["রাঙামাটি","rangamati",22.65,92.17],["বান্দরবান","bandarban",22.2,92.22],["খাগড়াছড়ি","khagrachhari|khagrachari|khagrachari",23.12,91.98],["রাজশাহী","rajshahi",24.37,88.6],["চাঁপাইনবাবগঞ্জ","chapainawabganj|chapai nawabganj|nawabganj",24.6,88.28],["নওগাঁ","naogaon",24.8,88.93],["নাটোর","natore",24.41,89.0],["বগুড়া","bogura|bogra",24.85,89.37],["জয়পুরহাট","joypurhat|jaipurhat",25.1,89.02],["পাবনা","pabna",24.0,89.23],["সিরাজগঞ্জ","sirajganj|sirajgonj",24.45,89.7],["খুলনা","khulna",22.82,89.55],["বাগেরহাট","bagerhat",22.65,89.79],["সাতক্ষীরা","satkhira",22.72,89.07],["যশোর","jashore|jessore",23.17,89.21],["নড়াইল","narail",23.17,89.5],["মাগুরা","magura",23.49,89.42],["ঝিনাইদহ","jhenaidah|jhenidah",23.54,89.17],["কুষ্টিয়া","kushtia",23.9,89.12],["মেহেরপুর","meherpur",23.76,88.63],["চুয়াডাঙ্গা","chuadanga",23.64,88.85],["বরিশাল","barishal|barisal",22.7,90.37],["পটুয়াখালী","patuakhali",22.36,90.33],["পিরোজপুর","pirojpur",22.58,89.97],["ভোলা","bhola",22.69,90.65],["ঝালকাঠি","jhalokati|jhalakathi|jhalokathi",22.64,90.2],["বরগুনা","barguna",22.15,90.13],["সিলেট","sylhet",24.9,91.87],["মৌলভীবাজার","moulvibazar|maulvibazar|moulvi bazar",24.48,91.77],["হবিগঞ্জ","habiganj|hobiganj",24.38,91.42],["সুনামগঞ্জ","sunamganj|sunamgonj",25.07,91.4],["রংপুর","rangpur",25.74,89.25],["কুড়িগ্রাম","kurigram",25.81,89.64],["লালমনিরহাট","lalmonirhat|lalmonirhat",25.92,89.45],["নীলফামারী","nilphamari",25.93,88.86],["গাইবান্ধা","gaibandha",25.33,89.53],["ঠাকুরগাঁও","thakurgaon",26.03,88.46],["দিনাজপুর","dinajpur",25.63,88.64],["পঞ্চগড়","panchagarh",26.34,88.55],["ময়মনসিংহ","mymensingh|mymensingh",24.75,90.41],["নেত্রকোনা","netrokona|netrakona|নেত্রকোণা",24.88,90.73],["জামালপুর","jamalpur",24.92,89.94],["শেরপুর","sherpur",25.02,90.02]];</script>
 <style id="dd-tw">/* Tailwind v3.4.17 — প্রি-বিল্ট (রানটাইম কম্পাইল ছাড়া, দ্রুত লোড) */
 *,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:JetBrains Mono,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.container{width:100%}@media (min-width:640px){.container{max-width:640px}}@media (min-width:768px){.container{max-width:768px}}@media (min-width:1024px){.container{max-width:1024px}}@media (min-width:1280px){.container{max-width:1280px}}@media (min-width:1536px){.container{max-width:1536px}}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.pointer-events-none{pointer-events:none}.visible{visibility:visible}.collapse{visibility:collapse}.static{position:static}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.-bottom-10{bottom:-2.5rem}.-bottom-12{bottom:-3rem}.-left-8{left:-2rem}.-right-1{right:-.25rem}.-right-1\.5{right:-.375rem}.-right-10{right:-2.5rem}.-right-6{right:-1.5rem}.-right-8{right:-2rem}.-top-1{top:-.25rem}.-top-1\.5{top:-.375rem}.-top-10{top:-2.5rem}.-top-8{top:-2rem}.bottom-1{bottom:.25rem}.bottom-2{bottom:.5rem}.left-2{left:.5rem}.left-3{left:.75rem}.right-1{right:.25rem}.right-4{right:1rem}.top-0{top:0}.top-1{top:.25rem}.top-1\/2{top:50%}.z-50{z-index:50}.z-\[400\]{z-index:400}.z-\[60\]{z-index:60}.col-span-full{grid-column:1/-1}.mx-1{margin-left:.25rem;margin-right:.25rem}.mx-2{margin-left:.5rem;margin-right:.5rem}.mx-3{margin-left:.75rem;margin-right:.75rem}.mx-4{margin-left:1rem;margin-right:1rem}.mx-8{margin-left:2rem;margin-right:2rem}.mx-auto{margin-left:auto;margin-right:auto}.my-3{margin-top:.75rem;margin-bottom:.75rem}.mb-0{margin-bottom:0}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-1\.5{margin-bottom:.375rem}.mb-2{margin-bottom:.5rem}.mb-2\.5{margin-bottom:.625rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-5{margin-bottom:1.25rem}.mb-6{margin-bottom:1.5rem}.mb-8{margin-bottom:2rem}.ml-1{margin-left:.25rem}.ml-2{margin-left:.5rem}.ml-auto{margin-left:auto}.mr-1{margin-right:.25rem}.mr-1\.5{margin-right:.375rem}.mr-2{margin-right:.5rem}.mt-0{margin-top:0}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.block{display:block}.inline{display:inline}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.aspect-square{aspect-ratio:1/1}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-16{height:4rem}.h-2{height:.5rem}.h-2\.5{height:.625rem}.h-20{height:5rem}.h-24{height:6rem}.h-28{height:7rem}.h-3{height:.75rem}.h-32{height:8rem}.h-36{height:9rem}.h-4{height:1rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-full{height:100%}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-16{width:4rem}.w-2{width:.5rem}.w-2\.5{width:.625rem}.w-2\/5{width:40%}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-3{width:.75rem}.w-3\/5{width:60%}.w-32{width:8rem}.w-36{width:9rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-full{width:100%}.min-w-0{min-width:0}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.flex-shrink-0{flex-shrink:0}.grow{flex-grow:1}.-translate-y-1{--tw-translate-y:-0.25rem}.-translate-y-1,.-translate-y-1\/2{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-1\/2{--tw-translate-y:-50%}.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes fadeIn{0%{opacity:0}to{opacity:1}}.animate-fade-in{animation:fadeIn .35s ease both}@keyframes float{0%,to{transform:translateY(0)}50%{transform:translateY(-8px)}}.animate-float{animation:float 3.5s ease infinite}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes slideUp{0%{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}.animate-slide-up{animation:slideUp .4s cubic-bezier(.22,.68,0,1.2) both}@keyframes zoomIn{0%{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}.animate-zoom-in{animation:zoomIn .35s cubic-bezier(.22,.68,0,1.2) both}.cursor-pointer{cursor:pointer}.resize-none{resize:none}.resize{resize:both}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-center{align-items:center}.items-baseline{align-items:baseline}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-x-3{-moz-column-gap:.75rem;column-gap:.75rem}.gap-y-1{row-gap:.25rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-2\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.625rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.625rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-3\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.875rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.875rem*var(--tw-space-y-reverse))}.space-y-4>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem*var(--tw-space-y-reverse))}.space-y-5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem*var(--tw-space-y-reverse))}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.break-all{word-break:break-all}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:.5rem}.rounded-xl{border-radius:.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-none{border-style:none}.bg-green-500{--tw-bg-opacity:1;background-color:rgb(34 197 94/var(--tw-bg-opacity,1))}.bg-red-500{--tw-bg-opacity:1;background-color:rgb(239 68 68/var(--tw-bg-opacity,1))}.bg-transparent{background-color:transparent}.object-cover{-o-object-fit:cover;object-fit:cover}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-3\.5{padding:.875rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.\!py-2{padding-top:.5rem!important;padding-bottom:.5rem!important}.\!py-2\.5{padding-top:.625rem!important;padding-bottom:.625rem!important}.px-1{padding-left:.25rem;padding-right:.25rem}.px-1\.5{padding-left:.375rem;padding-right:.375rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-3\.5{padding-left:.875rem;padding-right:.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0{padding-top:0;padding-bottom:0}.py-0\.5{padding-top:.125rem;padding-bottom:.125rem}.py-1{padding-top:.25rem;padding-bottom:.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-12{padding-top:3rem;padding-bottom:3rem}.py-14{padding-top:3.5rem;padding-bottom:3.5rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-20{padding-top:5rem;padding-bottom:5rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-3\.5{padding-top:.875rem;padding-bottom:.875rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-1{padding-bottom:.25rem}.pb-2{padding-bottom:.5rem}.pb-2\.5{padding-bottom:.625rem}.pb-24{padding-bottom:6rem}.pb-28{padding-bottom:7rem}.pb-3{padding-bottom:.75rem}.pb-3\.5{padding-bottom:.875rem}.pb-4{padding-bottom:1rem}.pb-6{padding-bottom:1.5rem}.pl-8{padding-left:2rem}.pr-10{padding-right:2.5rem}.pr-2{padding-right:.5rem}.pt-1{padding-top:.25rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.pt-8{padding-top:2rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-display{font-family:Playfair Display,Georgia,serif}.font-mono{font-family:JetBrains Mono,monospace}.\!text-xs{font-size:.75rem!important;line-height:1rem!important}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-5xl{font-size:3rem;line-height:1}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-\[\.22em\]{letter-spacing:.22em}.tracking-wide{letter-spacing:.025em}.tracking-widest{letter-spacing:.1em}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113/var(--tw-text-opacity,1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255/var(--tw-text-opacity,1))}.underline{text-decoration-line:underline}.opacity-0{opacity:0}.opacity-10{opacity:.1}.opacity-100{opacity:1}.opacity-20{opacity:.2}.opacity-25{opacity:.25}.opacity-30{opacity:.3}.opacity-50{opacity:.5}.opacity-60{opacity:.6}.opacity-70{opacity:.7}.opacity-75{opacity:.75}.opacity-80{opacity:.8}.shadow{--tw-shadow:0 1px 3px 0 rgba(0,0,0,.1),0 1px 2px -1px rgba(0,0,0,.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color),0 1px 2px -1px var(--tw-shadow-color)}.shadow,.shadow-sm{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgba(0,0,0,.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color)}.outline{outline-style:solid}.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-opacity{transition-property:opacity;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.duration-200{transition-duration:.2s}.duration-300{transition-duration:.3s}.ease-in{transition-timing-function:cubic-bezier(.4,0,1,1)}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}.ease-out{transition-timing-function:cubic-bezier(0,0,.2,1)}.hover\:opacity-100:hover{opacity:1}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.active\:opacity-70:active{opacity:.7}@media (min-width:640px){.sm\:inline{display:inline}}</style>
 <style id="dd-home-v2">
@@ -1555,6 +1558,35 @@ img{max-width:100%}
 .ord-tl-e small,.ord-tl-w{color:var(--fg3);font-size:10px;margin-top:1px}
 .ord-tl-c{display:flex;align-items:center;gap:7px;font-size:11.5px;font-weight:700;color:var(--fg2);padding:8px 2px;border-top:1px dashed var(--border)}
 .ord-tl-pd{display:block;width:100%;text-align:center;background:none;border:none;border-top:1px dashed var(--border);padding:9px 0 7px;font-size:11.5px;font-weight:800;color:var(--accent);cursor:pointer}
+
+/* ── অনুভূমিক স্ক্রল ফিক্স: সব স্ক্রলারে pan-x pan-y, মসৃণ টাচ ── */
+.cat-scroll-wrap,.sub-cat-scroll,.pill-scroll,.grp-row,.dp-colors,.dp-vars,.pv-imgs,.acct-strip,.kx-pick,.checkout-promo-scroll,[class*="overflow-x-auto"]{touch-action:pan-x pan-y!important;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scroll-behavior:auto!important}
+.cat-scroll-wrap *,.sub-cat-scroll *,.pill-scroll *,.grp-row *,.acct-strip *{touch-action:manipulation}
+.cat-scroll-wrap img,.sub-cat-scroll img,.grp-row img,.pill-scroll img{-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
+.overflow-x-auto.overflow-y-auto,table.overflow-x-auto{overflow-y:auto}
+/* ── প্রিমিয়াম লোকেশন কার্ড ── */
+.loc-card{border-radius:18px;padding:12px;background:linear-gradient(135deg,var(--accentL),var(--card));border:1px solid var(--border);box-shadow:0 8px 22px -14px var(--accent);transition:border-color .3s,background .3s}
+.loc-card.ok{border-color:#86EFAC;background:linear-gradient(135deg,#F0FDF4,var(--card))}
+.loc-hd{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.loc-pin{position:relative;width:42px;height:42px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 6px 14px -4px var(--accent)}
+.loc-card.ok .loc-pin{background:#16A34A;box-shadow:0 6px 14px -4px #16A34A}
+.loc-ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none}
+.loc-pin.busy .loc-ring{animation:locPulse 1.4s ease-out infinite}.loc-pin.busy .r2{animation-delay:.7s}
+@keyframes locPulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.1);opacity:0}}
+.loc-t{font-weight:800;font-size:13.5px;color:var(--fg);line-height:1.25}
+.loc-s{font-size:11.5px;color:var(--fg2);margin-top:2px;line-height:1.35}
+.loc-bar{height:4px;border-radius:4px;background:var(--border);overflow:hidden;margin-bottom:10px}
+.loc-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#FBBF24);border-radius:4px;transition:width .6s ease}
+.loc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.loc-chips span{display:flex;flex-direction:column;background:var(--card);border:1px solid #BBF7D0;border-radius:12px;padding:5px 10px;min-width:72px;animation:locIn .4s ease both}
+.loc-chips em{font-style:normal;font-size:9.5px;color:var(--fg3);font-weight:700}
+.loc-chips b{font-size:12.5px;color:#15803D}
+.loc-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;font-size:13.5px;padding:11px;border-radius:14px;background:linear-gradient(180deg,var(--accent),#B42308 160%);color:#fff;border:none;cursor:pointer;box-shadow:0 8px 18px -8px var(--accent),inset 0 1px 0 rgba(255,255,255,.3)}
+.loc-btn:disabled{opacity:.75;cursor:wait}
+.loc-note{font-size:11.5px;color:var(--fg2);margin-top:8px;line-height:1.45}
+.loc-flash{animation:locFlash 1.6s ease}
+@keyframes locFlash{0%,100%{box-shadow:none}25%,60%{box-shadow:0 0 0 3px #86EFAC;border-color:#16A34A}}
+@keyframes locIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <style id="dd-v5">
@@ -1722,7 +1754,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     [html,body].forEach(function(n){
       if(!n)return;
       n.style.setProperty('overflow-y','auto','important');
-      n.style.setProperty('touch-action','pan-y','important');
+      n.style.setProperty('touch-action','manipulation','important');
       n.style.setProperty('pointer-events','auto','important');
       n.style.removeProperty('height');
       n.style.removeProperty('max-height');
@@ -3265,17 +3297,26 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
             <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
           </div>
-          <div x-show="!destAbroad" class="rounded-2xl p-3" style="background:var(--accentL);border:1px dashed var(--accent)">
-            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="w-full flex items-center justify-center gap-2 text-sm font-bold py-2.5 rounded-xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
-            <p class="text-xs mt-1.5" style="color:var(--fg2)" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
-            <p class="text-xs mt-1.5 font-semibold" style="color:#16A34A" x-show="form.loc"><i class="fa-solid fa-circle-check"></i> লোকেশন নেওয়া হয়েছে <span x-text="form.loc?'(±'+form.loc.acc+' মি.)':''"></span></p>
-            <p class="text-xs mt-1" style="color:var(--fg2)" x-show="locMsg" x-text="locMsg"></p>
+          <div x-show="!destAbroad" class="loc-card" :class="form.loc?'ok':''">
+            <div class="loc-hd">
+              <div class="loc-pin" :class="locBusy?'busy':''"><i class="fa-solid fa-location-dot"></i><span class="loc-ring"></span><span class="loc-ring r2"></span></div>
+              <div style="min-width:0"><p class="loc-t">ডেলিভারি লোকেশন</p><p class="loc-s" x-text="locBusy?(locStep===1?'GPS থেকে আপনার অবস্থান নেওয়া হচ্ছে…':'বিভাগ, জেলা ও ঠিকানা মেলানো হচ্ছে…'):(form.loc?'লোকেশন নেওয়া হয়েছে (±'+form.loc.acc+' মি.)':'এক ট্যাপে বিভাগ, জেলা ও ঠিকানা অটো-ফিল')"></p></div>
+            </div>
+            <div class="loc-bar" x-show="locBusy" x-cloak><i :style="'width:'+(locStep===1?'38%':'84%')"></i></div>
+            <div class="loc-chips" x-show="locRes&&locRes.division&&!locBusy" x-cloak>
+              <span><em>বিভাগ</em><b x-text="locRes&&locRes.division"></b></span>
+              <span x-show="locRes&&locRes.district"><em>জেলা</em><b x-text="locRes&&locRes.district"></b></span>
+              <span x-show="locRes&&locRes.upazila"><em>উপজেলা</em><b x-text="locRes&&locRes.upazila"></b></span>
+            </div>
+            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="loc-btn"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
+            <p class="loc-note" x-show="locMsg" x-text="locMsg"></p>
+            <p class="loc-note" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
           </div>
           <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
-            <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+            <div class="relative"><select class="dd-input pr-10 cursor-pointer" :class="locFlash?'loc-flash':''" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
           </div>
-          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" :class="locFlash?'loc-flash':''" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
           <div x-show="!destAbroad&&form.district" x-cloak><label class="dd-label">উপজেলা / থানা *</label><input class="dd-input" x-model="form.upazila" maxlength="80" placeholder="যেমন: সাভার / মিরপুর থানা (লোকেশন না নিলে নিজে লিখুন)" autocomplete="off"/></div>
           <div x-show="!destAbroad&&form.district" x-transition.opacity.duration.250ms><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
@@ -3385,18 +3426,27 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
             <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি ও কিস্তি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
           </div>
-          <div x-show="!destAbroad" class="rounded-2xl p-3" style="background:var(--accentL);border:1px dashed var(--accent)">
-            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="w-full flex items-center justify-center gap-2 text-sm font-bold py-2.5 rounded-xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
-            <p class="text-xs mt-1.5" style="color:var(--fg2)" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
-            <p class="text-xs mt-1.5 font-semibold" style="color:#16A34A" x-show="form.loc"><i class="fa-solid fa-circle-check"></i> লোকেশন নেওয়া হয়েছে <span x-text="form.loc?'(±'+form.loc.acc+' মি.)':''"></span></p>
-            <p class="text-xs mt-1" style="color:var(--fg2)" x-show="locMsg" x-text="locMsg"></p>
+          <div x-show="!destAbroad" class="loc-card" :class="form.loc?'ok':''">
+            <div class="loc-hd">
+              <div class="loc-pin" :class="locBusy?'busy':''"><i class="fa-solid fa-location-dot"></i><span class="loc-ring"></span><span class="loc-ring r2"></span></div>
+              <div style="min-width:0"><p class="loc-t">ডেলিভারি লোকেশন</p><p class="loc-s" x-text="locBusy?(locStep===1?'GPS থেকে আপনার অবস্থান নেওয়া হচ্ছে…':'বিভাগ, জেলা ও ঠিকানা মেলানো হচ্ছে…'):(form.loc?'লোকেশন নেওয়া হয়েছে (±'+form.loc.acc+' মি.)':'এক ট্যাপে বিভাগ, জেলা ও ঠিকানা অটো-ফিল')"></p></div>
+            </div>
+            <div class="loc-bar" x-show="locBusy" x-cloak><i :style="'width:'+(locStep===1?'38%':'84%')"></i></div>
+            <div class="loc-chips" x-show="locRes&&locRes.division&&!locBusy" x-cloak>
+              <span><em>বিভাগ</em><b x-text="locRes&&locRes.division"></b></span>
+              <span x-show="locRes&&locRes.district"><em>জেলা</em><b x-text="locRes&&locRes.district"></b></span>
+              <span x-show="locRes&&locRes.upazila"><em>উপজেলা</em><b x-text="locRes&&locRes.upazila"></b></span>
+            </div>
+            <button type="button" @click="useMyLocation()" :disabled="locBusy" class="loc-btn"><i class="fa-solid" :class="locBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="locBusy?'লোকেশন নেওয়া হচ্ছে...':(form.loc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
+            <p class="loc-note" x-show="locMsg" x-text="locMsg"></p>
+            <p class="loc-note" x-show="!form.loc&&!locMsg">ফোনের লোকেশন চালু করে "Allow" দিলে বিভাগ, জেলা ও ঠিকানা নিজে নিজে বসে যাবে।</p>
           </div>
           <div x-show="!destAbroad">
             <label class="dd-label">বিভাগ *</label>
-            <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
+            <div class="relative"><select class="dd-input pr-10 cursor-pointer" :class="locFlash?'loc-flash':''" x-model="form.division" @change="form.district=''"><option value="">— বিভাগ বেছে নিন —</option><template x-for="d in Object.keys(bdLoc)" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
             <div x-show="form.division" class="mt-1.5 flex items-center gap-1.5 text-xs font-bold" :style="form.division==='ঢাকা'?'color:#16A34A':'color:#D97706'"><i class="fa-solid fa-truck text-xs"></i><span x-text="form.division==='ঢাকা'?'ঢাকা — ডেলিভারি: ৳৮০':'অন্য বিভাগ — ডেলিভারি: ৳১৫০'"></span></div>
           </div>
-          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
+          <div x-show="!destAbroad&&form.division" x-cloak><label class="dd-label">জেলা *</label><div class="relative"><select class="dd-input pr-10 cursor-pointer" :class="locFlash?'loc-flash':''" x-model="form.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in bdLoc[form.division]||[]" :key="d"><option :value="d" x-text="d"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div></div>
           <div x-show="!destAbroad&&form.district" x-cloak><label class="dd-label">উপজেলা / থানা *</label><input class="dd-input" x-model="form.upazila" maxlength="80" placeholder="যেমন: সাভার / মিরপুর থানা (লোকেশন না নিলে নিজে লিখুন)" autocomplete="off"/></div>
           <div x-show="!destAbroad"><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বাসা নং, রাস্তা, এলাকা..."></textarea></div>
         </div>
@@ -5357,7 +5407,7 @@ function App(){return{
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -5784,40 +5834,60 @@ function App(){return{
     const cats=new Set(this.getSectionCategories(section).map(c=>this._cn(c.name)));
     return this.allProducts.filter(p=>p.section===sid||p.sectionId===sid||(!ids.has(p.section||p.sectionId)&&cats.has(this._cn(p.cat))));
   },
-  // 📍 বর্তমান লোকেশন (GPS) → ঠিকানা, বিভাগ, জেলা অটো-ফিল; অর্ডারে স্থানাঙ্ক সেভ হয়
+  // 📍 বর্তমান লোকেশন (GPS) → বিভাগ, জেলা, উপজেলা, ঠিকানা অটো-ফিল (দুটি জিওকোডার + অফলাইন নিকটতম-জেলা ফলব্যাক)
   useMyLocation(){
-    if(!navigator.geolocation)return this.showToast('এই ডিভাইস/ব্রাউজারে লোকেশন সাপোর্ট নেই','error');
-    if(this.locBusy)return;this.locBusy=true;this.locMsg='';
-    navigator.geolocation.getCurrentPosition(async pos=>{
+    if(!navigator.geolocation){this.locMsg='এই ডিভাইস/ব্রাউজারে লোকেশন সাপোর্ট নেই — বিভাগ ও জেলা নিজে বেছে নিন';return this.showToast(this.locMsg,'error')}
+    if(this.locBusy)return;
+    this.locBusy=true;this.locMsg='';this.locStep=1;
+    const getPos=o=>new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,o));
+    (async()=>{
+      let pos;
+      try{pos=await getPos({enableHighAccuracy:true,timeout:12000,maximumAge:0})}
+      catch(e){if(e&&e.code===1)throw e;pos=await getPos({enableHighAccuracy:false,timeout:10000,maximumAge:120000})}
       const lat=Number(pos.coords.latitude.toFixed(6)),lng=Number(pos.coords.longitude.toFixed(6)),acc=Math.round(pos.coords.accuracy||0);
-      this.form.loc={lat,lng,acc,address:''};
-      try{
-        const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),9000);
-        const r=await fetch('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=bn&lat='+lat+'&lon='+lng,{signal:ctl.signal});clearTimeout(tm);
-        const j=await r.json(),a=j.address||{};
-        const norm=s=>String(s||'').replace(/\s*(বিভাগ|জেলা|সিটি কর্পোরেশন|Division|District|City Corporation)\s*/gi,'').trim();
-        const EN={dhaka:'ঢাকা',chattogram:'চট্টগ্রাম',chittagong:'চট্টগ্রাম',rajshahi:'রাজশাহী',khulna:'খুলনা',barishal:'বরিশাল',barisal:'বরিশাল',sylhet:'সিলেট',rangpur:'রংপুর',mymensingh:'ময়মনসিংহ'};
-        const st=norm(a.state),stl=st.toLowerCase();
-        let dv=Object.keys(this.bdLoc).find(d=>st&&(st.includes(d)||d.includes(st)))||EN[Object.keys(EN).find(k=>stl.includes(k))||''];
-        if(dv&&this.bdLoc[dv]){
-          this.form.division=dv;
-          const cands=[a.state_district,a.county,a.city,a.municipality,a.town,a.city_district].map(norm).filter(Boolean);
-          const di=this.bdLoc[dv].find(d=>cands.some(c=>c.includes(d)||d.includes(c)));
-          this.form.district=di||'';
-        }
-        const parts=[a.house_number,a.road,a.neighbourhood,a.suburb,a.village,a.hamlet,a.town||a.city_district].filter(Boolean);
-        const txt=(parts.length?parts.join(', '):String(j.display_name||'').split(',').slice(0,3).join(',')).slice(0,250);
-        {const nz=s=>String(s||'').replace(/\s*(উপজেলা|থানা|Upazila|Thana|সদর)\s*/gi,' ').trim();const dn=nz(this.form.district);const uc=[a.county,a.suburb,a.city_district,a.town,a.municipality,a.village].map(nz).filter(x=>x&&x!==dn);if(uc[0]&&!String(this.form.upazila||'').trim())this.form.upazila=uc[0].slice(0,80)}
-        this.form.loc.address=txt;
-        if(txt&&!String(this.form.address||'').trim())this.form.address=txt;
-        this.locMsg=(dv?('বিভাগ: '+dv+(this.form.district?', জেলা: '+this.form.district:'')+(this.form.upazila?', উপজেলা: '+this.form.upazila:'')+'। '):'')+(txt?'ঠিকানা: '+txt:'')+' — ঠিক না হলে নিজে বদলে নিন।';
-      }catch(e){this.locMsg='লোকেশন পাওয়া গেছে (স্থানাঙ্ক সেভ হবে), তবে ঠিকানা নিজে লিখুন।'}
-      this.locBusy=false;this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
-    },err=>{
-      this.locBusy=false;
-      const m=err&&err.code===1?'লোকেশন অনুমতি (Allow) দেওয়া হয়নি — ব্রাউজার/ফোনের সেটিংসে অনুমতি দিন':(err&&err.code===3?'লোকেশন পেতে দেরি হচ্ছে, আবার চেষ্টা করুন':'লোকেশন পাওয়া যায়নি, ঠিকানা নিজে লিখুন');
+      this.form.loc={lat,lng,acc,address:''};this.locStep=2;
+      const G=window.DD_GEO||[],rad=x=>x*Math.PI/180;
+      const km=(a,b,c,d)=>{const x=rad(c-a),y=rad(d-b),h=Math.sin(x/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+      const near=G.map(g=>({g,d:km(lat,lng,g[2],g[3])})).sort((x,y)=>x.d-y.d)[0];
+      const to=(u,ms)=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);return fetch(u,{signal:c.signal}).then(r=>{if(!r.ok)throw new Error('http');return r.json()}).finally(()=>clearTimeout(t))};
+      const [nmR,bdR]=await Promise.allSettled([
+        to('https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=18&addressdetails=1&accept-language=bn&lat='+lat+'&lon='+lng,9000),
+        to('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lng+'&localityLanguage=en',9000)]);
+      const nm=nmR.status==='fulfilled'?nmR.value:null,bd=bdR.status==='fulfilled'?bdR.value:null,a=(nm&&nm.address)||{};
+      const clean=s=>String(s||'').toLowerCase().replace(/\b(division|district|zila|zilla|city corporation|city|sadar|upazila|upazilla|thana|metropolitan|municipality|pourashava)\b/g,' ').replace(/(বিভাগ|জেলা|সিটি কর্পোরেশন|উপজেলা|থানা|সদর|পৌরসভা)/g,' ').replace(/[^a-z\u0980-\u09FF\s']/g,' ').replace(/\s+/g,' ').trim();
+      const adm=(bd&&bd.localityInfo&&bd.localityInfo.administrative)||[];
+      const admBy=re=>adm.filter(x=>re.test(String(x.name||''))).map(x=>x.name);
+      const distC=[a.state_district,...admBy(/district|zila/i),bd&&bd.city].filter(Boolean).map(clean).filter(Boolean);
+      const divC=[a.state,bd&&bd.principalSubdivision,...admBy(/division/i)].filter(Boolean).map(clean).filter(Boolean);
+      const match=c=>G.find(g=>g[0]===c||g[1].split('|').includes(c));
+      let hit=null,approx=false;
+      for(const c of distC){hit=match(c);if(hit)break}
+      if(!hit&&near&&near.d<110){hit=near.g;approx=true}
+      let dvName='',diName='';
+      if(hit){diName=hit[0];dvName=Object.keys(this.bdLoc).find(d=>this.bdLoc[d].includes(diName))||''}
+      else{
+        const EN={'ঢাকা':'dhaka','চট্টগ্রাম':'chattogram|chittagong','রাজশাহী':'rajshahi','খুলনা':'khulna','বরিশাল':'barishal|barisal','সিলেট':'sylhet','রংপুর':'rangpur','ময়মনসিংহ':'mymensingh'};
+        for(const c of divC){const d=Object.keys(this.bdLoc).find(k=>k===c||(EN[k]||'').split('|').includes(c));if(d){dvName=d;break}}
+      }
+      const nz=s=>String(s||'').replace(/\s*(উপজেলা|থানা|Upazila|Upazilla|Thana|সদর|Sadar)\s*/gi,' ').trim();
+      const upC=[a.county,...admBy(/upazila|upazilla|thana/i),a.suburb,a.city_district,a.town,a.municipality].map(nz).filter(x=>x&&clean(x)!==clean(diName));
+      const up=(upC[0]||'').slice(0,80);
+      const parts=[a.house_number,a.road,a.neighbourhood,a.suburb,a.village,a.hamlet,a.town||a.city_district].filter(Boolean);
+      const txt=(parts.length?parts.join(', '):String((nm&&nm.display_name)||[bd&&bd.locality,bd&&bd.city].filter(Boolean).join(', ')).split(',').slice(0,3).join(',')).slice(0,250);
+      const prev=this._locAuto||{},canSet=(k,cur)=>!String(cur||'').trim()||cur===prev[k];
+      if(dvName){this.form.division=dvName;await this.$nextTick();if(diName){this.form.district=diName;await this.$nextTick()}}
+      if(up&&canSet('upazila',this.form.upazila))this.form.upazila=up;
+      this.form.loc.address=txt;
+      if(txt&&canSet('address',this.form.address))this.form.address=txt;
+      this._locAuto={upazila:this.form.upazila,address:this.form.address};
+      this.locRes=dvName?{division:dvName,district:diName,upazila:this.form.upazila,approx}:null;
+      this.locMsg=dvName?((approx?'জেলা আনুমানিক ধরা হয়েছে — ':'বিভাগ ও জেলা অটো-সিলেক্ট হয়েছে — ')+'ঠিক না হলে নিজে বদলে নিন।'):'লোকেশন পাওয়া গেছে (স্থানাঙ্ক সেভ হবে), তবে বিভাগ/জেলা নিজে বেছে নিন।';
+      this.locFlash=true;setTimeout(()=>{this.locFlash=false},1800);
+      this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
+    })().catch(err=>{
+      const m=err&&err.code===1?'লোকেশন অনুমতি (Allow) দেওয়া হয়নি — ব্রাউজার/ফোনের সেটিংসে অনুমতি দিয়ে আবার চাপুন':(err&&err.code===3?'লোকেশন পেতে দেরি হচ্ছে — খোলা জায়গায় গিয়ে আবার চেষ্টা করুন':'লোকেশন পাওয়া যায়নি — বিভাগ ও জেলা নিজে বেছে নিন');
       this.locMsg=m;this.showToast(m,'error');
-    },{enableHighAccuracy:true,timeout:15000,maximumAge:60000});
+    }).finally(()=>{this.locBusy=false;this.locStep=0});
   },
   get resellHeadColor(){const w=this._realSecs.find(s=>this._secGender(s)==='women')||this._realSecs.find(s=>/মেয়ে|মহিলা|লেডিস|women|girl|ladies/i.test(s.name||''));return (w&&w.color)||'#6B7280'},
   get resellFeedCats(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecCats(sec)}return this.resellCategories},
@@ -6122,7 +6192,16 @@ function App(){return{
   orderStatusStep(status){const m={'পেন্ডিং':0,'প্রসেসিং':1,'কনফার্মড':1,'পাঠানো হচ্ছে':2,'ডেলিভারিতে':2,'ডেলিভার্ড':3};return m[status]??0},
   normSt(s){return({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে'})[s]||s},
   effStatus(o){const s=o.status;if(s==='বাতিল'||s==='ডেলিভার্ড')return s;let st=this.orderStatusStep(s);const tx=String(o.trackNote||(((o.trackLog||[]).slice(-1)[0])||{}).text||'');if(tx){if(/ডেলিভারি\s*(সম্পন্ন|হয়ে\s*গেছে)|পৌঁছে\s*(গেছে|দেওয়া)/.test(tx))st=3;else if(/কুরিয়ার|পাঠান|ডেলিভারি|রওনা|হাবে|সর্টিং|পথে|শিপ/.test(tx))st=Math.max(st,2);else if(/প্যাক|প্রসেস|প্রস্তুত/.test(tx))st=Math.max(st,1)}return['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড'][st]},
-  delMyOrder:async function(o){if(o.status!=='বাতিল')return;if(!(await this.askConfirm({title:'অর্ডার মুছবেন?',msg:'বাতিল অর্ডার #'+o.id+' আপনার তালিকা থেকে মুছে যাবে।',icon:'fa-solid fa-trash',yesText:'হ্যাঁ, মুছুন',yesIcon:'fa-solid fa-trash',noText:'না'})))return;this._hid=[...this._hid,String(o.id)];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==String(o.id));try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}this.showToast('অর্ডার মুছে ফেলা হয়েছে','success')},
+  delMyOrder:async function(o){
+    if(o.status!=='বাতিল')return;
+    if(!(await this.askConfirm({title:'অর্ডার মুছবেন?',msg:'বাতিল অর্ডার #'+o.id+' স্থায়ীভাবে মুছে যাবে — তালিকা ও ডাটাবেস দুই জায়গা থেকেই। এটা আর ফেরানো যাবে না।',icon:'fa-solid fa-trash',yesText:'হ্যাঁ, মুছুন',yesIcon:'fa-solid fa-trash',noText:'না'})))return;
+    let _db=false;
+    if(o.fbKey){try{await window.$db.deleteOrder(o.fbKey);_db=true}catch(e){console.warn('deleteOrder',e&&e.code)}}
+    this._hid=[...this._hid,String(o.id)];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}
+    this.myOrders=this.myOrders.filter(x=>String(x.id)!==String(o.id));try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}
+    try{this._ordN=(this._ordN||[]).filter(n=>String(n.orderId||'')!==String(o.id));localStorage.setItem('dd_ordN',JSON.stringify(this._ordN))}catch(e){}
+    this.showToast(_db||!o.fbKey?'অর্ডার স্থায়ীভাবে মুছে ফেলা হয়েছে 🗑️':'তালিকা থেকে সরানো হয়েছে','success')
+  },
   orderStatusPct(status){const step=this.orderStatusStep(status);return [0,33,66,100][step]||0},
   isWish(p){return this.wish.includes(p.fbKey||p.id)},
   toggleWish(p){const k=p.fbKey||p.id,has=this.wish.includes(k);this.wish=has?this.wish.filter(x=>x!==k):[...this.wish,k];try{localStorage.setItem('dd_wish',JSON.stringify(this.wish))}catch(e){}this.showToast(has?'পছন্দের তালিকা থেকে সরানো হয়েছে':'পছন্দের তালিকায় যোগ হয়েছে','success')},
@@ -7730,7 +7809,7 @@ window.addEventListener('load',run)})();</script>
     if(Object.keys(bad).length){
       console.warn('[scroll-watchdog] blocking style found on',label,bad,'— clearing it now.');
       el.style.setProperty('overflow-y','auto','important');
-      el.style.setProperty('touch-action','pan-y','important');
+      el.style.setProperty('touch-action','manipulation','important');
       el.style.setProperty('pointer-events','auto','important');
       el.style.removeProperty('height');
       el.style.removeProperty('max-height');
