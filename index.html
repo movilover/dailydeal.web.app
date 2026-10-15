@@ -1641,8 +1641,9 @@ img{max-width:100%}
 @keyframes obDrive{0%{left:var(--a)}100%{left:var(--b)}}
 .ob-guide{font-size:11.5px;line-height:1.5;color:var(--fg2);margin-top:2px;background:var(--bg2);border-radius:10px;padding:7px 10px}
 /* ── প্রোডাক্ট কার্ড: স্মুথ ক্রসফেড ইমেজ রোটেশন ── */
-.pc-l{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .85s ease;display:block}
+.pc-l{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .7s ease;display:block}
 .pc-l.on{opacity:1}
+.hc-ic{width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0}
 .ob-node.done b{animation:obPop .55s cubic-bezier(.34,1.56,.64,1) both}
 .ob-node.cur b i{animation:obTick 1.6s ease-in-out infinite}
 @keyframes obPop{0%{transform:scale(.35)}100%{transform:scale(1)}}
@@ -2816,63 +2817,26 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     </div>
   </div>
 
-  <!-- ═══ SECTIONS EXPLORER (সেকশন → ক্যাটাগরি) ═══ -->
-  <div class="px-4 pt-4" x-show="q===''&&activeCat==='সব'&&_realSecs.length>0" x-cloak>
-    <div class="section-header mb-2"><div class="flex items-center gap-2"><i class="fa-solid fa-layer-group" style="color:var(--accent)"></i><p class="section-title">সেকশন অনুযায়ী কেনাকাটা</p></div></div>
-    <div class="flex gap-2 overflow-x-auto grp-row" style="padding-bottom:6px">
-      <template x-for="s in _realSecs" :key="s.fbKey||s.id">
-        <button type="button" class="sub-chip" :class="homeSec===(s.fbKey||s.id)?'on':''" @click="homeSec=(homeSec===(s.fbKey||s.id)?'':(s.fbKey||s.id))"><img x-show="s.img" :src="s.img" alt=""/><span x-text="(s.img?'':(s.icon&&!/^fa-/.test(s.icon)?s.icon+' ':''))+s.name"></span></button>
-      </template>
-    </div>
-    <template x-if="homeSecObj">
-      <div class="mt-3 rounded-2xl p-3" style="background:var(--card);border:1px solid var(--border)">
-        <div class="flex items-center justify-between mb-2"><p class="text-sm font-bold" x-text="homeSecObj.name"></p><button type="button" @click="openAllProducts()" class="text-xs font-bold" style="color:var(--accent);background:none;border:none;cursor:pointer">সব পণ্য →</button></div>
-        <div class="sub-cat-scroll" x-show="getSectionCategories(homeSecObj).length>0">
-          <template x-for="c in getSectionCategories(homeSecObj)" :key="c.fbKey||c.name">
-            <div class="sub-cat-item" @click="activeCat=(c.parent?c.parent:c.name);activeSub=(c.parent?c.name:'');q='';catScope={name:c.name,sec:(homeSecObj.fbKey||homeSecObj.id)}">
-              <div class="sub-cat-img-wrap" style="background:var(--bg2);border:2px solid var(--border)"><img x-show="c.img" :src="c.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/><i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i></div>
-              <span class="sub-cat-name" x-text="c.name"></span>
-            </div>
-          </template>
-        </div>
-        <p x-show="getSectionCategories(homeSecObj).length===0&&getSectionProducts(homeSecObj).length===0" class="text-xs text-center py-4" style="color:var(--fg3)">এই সেকশনে শীঘ্রই পণ্য আসছে</p>
-        <p x-show="getSectionCategories(homeSecObj).length===0&&getSectionProducts(homeSecObj).length>0" class="text-xs" style="color:var(--fg3)"><span x-text="getSectionProducts(homeSecObj).length"></span>টি পণ্য আছে — <button type="button" @click="openAllProducts()" style="color:var(--accent);background:none;border:none;cursor:pointer;font-weight:700">সব পণ্য পেজে দেখুন</button></p>
-      </div>
-    </template>
-  </div>
-
   <!-- ═══ PINNED FEATURED PRODUCTS (from admin) ═══ -->
-  <template x-for="g in pinnedGroups" :key="g.key">
-    <div class="px-4 pt-4">
-      <div class="section-header mb-3">
-        <div class="flex items-center gap-2">
-          <i class="fa-solid fa-fire" style="color:var(--accent)"></i><p class="section-title" x-text="g.title"></p>
-          
-        </div>
-      </div>
-      <div class="hs-row" :style="'--cols:'+gridCols" x-effect="g.items.length>gridCols&&$nextTick(()=>ddAuto($el))">
-        <template x-for="(p,pi) in (g.items.length>gridCols?[...g.items.slice(0,16),...g.items.slice(0,16)]:g.items)" :key="(p.fbKey||p.id)+'_'+pi">
-          <div class="product-card hs-card animate-zoom-in" x-show="hasValidData(p)">
-            <div @click="openDetailSheet(p)" style="cursor:pointer">
-              <div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button>
-                <template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template>
-                <div class="prod-badge" style="background:#F59E0B"><i class="fa-solid fa-fire" style="font-size:10px"></i></div>
-              </div>
+  <template x-if="q===''&&activeCat==='সব'">
+    <div>
+      <template x-for="sec in homeClean" :key="sec.key">
+        <div class="px-4 pt-5" x-data="{n:sec.lim}">
+          <div class="section-header mb-3">
+            <div class="flex items-center gap-2.5">
+              <span class="hc-ic" :style="'background:linear-gradient(135deg,'+sec.c1+','+sec.c2+')'"><i class="fa-solid" :class="sec.fa"></i></span>
+              <p class="section-title" x-text="sec.title"></p>
             </div>
-            <div class="p-2.5">
-              <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
-              <div class="flex items-center gap-1.5 mb-2">
-                <span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span>
-                <span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span>
-              </div>
-              <div class="grid grid-cols-2 gap-1">
-                <button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button>
-                <button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button>
-              </div>
-            </div>
+            <span class="text-xs font-semibold" style="color:var(--fg3)" x-text="sec.items.length+'টি'"></span>
           </div>
-        </template>
-      </div>
+          <div class="grid gap-3" :class="gridClass">
+            <template x-for="(p,pi) in sec.items.slice(0,n)" :key="sec.key+'_'+(p.fbKey||p.id)">
+              <div class="product-card animate-zoom-in" x-show="hasValidData(p)"><div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div><div class="p-2.5"><p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p><div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div><div class="grid grid-cols-2 gap-1"><button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button><button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button></div></div></div>
+            </template>
+          </div>
+          <div class="text-center pt-3" x-show="n<sec.items.length"><button type="button" @click="n+=sec.lim" class="btn-ghost" style="padding:9px 24px;font-weight:700">আরও দেখুন <i class="fa-solid fa-chevron-down ml-1"></i></button></div>
+        </div>
+      </template>
     </div>
   </template>
 
@@ -2888,7 +2852,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       <div class="hs-row" style="--cols:4" x-effect="g.items.length>4&&$nextTick(()=>ddAuto($el))">
         <template x-for="(p,pi) in (g.items.length>4?[...g.items.slice(0,16),...g.items.slice(0,16)]:g.items.slice(0,4))" :key="(p.fbKey||p.id)+'_'+pi">
           <div class="product-card hs-card animate-zoom-in" x-show="hasValidData(p)">
-          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
           <div class="p-2.5">
             <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
             <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -2920,7 +2884,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <div class="grid grid-cols-2 gap-3 px-3 pb-3">
             <template x-for="p in g.items.slice(0,4)" :key="p.fbKey||p.id">
               <div class="product-card">
-                <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                 <div class="p-2.5">
                   <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                   <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -2935,7 +2899,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     </template>
   </div>
   <!-- PRODUCT COUNT -->
-  <div class="px-4 pt-3 pb-1">
+  <div class="px-4 pt-3 pb-1" x-show="q!==''||activeCat!=='সব'">
     <p class="text-xs font-semibold" style="color:var(--fg3)" x-text="(activeCat==='সব'?allProducts.length:filteredProds.length)+'টি পণ্য'+(activeCat!=='সব'?' — '+activeCat:(q?' — খোঁজা: '+q:''))"></p>
   </div>
 
@@ -2959,7 +2923,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           <template x-for="p in filteredProds" :key="p.fbKey||p.id">
             <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
               <div @click="openDetailSheet(p)" style="cursor:pointer">
-                <div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
+                <div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
               </div>
               <div class="p-2.5">
                 <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
@@ -2972,32 +2936,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </div>
           </template>
         </template>
-        <template x-if="q===''&&activeCat==='সব'">
-          <template x-for="p in displayedHomeProducts" :key="p.fbKey||p.id">
-            <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
-              <div @click="openDetailSheet(p)" style="cursor:pointer">
-                <div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div>
-              </div>
-              <div class="p-2.5">
-                <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
-                <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
-                <div class="grid grid-cols-2 gap-1">
-                  <button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button>
-                  <button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button>
-                </div>
-              </div>
-            </div>
-          </template>
-        </template>
-      </template>
+              </template>
     </div>
-    <div class="col-span-full text-center pt-2 pb-4" x-show="!loading&&q===''&&activeCat==='সব'&&10+homeShown<newestProducts.length" x-data="{fetching:false}">
-      <button @click="fetching=true;$nextTick(()=>setTimeout(()=>{homeShown+=12;fetching=false},350))" :disabled="fetching" class="btn-primary" style="max-width:220px;margin:0 auto">
-        <span x-show="!fetching">আরও দেখুন <i class="fa-solid fa-chevron-down ml-1"></i></span>
-        <span x-show="fetching"><i class="fa-solid fa-spinner fa-spin"></i></span>
-      </button>
-    </div>
-    <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')&&!prodsComplete&&(q!==''||catBusy||catDoneFor!==activeCat)" class="col-span-full text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3" style="color:var(--accent)"></i><p class="text-sm font-semibold">পণ্য লোড হচ্ছে...</p></div>
+        <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')&&!prodsComplete&&(q!==''||catBusy||catDoneFor!==activeCat)" class="col-span-full text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl mb-3" style="color:var(--accent)"></i><p class="text-sm font-semibold">পণ্য লোড হচ্ছে...</p></div>
     <div x-show="!loading&&filteredProds.length===0&&(q!==''||activeCat!=='সব')&&(prodsComplete||(q===''&&!catBusy&&catDoneFor===activeCat))" class="col-span-full text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
     <div x-show="!loading&&allProducts.length===0&&q===''&&activeCat==='সব'" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
   </div>
@@ -3159,7 +3100,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       <div class="grid gap-3" :class="gridClass">
         <template x-for="p in filteredAllProds" :key="p.fbKey||p.id">
           <div class="product-card animate-zoom-in" x-show="hasValidData(p)">
-            <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+            <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
             <div class="p-2.5">
               <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
               <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -3238,7 +3179,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in filteredMenProds" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -3261,7 +3202,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in filteredWomenProds" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -3284,7 +3225,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <div class="grid gap-3" :class="gridClass">
                 <template x-for="p in generalProducts" :key="p.fbKey||p.id">
                   <div class="product-card" x-show="hasValidData(p)">
-                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
+                    <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div>
                     <div class="p-2.5">
                       <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
                       <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -3317,7 +3258,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
     <div x-show="eidProducts.length>0" class="grid gap-3" :class="gridClass">
       <template x-for="p in eidProducts" :key="p.fbKey||p.id">
         <div class="product-card animate-zoom-in" style="border-color:#B8860B">
-          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div class="prod-badge" style="background:#B8860B"><i class="fa-solid fa-moon" style="margin-right:4px"></i>ঈদ</div></div></div>
+          <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div class="prod-badge" style="background:#B8860B"><i class="fa-solid fa-moon" style="margin-right:4px"></i>ঈদ</div></div></div>
           <div class="p-2.5">
             <p class="text-xs font-semibold leading-snug mb-1.5" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
             <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div>
@@ -3636,7 +3577,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           </div>
         </template>
         <div x-show="(o.items||[]).length>2" class="ord-more" x-text="'+ আরও '+((o.items||[]).length-2)+'টি পণ্য'"></div>
-        <div x-show="!open&&o.status!=='বাতিল'" class="obm" :class="'ob-s'+obStep(o)" @click="tl=!tl">
+        <div x-show="false" class="obm" :class="'ob-s'+obStep(o)" @click="tl=!tl">
           <div class="obm-row">
             <span class="obm-ph"><i class="fa-solid" :class="obPhases(o)[obIdx(o)].ic"></i><span x-text="obPhases(o)[obIdx(o)].t"></span></span>
             <div class="obm-rail"><i class="obm-fill" :class="obStep(o)<2?'ob-glow':''" :style="'width:'+obPct(o)+'%'"></i><template x-for="(ph,i) in obPhases(o)" :key="i"><b :class="(i<obIdx(o)||o.status==='ডেলিভার্ড')?'d':(i===obIdx(o)?'c':'')" :style="'left:'+(i/(obPhases(o).length-1)*100)+'%'"></b></template><span class="obm-van" x-show="obStep(o)===2" :style="'--a:'+obPct(o)+'%;--b:'+(obPct(o)+100/(obPhases(o).length-1))+'%'"><i class="fa-solid fa-truck-fast"></i></span></div>
@@ -3644,9 +3585,9 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
           </div>
           <p class="obm-note" x-text="obNote(o)"></p>
         </div>
-        <div x-show="open&&o.status!=='বাতিল'" class="ob" :class="'ob-s'+obStep(o)" @click.stop>
+        <div x-show="o.status!=='বাতিল'" class="ob" :class="'ob-s'+obStep(o)" @click.stop>
           <div class="ob-top">
-            <span class="ob-badge"><i class="fa-solid" :class="obPhases(o)[obIdx(o)].ic"></i><span x-text="obPhases(o)[obIdx(o)].full"></span></span>
+            <span></span>
             <a x-show="trkUrl(o)" :href="trkUrl(o)" target="_blank" rel="noopener" class="ob-live"><i class="ob-pulse"></i>লাইভ ট্র্যাকিং<i class="fa-solid fa-arrow-up-right-from-square" style="font-size:9px"></i></a>
           </div>
           <div class="ob-line" :style="'--n:'+obPhases(o).length">
@@ -3659,6 +3600,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             </template>
           </div>
           <p class="ob-guide" x-text="obGuide(o)"></p>
+          <button type="button" @click.stop="tl=!tl" class="obm-upd" style="margin-top:8px"><i class="fa-solid fa-list-check"></i><span x-text="tl?'আপডেট লুকান':'আপডেট দেখুন'"></span></button>
         </div>
         <div x-show="open&&o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(effStatus(o),true)"></div>
         <div x-show="open&&o.adjustments&&o.adjustments.length" x-cloak class="mx-3 mt-2 rounded-2xl p-2.5" style="background:#FFFBEB;border:1px solid #F59E0B">
@@ -4184,7 +4126,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   <div class="px-4 pt-3 grid gap-3" :class="gridClass" x-show="wishlistProducts.length>0">
     <template x-for="p in wishlistProducts" :key="p.fbKey||p.id">
       <div class="product-card">
-        <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template></div></div>
+        <div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,5);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){cidx=(cidx+1)%_n;seen[cidx]=1}},1800)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,5):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,5)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':''" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template></div></div>
         <div class="p-2.5">
           <p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p>
           <div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span></div>
@@ -5777,6 +5719,16 @@ function App(){return{
     const nw=this.newestProducts.filter(p=>this.hasValidData(p)).slice(0,10);if(nw.length)g.unshift({key:'g_new',title:this.t('newIn'),fa:'fa-bolt',c1:'#16A34A',c2:'#22C55E',items:nw});
     return g},
   get wishlistProducts(){return this.allProducts.filter(p=>this.wish.includes(p.fbKey||p.id))},
+  get homeClean(){
+    const ok=p=>this.hasValidData(p),used=new Set(),g=[];
+    const take=(key,title,fa,c1,c2,items,lim)=>{items=items.filter(p=>ok(p)&&!used.has(p.fbKey));if(!items.length)return;items.forEach(p=>used.add(p.fbKey));g.push({key,title,fa,c1,c2,items,lim})};
+    const pin=this.pinnedProducts;
+    take('vw','মেয়েদের ভাইরাল পণ্য','fa-fire','#E8196A','#FF6EAD',pin.filter(p=>p.gender==='women'),6);
+    take('vm','ছেলেদের ভাইরাল পণ্য','fa-fire','#1D4ED8','#3B82F6',pin.filter(p=>p.gender==='men'),6);
+    take('new','নতুন পণ্য','fa-bolt','#16A34A','#22C55E',this.newestProducts.filter(ok).slice(0,12),6);
+    take('men','ছেলেদের পণ্য','fa-user-tie','#1D4ED8','#3B82F6',this.menProducts,6);
+    take('women','মেয়েদের পণ্য','fa-person-dress','#E8196A','#FF6EAD',this.womenProducts,6);
+    return g},
   get pinnedGroups(){const ps=this.pinnedProducts;return [
     {key:'men',title:'ছেলেদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='men')},
     {key:'women',title:'মেয়েদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='women')},
