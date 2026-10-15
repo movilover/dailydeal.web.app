@@ -152,9 +152,10 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
     // পূর্ণ লিস্টেনার — এরর হলে নিজে থেকে আবার চেষ্টা করে
     let tries=0;
     const full=()=>{try{onValue(ref(db,'products'),s=>{cb(toArr(s),true)},e=>{console.warn('products full',e&&e.code);if(tries++<4)setTimeout(full,2000+tries*1500);else cb(null,false,true)},{onlyOnce:false})}catch(e){cb(null,false,true)}};
-    setTimeout(full,700);
+    setTimeout(full,0);
   },
   // ইনডেক্সড কুয়েরি: নির্দিষ্ট ক্যাটাগরি/সেকশন/ফ্ল্যাগের পণ্য সরাসরি আনে (পুরো লিস্ট লোডের অপেক্ষা ছাড়াই)
+  getProductByKey:async(k)=>{try{const s=await get(ref(db,'products/'+k));const v=s.val();return v?{fbKey:k,...v}:null}catch(e){return null}},
   getProductsByChild:async(child,val)=>{try{const s=await get(query(ref(db,'products'),orderByChild(child),equalTo(val)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('byChild',child,e&&e.code);return[]}},
   // Cloudinary URL অটো-অপ্টিমাইজ হেল্পার — থাম্বনেইল/ডিটেইল ছবি ছোট+কম্প্রেসড সাইজে আনতে
   optImg:(url,width)=>{
@@ -1756,6 +1757,30 @@ img{max-width:100%}
 @keyframes ordLvTruck{0%{transform:translateX(-14px)}100%{transform:translateX(22px)}}
 @media(prefers-reduced-motion:reduce){.ord-live *,.ord-live::before{animation:none!important}}
 </style>
+
+<style id="dd-final-v2">
+.hc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.hc-sec{animation:hcIn .5s cubic-bezier(.2,.8,.2,1) both}
+.hc-skel{animation:hcIn .3s ease both}
+@keyframes hcIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* নতুন পণ্য — অ্যানিমেটেড হেডার */
+.hc-newic{animation:hcPulse 2.2s ease-in-out infinite}
+.hc-newic::before{content:"";position:absolute;inset:-60%;background:conic-gradient(from 0deg,transparent 0 70%,rgba(255,255,255,.65) 85%,transparent 100%);animation:hcSpin 2.6s linear infinite;z-index:0}
+.hc-newic .hca{position:relative;z-index:1}
+.hc-newic::after{z-index:2}
+.hc-newpill{position:relative;overflow:hidden;display:inline-flex;align-items:center;font-size:10px;font-weight:900;letter-spacing:1.2px;color:#fff;padding:3px 8px;border-radius:999px;background:linear-gradient(135deg,#EF4444,#F97316);box-shadow:0 6px 12px -6px #EF4444;animation:hcPop 1.8s ease-in-out infinite}
+.hc-newpill::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.7) 50%,transparent 65%);transform:translateX(-120%);animation:ordLvShine 2.2s ease-in-out infinite}
+@keyframes hcSpin{to{transform:rotate(360deg)}}
+@keyframes hcPulse{0%,100%{box-shadow:0 8px 18px -8px rgba(22,163,74,.6),0 0 0 0 rgba(34,197,94,.5)}60%{box-shadow:0 8px 18px -8px rgba(22,163,74,.6),0 0 0 8px rgba(34,197,94,0)}}
+@keyframes hcPop{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@media(prefers-reduced-motion:reduce){.hc-sec,.hc-newic,.hc-newic::before,.hc-newpill,.hc-newpill::after{animation:none!important}}
+/* ছোট সংকুচিত কার্ডে ৪-কলামে টেক্সট */
+.hc-grid .product-card .text-xs{font-size:11px}
+/* অর্ডার: ডিলিট + অপেক্ষমাণ লাইভ ট্র্যাকিং */
+.ord-x{border:none;cursor:pointer;width:28px;height:28px;border-radius:9px;background:#FEF2F2;color:#DC2626;font-size:12px;display:inline-flex;align-items:center;justify-content:center;margin-left:8px;flex-shrink:0}
+.ord-live-off{border:none;cursor:pointer;background:linear-gradient(135deg,#64748B,#475569);box-shadow:0 6px 12px -8px #475569}
+.ord-live-off .ord-live-t::after{background:#CBD5E1;animation:none}
+</style>
 </head>
 <style id="dd-v5">
 /* footer: সাদা গ্যাপ বন্ধ + কম ফাঁকা */
@@ -2877,18 +2902,22 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   </div>
 
   <!-- ═══ PINNED FEATURED PRODUCTS (from admin) ═══ -->
-  <template x-if="q===''&&activeCat==='সব'">
+  <div x-show="!homeOk&&q===''&&activeCat==='সব'" x-cloak class="hc-skel">
+    <template x-for="b in 2" :key="b"><div class="px-4 pt-5"><div class="section-header mb-3"><div class="flex items-center gap-2.5"><span class="shimmer" style="width:46px;height:46px;border-radius:15px"></span><span class="shimmer" style="height:16px;width:120px;border-radius:8px"></span></div></div><div class="hc-grid"><template x-for="i in 8" :key="i"><div class="product-card overflow-hidden"><div class="shimmer" style="aspect-ratio:1/1"></div><div class="p-2.5 space-y-2"><div class="shimmer h-3 rounded-lg w-full"></div><div class="shimmer h-3 rounded-lg w-3/5"></div></div></div></template></div></div></template>
+  </div>
+  <template x-if="q===''&&activeCat==='সব'&&homeOk">
     <div>
       <template x-for="sec in homeClean" :key="sec.key">
         <div class="px-4 pt-5 hc-sec" x-data="{n:sec.lim}">
           <div class="section-header mb-3">
             <div class="flex items-center gap-2.5">
-              <span class="hc-ic hc-art" :style="'background:linear-gradient(135deg,'+sec.c1+','+sec.c2+')'" x-html="secArt(sec.key)"></span>
+              <span class="hc-ic hc-art" :class="sec.key==='new'?'hc-newic':''" :style="'background:linear-gradient(135deg,'+sec.c1+','+sec.c2+')'" x-html="secArt(sec.key)"></span>
               <p class="section-title" x-text="sec.title"></p>
+              <span x-show="sec.key==='new'" class="hc-newpill"><i class="fa-solid fa-sparkles" style="display:none"></i>NEW</span>
             </div>
             <span class="text-xs font-semibold" style="color:var(--fg3)" x-text="sec.items.length+'টি'"></span>
           </div>
-          <div class="grid gap-3" :class="gridClass">
+          <div class="hc-grid">
             <template x-for="(p,pi) in sec.items.slice(0,n)" :key="sec.key+'_'+(p.fbKey||p.id)">
               <div class="product-card" x-show="hasValidData(p)"><div @click="openDetailSheet(p)" style="cursor:pointer"><div class="prod-img-wrap" x-data="{cidx:0,pidx:-1,seen:{0:1}}" x-init="const _n=Math.min((p.images||[]).length,4);if(_n>1&&!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)){let _t,_w=setTimeout(()=>{_t=setInterval(()=>{if(!document.hidden){pidx=cidx;cidx=(cidx+1)%_n;seen[cidx]=1}},2600)},(String(p.fbKey||p.id||'').length*397%12)*230);$cleanup(()=>{clearTimeout(_w);clearInterval(_t)})}"><button @click.stop="toggleWish(p)" class="wish-fab"><i :class="isWish(p)?'fa-solid fa-heart':'fa-regular fa-heart'" :style="isWish(p)?'color:#E11D48':''"></i></button><template x-for="(im,k) in ((p.images||[]).length>1?p.images.slice(0,4):[(p.images&&p.images[0])||p.img||''])" :key="k"><img :src="(k===0||k===cidx||k===(cidx+1)%Math.min((p.images||[]).length,4)||seen[k])?optImg(im,300):null" class="pc-l" :class="k===cidx?'on':(k===pidx?'out':'')" :data-o="im" :loading="(typeof pi!=='undefined'&&pi<5)?'eager':'lazy'" decoding="async" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.onerror=null;this.src=DD_PH}" :alt="p.name"/></template><div x-show="p.badge" class="prod-badge" x-text="p.badge"></div></div></div><div class="p-2.5"><p class="text-xs font-semibold leading-snug mb-1.5 cursor-pointer" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.2rem" x-text="p.name" @click="openDetailSheet(p)"></p><div class="flex items-center gap-1.5 mb-2"><span class="price-current" x-text="'৳'+p.price.toLocaleString()"></span><span x-show="p.oldPrice" class="price-old" x-text="'৳'+(p.oldPrice||0).toLocaleString()"></span></div><div class="grid grid-cols-2 gap-1"><button @click="openDetailSheet(p)" class="py-1.5 rounded-xl text-xs font-bold" style="background:var(--bg2);color:var(--fg2);border:1px solid var(--border)"><i class="fa-solid fa-eye" style="font-size:9px"></i></button><button @click="quickAdd(p,$event)" class="py-1.5 rounded-xl text-xs font-bold text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-cart-plus" style="font-size:9px"></i></button></div></div></div>
             </template>
@@ -3591,7 +3620,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   <div x-show="myOrders.filter(x=>x.status==='বাতিল').length>0" x-cloak class="ord-clean"><span><i class="fa-solid fa-trash-can"></i> <b x-text="myOrders.filter(x=>x.status==='বাতিল').length"></b>টি বাতিল অর্ডার আছে</span><button type="button" @click="delAllCancelled()">সব মুছুন</button></div>
   <div class="pill-scroll mb-3">
     <template x-for="s in ['সব','পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড','বাতিল']" :key="s">
-      <button @click="oFilt=s" :style="oFilt===s?'background:var(--accent);color:#fff':'background:var(--card);color:var(--fg2);border:1px solid var(--border)'" class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all" x-text="s"></button>
+      <button @click="oFilt=s" :style="oFilt===s?'background:var(--accent);color:#fff':'background:var(--card);color:var(--fg2);border:1px solid var(--border)'" class="flex-shrink-0 px-4 py-2 rounded-full text-xs font-bold transition-all" x-text="s==='ডেলিভার্ড'?'কমপ্লিট':s"></button>
     </template>
   </div>
   <div x-show="filteredMyOrders.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-receipt text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">কোনো অর্ডার নেই</p></div>
@@ -3600,8 +3629,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       <div class="dd-card overflow-hidden ord-c" x-data="{open:false,tl:false}">
         <div @click="open=!open" class="flex items-center justify-between px-3 py-2" style="background:var(--bg2);border-bottom:1px solid var(--border);cursor:pointer">
           <div><p class="font-mono text-xs font-bold" style="color:var(--fg)">#<span x-text="o.id"></span></p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="o.date"></p></div>
-          <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status"></span>
-          <i class="fa-solid fa-chevron-down ord-chev" :style="open?'transform:rotate(180deg)':''"></i>
+          <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status==='ডেলিভার্ড'?'কমপ্লিট ✓':o.status"></span>
+          <button type="button" x-show="o.status==='বাতিল'" x-cloak @click.stop="delMyOrder(o)" class="ord-x" title="ডিলিট করুন"><i class="fa-solid fa-trash"></i></button><i class="fa-solid fa-chevron-down ord-chev" :style="open?'transform:rotate(180deg)':''"></i>
         </div>
         <template x-for="it in (o.items||[]).slice(0,2)" :key="it.id">
           <div @click.stop="openOrderItem(it)" class="ord-it" title="বিস্তারিত দেখুন">
@@ -3709,6 +3738,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
             <button @click="delMyOrder(o)" x-show="o.status==='বাতিল'||o.status==='ডেলিভার্ড'" class="ord-fb ord-fb-del"><i class="fa-solid fa-trash"></i> ডিলিট</button>
             <button @click="reorder(o)" x-show="o.status==='ডেলিভার্ড'" class="ord-fb ord-fb-solid"><i class="fa-solid fa-rotate-right"></i> আবার অর্ডার</button>
             <a x-show="o.status!=='বাতিল'&&trkUrl(o)" x-cloak :href="trkUrl(o)" target="_blank" rel="noopener" @click.stop class="ord-live" title="কুরিয়ারের লাইভ ট্র্যাকিং খুলুন"><span class="ord-live-ic"><i class="ord-live-ring"></i><i class="ord-live-ring r2"></i><i class="fa-solid fa-location-dot"></i></span><span class="ord-live-t"><b>লাইভ ট্র্যাকিং</b></span><span class="ord-live-road"><i class="fa-solid fa-truck-fast"></i></span></a>
+            <button type="button" x-show="(o.status==='প্রসেসিং'||o.status==='পাঠানো হচ্ছে')&&!trkUrl(o)" x-cloak @click.stop="showToast('কুরিয়ার ট্র্যাকিং লিংক শীঘ্রই যোগ হবে','success')" class="ord-live ord-live-off"><span class="ord-live-ic"><i class="ord-live-ring"></i><i class="fa-solid fa-location-dot"></i></span><span class="ord-live-t"><b>লাইভ ট্র্যাকিং</b></span><span class="ord-live-road"><i class="fa-solid fa-truck-fast"></i></span></button>
             <button @click="showInvoice(o)" class="ord-fb ord-fb-acc"><i class="fa-solid fa-file-invoice"></i> ইনভয়েস</button>
           </div>
         </div>
@@ -5365,7 +5395,7 @@ function App(){return{
   walletModal:{open:false,tab:'withdraw',amount:'',method:'bkash',account:'',trxId:'',saving:false},
   kycModal:{open:false,docType:'nid',nidFront:'',nidBack:'',selfie:'',studentId:'',notStudent:false,fatherPhone:'',motherPhone:'',closeContact:'',saving:false},
   customButtons:[],pinnedProductKeys:[],
-  notifOpen:false,marqueeText:'',marqueeEnabled:true,
+  notifOpen:false,marqueeText:'',marqueeEnabled:true,hPrev:false,hWomen:false,hPin:false,hForce:false,hCached:false,
   selectedSizes:{},selectedVar:{},subOpen:{},now:Date.now(),lang:localStorage.getItem('dd_lang')||'bn',country:localStorage.getItem('dd_country')||'BD',langOpen:false,countryOpen:false,fbReviews:[],detailQty:1,activeSub:'',revForm:{rating:5,text:'',name:'',img:''},wish:(()=>{try{return JSON.parse(localStorage.getItem('dd_wish')||'[]')}catch(e){return[]}})(),cart:[],
   gridCols:2,homepageLimit:8,homeShown:12,searchFocus:false,sellView:false,postView:null,pvSize:'',pvColor:'',pvQty:1,pvPrice:'',pvPopup:'',custChecked:false,sellTermsOpen:false,policies:[
   {fa:'fa-circle-info',t:'আমাদের সম্পর্কে',b:['Daily Deal একটি অনলাইন ভিত্তিক শপ; সারা বাংলাদেশে হোম ডেলিভারি দেওয়া হয়।','আমরা মানসম্পন্ন পণ্য, ন্যায্য দাম ও দ্রুত সেবা দিতে প্রতিশ্রুতিবদ্ধ।','ছবি ও বিবরণ যথাসম্ভব সঠিক রাখা হয়; স্ক্রিনের কারণে রঙে সামান্য পার্থক্য হতে পারে।']},
@@ -5755,12 +5785,12 @@ function App(){return{
   get wishlistProducts(){return this.allProducts.filter(p=>this.wish.includes(p.fbKey||p.id))},
   get homeClean(){
     const ok=p=>this.hasValidData(p),used=new Set(),g=[];
-    const take=(key,title,fa,c1,c2,items,lim)=>{items=items.filter(p=>ok(p)&&!used.has(p.fbKey));if(!items.length)return;items.forEach(p=>used.add(p.fbKey));g.push({key,title,fa,c1,c2,items,lim})};
+    const take=(key,title,fa,c1,c2,items,lim)=>{items=items.filter(p=>ok(p)&&!used.has(p.fbKey));if(items.length>=4)items=items.slice(0,items.length-items.length%4);if(!items.length)return;items.forEach(p=>used.add(p.fbKey));g.push({key,title,fa,c1,c2,items,lim})};
     const pin=this.pinnedProducts;
-    take('vw','মেয়েদের ভাইরাল পণ্য','fa-fire','#E8196A','#FF6EAD',pin.filter(p=>p.gender==='women'),6);
-    take('vm','ছেলেদের ভাইরাল পণ্য','fa-fire','#1D4ED8','#3B82F6',pin.filter(p=>p.gender==='men'),6);
-    take('new','নতুন পণ্য','fa-bolt','#16A34A','#22C55E',this.newestProducts.filter(ok).slice(0,12),6);
-    take('women','মেয়েদের পণ্য','fa-person-dress','#E8196A','#FF6EAD',this.womenProducts,6);
+    take('vw','মেয়েদের ভাইরাল পণ্য','fa-fire','#E8196A','#FF6EAD',pin.filter(p=>p.gender==='women'),8);
+    take('vm','ছেলেদের ভাইরাল পণ্য','fa-fire','#1D4ED8','#3B82F6',pin.filter(p=>p.gender==='men'),8);
+    take('new','নতুন পণ্য','fa-bolt','#16A34A','#22C55E',this.newestProducts.filter(ok).slice(0,16),8);
+    take('women','মেয়েদের পণ্য','fa-person-dress','#E8196A','#FF6EAD',this.womenProducts,8);
     return g},
   secArt(k){
     const girl=(extra)=>'<svg viewBox="0 0 48 48" class="hca" aria-hidden="true"><g class="hca-hair"><path d="M13 23c0-10 5-16 11-16s11 6 11 16v13c0 2.5-3.500 3-4.500.5-1-3-1-7-1-11H18.500c0 4 0 8-1 11-1 2.500-4.500 2-4.500-.5z" fill="#2B1408"/></g><g class="hca-body"><path class="hca-dress" d="M24 31l-10 15h20z" fill="#fff" opacity=".95"/><rect x="21" y="27" width="6" height="6" rx="2" fill="#FFD9BE"/></g><circle cx="24" cy="21" r="8" fill="#FFD9BE"/><path d="M15.500 20c3.500-1 6.500-4 8.500-8 2 4 5 7 8.500 8-.5-7-4-11-8.500-11s-8 4-8.500 11z" fill="#2B1408"/><circle class="hca-eye" cx="20.500" cy="22" r="1.100" fill="#2B1408"/><circle class="hca-eye" cx="27.500" cy="22" r="1.100" fill="#2B1408"/><path d="M21.500 25.500q2.500 2 5 0" stroke="#C2410C" stroke-width="1.200" fill="none" stroke-linecap="round"/><circle cx="19" cy="24.500" r="1.400" fill="#FB7185" opacity=".55"/><circle cx="29" cy="24.500" r="1.400" fill="#FB7185" opacity=".55"/>'+extra+'</svg>';
@@ -5773,6 +5803,9 @@ function App(){return{
     if(k==='vm')return boy(flame+spark);
     if(k==='men')return boy(spark);
     return '<svg viewBox="0 0 48 48" class="hca" aria-hidden="true"><path class="hca-bolt" d="M27 5 11 27h10l-3 16 19-24H26z" fill="#FDE047" stroke="#fff" stroke-width="1.500" stroke-linejoin="round"/><path class="hca-fl1" d="M38 10l1.200 3 3 1.200-3 1.200L38 18.500l-1.200-3.100-3-1.200 3-1.200z" fill="#fff"/><path class="hca-fl2" d="M9 34l1 2.500 2.500 1-2.500 1-1 2.500-1-2.500-2.500-1 2.500-1z" fill="#fff"/></svg>'},
+  get homeOk(){return this.hForce||this.hCached||(this.hPrev&&this.hWomen&&this.hPin)},
+  async _homePins(ks){try{const have=new Set((this.fbProducts||[]).map(p=>p.fbKey));const miss=ks.filter(k=>!have.has(k));if(miss.length){const arr=(await Promise.all(miss.map(k=>window.$db.getProductByKey(k)))).filter(Boolean);if(arr.length)this._mergeProds(this._normProds(arr))}}catch(e){}this.hPin=true},
+  _homeLoad(){window.$db.getProductsByChild('gender','women').then(l=>{if(l&&l.length)this._mergeProds(this._normProds(l))}).catch(()=>{}).finally(()=>{this.hWomen=true});setTimeout(()=>{this.hForce=true},5000)},
   get pinnedGroups(){const ps=this.pinnedProducts;return [
     {key:'men',title:'ছেলেদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='men')},
     {key:'women',title:'মেয়েদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='women')},
@@ -6087,7 +6120,7 @@ function App(){return{
     setTimeout(()=>this._flushHome(true),4500);   // নেটওয়ার্ক আটকে গেলেও পেজ আটকে থাকবে না
     /* দ্রুত প্রথম পেইন্ট: আগের ভিজিটে ক্যাশ করা প্রোডাক্ট থাকলে সঙ্গে সঙ্গে দেখানো হয়,
        নেটওয়ার্ক রেসপন্স আসা পর্যন্ত অপেক্ষা না করেই — Firebase রেসপন্স এলে সাইলেন্টলি আপডেট হয়ে যাবে। */
-    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;this.prodsFull=true;this._ready=true;}}}catch(e){}
+    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;this.prodsFull=true;this._ready=true;try{const pk=JSON.parse(localStorage.getItem('dd_pin_keys')||'null');if(Array.isArray(pk)){this.pinnedProductKeys=pk;this.hCached=true}}catch(e){}}}}catch(e){}
     /* স্টেল-হোয়াইল-রিভ্যালিডেট: আগের ভিজিটের ছোট ডাটা (সেকশন, ক্যাটাগরি, বাটন কনফিগ, সেটিংস) সঙ্গে সঙ্গে দেখানো; নেটওয়ার্ক ডাটা এলে বদলে যায় */
     try{const rd=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
       const cc=rd('dd_c_cats');if(Array.isArray(cc)&&cc.length)this.fbCategories=cc;
@@ -6113,16 +6146,18 @@ function App(){return{
     const lsc=localStorage.getItem('dd_last_seen_tx');if(lsc)this.lastSeenTxCount=parseInt(lsc)||0;
     window.addEventListener('firebase-ready',()=>{
       /* প্রোডাক্ট প্রিভিউ সবার আগে শুরু (বাকি ডাটার সঙ্গে সমান্তরালে) — রেন্ডার হবে সবকিছু এলে একসাথে */
+      this._homeLoad();
       window.$db.listenProducts((prods,full,failed)=>{
-        if(failed){this._stage('prod',()=>{this.prodsFull=true;this.loading=false});this._flushHome(true);return}
+        if(failed){this._stage('prod',()=>{this.prodsFull=true;this.loading=false;this.hPrev=true});this._flushHome(true);return}
         const n=this._normProds(prods);
         if(!this._ready){try{this._stg.imgs=[...n].sort((a,b)=>this._ts(b)-this._ts(a)).slice(0,8).map(p=>this.optImg((p.images&&p.images[0])||p.img||'',300))}catch(e){}}
         this._stage('prod',()=>{
+          this.hPrev=true;
           if(full){this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
           else{this._mergeProds(n);this.prodsFull=true}
           this.loading=false;
           try{this._openDeepLink()}catch(e){}
-          if(full){try{localStorage.setItem('dd_cache_products',JSON.stringify(this.fbProducts.slice(0,60)))}catch(e){}}
+          if(full){try{const u=new Map();[...this.homeClean.flatMap(s=>s.items.slice(0,s.lim*2)),...this.pinnedProducts,...this.fbProducts.slice(0,60)].forEach(x=>u.set(x.fbKey,x));localStorage.setItem('dd_cache_products',JSON.stringify([...u.values()].slice(0,110)))}catch(e){}}
         });
       });
       window.$db.registerUser().catch(()=>{});setInterval(()=>this.now=Date.now(),60000);
@@ -6171,7 +6206,7 @@ function App(){return{
       window.$db.listenSections(sections=>{this._stage('sec',()=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true;try{localStorage.setItem('dd_c_secs',JSON.stringify(this.fbSections))}catch(e){}})});
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
-      window.$db.listenPinnedProducts(pins=>{this.pinnedProductKeys=pins.map(p=>p.productKey||p.fbKey).filter(Boolean)});
+      window.$db.listenPinnedProducts(pins=>{const ks=pins.map(p=>p.productKey||p.fbKey).filter(Boolean);this.pinnedProductKeys=ks;try{localStorage.setItem('dd_pin_keys',JSON.stringify(ks))}catch(e){}this._homePins(ks)});
       window.$auth.authReady.then(async()=>{
         let myUid=localStorage.getItem('dd_uid')||'';
         try{const _m=await window.$db.getUidMap();if(_m)myUid=String(_m)}catch(e){}
@@ -6357,7 +6392,7 @@ function App(){return{
     return '<div class="trk-svg" style="text-align:center"><svg viewBox="0 0 240 150" style="width:100%;max-width:'+(compact?260:330)+'px;height:'+H+'px;overflow:hidden;border-radius:12px" xmlns="http://www.w3.org/2000/svg">'+scene+'</svg><p class="trk-cap" style="'+(compact?'':'color:#374151')+'">'+caps[step]+'</p></div>';
   },
   orderStatusStep(status){const m={'পেন্ডিং':0,'প্রসেসিং':1,'কনফার্মড':1,'পাঠানো হচ্ছে':2,'ডেলিভারিতে':2,'ডেলিভার্ড':3};return m[status]??0},
-  normSt(s){return({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে'})[s]||s},
+  normSt(s){return({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে','কমপ্লিট':'ডেলিভার্ড','সম্পন্ন':'ডেলিভার্ড'})[s]||s},
   effStatus(o){const s=o.status;if(s==='বাতিল'||s==='ডেলিভার্ড'||s==='পেন্ডিং')return s;let st=this.orderStatusStep(s);const tx=String(o.trackNote||(((o.trackLog||[]).slice(-1)[0])||{}).text||'');if(tx){if(/ডেলিভারি\s*(সম্পন্ন|হয়ে\s*গেছে)|পৌঁছে\s*(গেছে|দেওয়া)/.test(tx))st=3;else if(/কুরিয়ার|পাঠান|ডেলিভারি|রওনা|হাবে|সর্টিং|পথে|শিপ/.test(tx))st=Math.max(st,2);else if(/প্যাক|প্রসেস|প্রস্তুত/.test(tx))st=Math.max(st,1)}return['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড'][st]},
   delMyOrder:async function(o){
     const cx=o.status==='বাতিল',dv=o.status==='ডেলিভার্ড';if(!cx&&!dv)return;
