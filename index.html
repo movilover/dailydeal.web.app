@@ -1892,6 +1892,29 @@ html{touch-action:manipulation}
 @keyframes ddHair{0%,100%{transform:rotate(2.5deg)}50%{transform:rotate(-2.5deg)}}
 @keyframes ddEar{0%,100%{transform:translateY(0)}50%{transform:translateY(1.4px)}}
 @media(prefers-reduced-motion:reduce){.dd-fig *,.lo-loc-ic::after{animation:none!important}}
+/* ===== v6b: লাইভ ট্র্যাকিং বাটন — স্পষ্ট প্রিমিয়াম ===== */
+a.ord-live{display:inline-flex;align-items:center;margin:0;padding:0 13px 0 5px;height:36px;gap:8px;font-size:12.5px;font-weight:800;color:#fff;border-radius:999px;background:linear-gradient(135deg,#059669 0%,#0D9488 55%,#0E7490 100%);border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 22px -8px rgba(5,150,105,.8),inset 0 1px 0 rgba(255,255,255,.4);text-shadow:0 1px 2px rgba(0,0,0,.25)}
+a.ord-live .ord-live-ic{width:27px;height:27px;background:#fff;color:#059669;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+a.ord-live .ord-live-ring{border-color:rgba(255,255,255,.95)}
+a.ord-live .ord-live-t b{font-weight:800;letter-spacing:.2px}
+a.ord-live .ord-live-road{width:24px;height:16px;border-bottom-color:rgba(255,255,255,.7)}
+a.ord-live .ord-live-road i{font-size:12px}
+/* ===== v6b: হালকা ব্যাকগ্রাউন্ডের সার্চ বক্স (ইন্টারন্যাশনাল ইত্যাদি) — প্লেসহোল্ডার স্পষ্ট ===== */
+.search-glass[style*="--bg2"]{background:var(--card)!important;border:1.5px solid var(--border);border-radius:16px!important;box-shadow:0 6px 18px var(--shadow);-webkit-backdrop-filter:none;backdrop-filter:none}
+.search-glass[style*="--bg2"] input{color:var(--fg)!important;font-weight:600}
+.search-glass[style*="--bg2"] input::placeholder{color:var(--fg3);opacity:1;font-weight:500}
+.search-glass[style*="--bg2"] i{color:var(--accent)!important;font-size:14px}
+/* ===== v6b: রিসেলার প্রোডাক্ট ক্যাটাগরি — প্রিমিয়াম ===== */
+.rs-head{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 12px;border-radius:18px;background:linear-gradient(135deg,var(--card),var(--bg2));border:1px solid var(--border);box-shadow:0 4px 14px var(--shadow);font-size:16px;font-weight:800;color:var(--c1,var(--fg))}
+.rs-head::before,.rs-head::after{content:'';width:26px;height:3px;border-radius:3px;background:var(--c1,var(--accent));opacity:.65}
+.rs-grid{gap:10px 8px}
+.rs-card{border-radius:18px;padding:20px 4px 9px;background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--border);box-shadow:0 4px 12px var(--shadow);transition:transform .18s,box-shadow .18s,border-color .18s}
+.rs-card:active{transform:scale(.95);border-color:var(--accent);box-shadow:0 1px 4px var(--shadow)}
+.rs-cnt{top:5px;right:5px;min-width:20px;padding:1px 6px;border-radius:99px;background:var(--accentL);color:var(--accent);font-size:10px;font-weight:800;text-align:center}
+.rs-img{width:56px;height:56px;margin:0 auto 7px;border-radius:16px;background:var(--bg2);border:1px solid var(--border);box-shadow:0 0 0 2px var(--card),0 4px 10px var(--shadow)}
+.rs-img img{object-fit:cover;border-radius:inherit}
+.rs-ic{font-size:22px;color:var(--accent)}
+.rs-name{font-weight:700;font-size:11.5px}
 </style>
 </head>
 <style id="dd-v5">
