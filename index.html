@@ -171,6 +171,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenOrderKey:(k,cb)=>_live(()=>ref(db,'orders/'+k),s=>{const v=s.val();cb(v?{fbKey:k,...v}:null)},'orderKey'),
+  getOrderById:(id)=>new Promise(res=>{const q=x=>new Promise(r=>{let done=false;const f=a=>{if(!done){done=true;r(a)}};setTimeout(()=>f([]),8000);try{onValue(query(ref(db,'orders'),orderByChild('id'),equalTo(x)),s=>{const v=s.val();f(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},()=>f([]),{onlyOnce:true})}catch(e){f([])}});q(id).then(a=>{if(a.length)return res(a[0]);const alt=isNaN(id)?String(id):(typeof id==='number'?String(id):Number(id));q(alt).then(b=>res(b[0]||null))})}),
   getOrderOnce:(k)=>new Promise(res=>{try{onValue(ref(db,'orders/'+k),s=>res(s.val()),()=>res(null),{onlyOnce:true})}catch(e){res(null)}}),
   listenUserNotifs:(u,cb)=>{if(!u)return cb([]);return onValue(ref(db,'userNotifs/'+u),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},e=>{console.warn('userNotifs',e&&e.code)})},
   listenNotifications:(cb)=>onValue(ref(db,'notifications'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -1785,7 +1786,7 @@ img{max-width:100%}
 <style id="dd-final-v3">
 /* বটম নেভ: স্ক্রলে লাফালাফি/ফ্লিকার বন্ধ — সবসময় ভিউপোর্টের নিচে স্থির */
 .bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;width:100%!important;max-width:480px;margin:0 auto!important;transform:translate3d(0,0,0)!important;-webkit-transform:translate3d(0,0,0)!important;backface-visibility:hidden;contain:layout style;z-index:50;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:var(--card)!important}
-html,body{overscroll-behavior-y:none}
+html{overscroll-behavior-y:none}body{overscroll-behavior:auto!important}
 /* ছবি লোড হওয়ার আগে alt-টেক্সট যেন কার্ডের উপর না দেখায় */
 .pc-l,.prod-img-wrap img{font-size:0!important;line-height:0!important;color:transparent!important;text-indent:-9999px}
 .hc-sec{content-visibility:visible!important;contain-intrinsic-size:none!important}
@@ -1967,7 +1968,8 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       el.setAttribute('aria-hidden','true');
     }
     var html=document.documentElement,body=document.body;
-    [html,body].forEach(function(n){
+    if(body){body.style.removeProperty('overflow-y');body.style.removeProperty('overflow');body.style.removeProperty('height');body.style.removeProperty('max-height')}
+    [html].forEach(function(n){
       if(!n)return;
       n.style.setProperty('overflow-y','auto','important');
       n.style.setProperty('touch-action','manipulation','important');
@@ -5928,6 +5930,8 @@ function App(){return{
       const fresh=[];
       res.forEach((v,i)=>{if(v)fresh.push({fbKey:list[i].fbKey,...v});else fail++});
       const before=JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]));
+      try{const miss=(this.myOrders||[]).filter(o=>!o.fbKey&&o.id!=null&&!this._hid.includes(String(o.id))&&!['ডেলিভার্ড','বাতিল'].includes(o.status)).slice(0,30);
+        const mr=await Promise.all(miss.map(o=>this._wt(window.$db.getOrderById(o.id),9000,null)));mr.forEach(v=>{if(v&&v.fbKey)fresh.push(v)})}catch(e){}
       if(fresh.length)this._syncOrders(fresh);
       upd=before!==JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]))?1:0;
       try{this._attachKeys()}catch(e){}
@@ -6415,7 +6419,13 @@ function App(){return{
     return '<div class="trk-svg" style="text-align:center"><svg viewBox="0 0 240 150" style="width:100%;max-width:'+(compact?260:330)+'px;height:'+H+'px;overflow:hidden;border-radius:12px" xmlns="http://www.w3.org/2000/svg">'+scene+'</svg><p class="trk-cap" style="'+(compact?'':'color:#374151')+'">'+caps[step]+'</p></div>';
   },
   orderStatusStep(status){const m={'পেন্ডিং':0,'প্রসেসিং':1,'কনফার্মড':1,'পাঠানো হচ্ছে':2,'ডেলিভারিতে':2,'ডেলিভার্ড':3};return m[status]??0},
-  normSt(s){return({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে','কমপ্লিট':'ডেলিভার্ড','সম্পন্ন':'ডেলিভার্ড'})[s]||s},
+  normSt(s){const m=({'কনফার্মড':'প্রসেসিং','ডেলিভারিতে':'পাঠানো হচ্ছে','কমপ্লিট':'ডেলিভার্ড','সম্পন্ন':'ডেলিভার্ড'})[s];if(m)return m;const t=String(s==null?'':s).trim(),l=t.toLowerCase();if(!t)return 'পেন্ডিং';if(['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড','বাতিল','রিসেলার অ্যাপ্রুভাল'].includes(t))return t;
+ if(/cancel|reject|বাতিল/.test(l))return 'বাতিল';
+ if(/deliver(ed|y\s*(done|complete))|complete|ডেলিভার্ড|ডেলিভারি\s*(সম্পন্ন|কমপ্লিট|হয়েছে|হয়ে)|কমপ্লিট|সম্পন্ন|সফল/.test(l)&&!/out\s*for/.test(l))return 'ডেলিভার্ড';
+ if(/ship|dispatch|transit|out\s*for|পাঠান|পথে|ডেলিভারিতে|কুরিয়ার/.test(l))return 'পাঠানো হচ্ছে';
+ if(/process|confirm|packing|প্রসেস|কনফার্ম|প্যাক/.test(l))return 'প্রসেসিং';
+ if(/pending|পেন্ডিং/.test(l))return 'পেন্ডিং';
+ return t},
   effStatus(o){const s=o.status;if(s==='বাতিল'||s==='ডেলিভার্ড'||s==='পেন্ডিং')return s;let st=this.orderStatusStep(s);const tx=String(o.trackNote||(((o.trackLog||[]).slice(-1)[0])||{}).text||'');if(tx){if(/ডেলিভারি\s*(সম্পন্ন|হয়ে\s*গেছে)|পৌঁছে\s*(গেছে|দেওয়া)/.test(tx))st=3;else if(/কুরিয়ার|পাঠান|ডেলিভারি|রওনা|হাবে|সর্টিং|পথে|শিপ/.test(tx))st=Math.max(st,2);else if(/প্যাক|প্রসেস|প্রস্তুত/.test(tx))st=Math.max(st,1)}return['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড'][st]},
   delMyOrder:async function(o){
     const cx=o.status==='বাতিল',dv=o.status==='ডেলিভার্ড';if(!cx&&!dv)return;
@@ -8044,7 +8054,7 @@ window.addEventListener('load',run)})();</script>
     if((cs.height==='100vh'||cs.maxHeight==='100vh')&&cs.overflowY==='hidden') bad.heightLock=cs.height+'/'+cs.maxHeight;
     if(Object.keys(bad).length){
       console.warn('[scroll-watchdog] blocking style found on',label,bad,'— clearing it now.');
-      el.style.setProperty('overflow-y','auto','important');
+      if(el===document.body){el.style.removeProperty('overflow-y');el.style.removeProperty('overflow')}else el.style.setProperty('overflow-y','auto','important');
       el.style.setProperty('touch-action','manipulation','important');
       el.style.setProperty('pointer-events','auto','important');
       el.style.removeProperty('height');
