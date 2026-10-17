@@ -148,7 +148,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()&&!cu.email){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
   saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
-  deleteOrder:async(key)=>{await authReady;await remove(ref(db,'orders/'+key));return true},   // শুধু বাতিল অর্ডার (রুলস নিশ্চিত করে)
+  hideOrder:async(key)=>{await authReady;await update(ref(db,'orders/'+key),{userHidden:true,userHiddenAt:Date.now()});return true},   // ইউজার 'ডিলিট' = শুধু নিজের তালিকা থেকে লুকানো; অর্ডার ডাটাবেসে থেকে যায় (অ্যাডমিন রেকর্ডের জন্য)   // শুধু বাতিল অর্ডার (রুলস নিশ্চিত করে)
   listenProducts:(cb)=>{
     const toArr=s=>{const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]};
     // দ্রুত প্রথম পেইন্ট: সর্বশেষ ৪০টা প্রোডাক্ট (push-key টাইম-অর্ডারে, তাই createdAt ছাড়া পুরনো পণ্যও ঠিকঠাক আসে)
@@ -6002,6 +6002,7 @@ function App(){return{
   _syncOrders(orders){
           orders.forEach(fbOrder=>{
             ['trackLog','adjustments','items'].forEach(k=>{if(fbOrder[k]&&!Array.isArray(fbOrder[k]))fbOrder[k]=Object.values(fbOrder[k])});
+            if(fbOrder.userHidden===true){const _id=String(fbOrder.id);if(!this._hid.includes(_id)){this._hid=[...this._hid,_id];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==_id)}return}
             if(this._hid.includes(String(fbOrder.id)))return;
             fbOrder.status=this.normSt(fbOrder.status);
             this._ordScan(fbOrder);
@@ -6065,12 +6066,12 @@ function App(){return{
     if(manual)this.showToast(fail&&!upd?'এখন আপডেট আনা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন':(upd?'অর্ডার আপডেট হয়েছে ✅':'সব অর্ডার আপ-টু-ডেট ✅'),fail&&!upd?'error':'success');
   },
   obNote(o){if(o.status==='রিসেলার অ্যাপ্রুভাল')return 'বিক্রেতার অনুমোদনের অপেক্ষায়';const lg=(o.trackLog&&o.trackLog.length)?o.trackLog[o.trackLog.length-1].text:'';return o.trackNote||lg||({'পেন্ডিং':'অর্ডার কনফার্ম হয়েছে — যাচাই চলছে','প্রসেসিং':'প্যাকিং ও প্রসেসিং চলছে','পাঠানো হচ্ছে':'কুরিয়ারের মাধ্যমে পথে আছে','ডেলিভারিতে':'ডেলিভারির পথে','ডেলিভার্ড':'ডেলিভারি সম্পন্ন'})[this.effStatus(o)]||''},
-  async _purgeOrder(o,localOnly){let db=false;if(o.fbKey&&!localOnly){try{await window.$db.deleteOrder(o.fbKey);db=true}catch(e){console.warn('deleteOrder',e&&e.code)}}this._hid=[...this._hid,String(o.id)];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==String(o.id));try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}try{this._ordN=(this._ordN||[]).filter(n=>String(n.orderId||'')!==String(o.id));localStorage.setItem('dd_ordN',JSON.stringify(this._ordN))}catch(e){}return db||!o.fbKey||!!localOnly},
+  async _purgeOrder(o,localOnly){let db=false;if(o.fbKey){try{await window.$db.hideOrder(o.fbKey);db=true}catch(e){console.warn('hideOrder',e&&e.code)}}this._hid=[...this._hid,String(o.id)];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==String(o.id));try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(e){}try{this._ordN=(this._ordN||[]).filter(n=>String(n.orderId||'')!==String(o.id));localStorage.setItem('dd_ordN',JSON.stringify(this._ordN))}catch(e){}return db||!o.fbKey||!!localOnly},
   async delAllCancelled(){
     const list=this.myOrders.filter(o=>o.status==='বাতিল');if(!list.length)return;
-    if(!(await this.askConfirm({title:'বাতিল অর্ডার মুছবেন?',msg:list.length+'টি বাতিল অর্ডার স্থায়ীভাবে মুছে যাবে — তালিকা ও ডাটাবেস দুই জায়গা থেকেই। ফেরানো যাবে না।',icon:'fa-solid fa-trash',yesText:'হ্যাঁ, সব মুছুন',yesIcon:'fa-solid fa-trash',noText:'না'})))return;
+    if(!(await this.askConfirm({title:'বাতিল অর্ডার মুছবেন?',msg:list.length+'টি বাতিল অর্ডার আপনার তালিকা থেকে সরে যাবে। (হিসাবের জন্য রেকর্ড আমাদের কাছে সংরক্ষিত থাকবে)',icon:'fa-solid fa-trash',yesText:'হ্যাঁ, সব মুছুন',yesIcon:'fa-solid fa-trash',noText:'না'})))return;
     let ok=0;for(const o of list){if(await this._purgeOrder(o))ok++}
-    this.showToast(ok===list.length?list.length+'টি বাতিল অর্ডার মুছে ফেলা হয়েছে 🗑️':'তালিকা পরিষ্কার হয়েছে (কিছু অর্ডার সার্ভার থেকে মোছা যায়নি)','success');
+    this.showToast(ok===list.length?list.length+'টি বাতিল অর্ডার মুছে ফেলা হয়েছে 🗑️':'তালিকা পরিষ্কার হয়েছে (কিছু অর্ডার এই ডিভাইস থেকে সরানো হয়েছে)','success');
   },
   ordTotal(o){const adj=(o.adjustments||[]).reduce((s,e)=>s+(Number(e.amount)||0),0),tt=Number(o.total)||0,og=Number(o.origTotal);return(adj&&og&&tt===og)?Math.max(0,og+adj):tt},
   _deriveNotifs(){return this._ordN},
@@ -6564,9 +6565,9 @@ function App(){return{
   effStatus(o){const s=o.status;if(s==='বাতিল'||s==='ডেলিভার্ড'||s==='পেন্ডিং')return s;let st=this.orderStatusStep(s);const tx=String(o.trackNote||(((o.trackLog||[]).slice(-1)[0])||{}).text||'');if(tx){if(/ডেলিভারি\s*(সম্পন্ন|হয়ে\s*গেছে)|পৌঁছে\s*(গেছে|দেওয়া)/.test(tx))st=3;else if(/কুরিয়ার|পাঠান|ডেলিভারি|রওনা|হাবে|সর্টিং|পথে|শিপ/.test(tx))st=Math.max(st,2);else if(/প্যাক|প্রসেস|প্রস্তুত/.test(tx))st=Math.max(st,1)}return['পেন্ডিং','প্রসেসিং','পাঠানো হচ্ছে','ডেলিভার্ড'][st]},
   delMyOrder:async function(o){
     const cx=o.status==='বাতিল',dv=o.status==='ডেলিভার্ড';if(!cx&&!dv)return;
-    if(!(await this.askConfirm({title:'অর্ডার ডিলিট করবেন?',msg:cx?('বাতিল অর্ডার #'+o.id+' স্থায়ীভাবে মুছে যাবে — তালিকা ও ডাটাবেস দুই জায়গা থেকেই। এটা আর ফেরানো যাবে না।'):('ডেলিভারি সম্পন্ন অর্ডার #'+o.id+' আপনার তালিকা থেকে সরে যাবে। (হিসাবের জন্য রেকর্ড আমাদের কাছে সংরক্ষিত থাকবে)'),icon:'fa-solid fa-trash',yesText:'হ্যাঁ, ডিলিট',yesIcon:'fa-solid fa-trash',noText:'না'})))return;
-    const ok=await this._purgeOrder(o,dv);
-    this.showToast(ok?(cx?'অর্ডার স্থায়ীভাবে ডিলিট হয়েছে 🗑️':'তালিকা থেকে সরানো হয়েছে 🗑️'):'তালিকা থেকে সরানো হয়েছে','success')
+    if(!(await this.askConfirm({title:'অর্ডার ডিলিট করবেন?',msg:cx?('বাতিল অর্ডার #'+o.id+' আপনার তালিকা থেকে সরে যাবে। (হিসাবের জন্য রেকর্ড আমাদের কাছে সংরক্ষিত থাকবে)'):('ডেলিভারি সম্পন্ন অর্ডার #'+o.id+' আপনার তালিকা থেকে সরে যাবে। (হিসাবের জন্য রেকর্ড আমাদের কাছে সংরক্ষিত থাকবে)'),icon:'fa-solid fa-trash',yesText:'হ্যাঁ, ডিলিট',yesIcon:'fa-solid fa-trash',noText:'না'})))return;
+    const ok=await this._purgeOrder(o);
+    this.showToast(ok?('তালিকা থেকে সরানো হয়েছে 🗑️'):'তালিকা থেকে সরানো হয়েছে','success')
   },
   orderStatusPct(status){const step=this.orderStatusStep(status);return [0,33,66,100][step]||0},
   isWish(p){return this.wish.includes(p.fbKey||p.id)},
