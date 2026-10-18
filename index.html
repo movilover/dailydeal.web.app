@@ -2,6 +2,8 @@
 <html lang="bn" x-data="App()" x-init="boot()" :class="'theme-'+activeTheme">
 <head>
 <meta charset="UTF-8"/>
+<meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net; worker-src 'self' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;"/>
+<meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
 <title x-text="settings.siteName||'Daily Deal'">Daily Deal</title>
 <meta name="description" content="Daily Deal — বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। সেরা পণ্য, সেরা দাম, দ্রুত ডেলিভারি।"/>
@@ -23,7 +25,7 @@
 <link rel="preload" as="font" type="font/woff2" crossorigin href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/webfonts/fa-solid-900.woff2"/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'"/>
 <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet"/></noscript>
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.17.4/dist/cdn.min.js" integrity="sha384-5/joNqFnRyVWzXp99bHot6RHG+EksGp+USSgZwPar7T9SD9PKKER37n/8bXBAZGd" crossorigin="anonymous"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <script>/* ইনভয়েস লাইব্রেরি (html2canvas/QR) — পেজ লোডের পরে ব্যাকগ্রাউন্ডে, যাতে প্রথম লোড দ্রুত হয় */
 (function(){var u=['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'];function go(){u.forEach(function(x){var e=document.createElement('script');e.src=x;e.async=true;document.head.appendChild(e)})}
@@ -46,12 +48,13 @@ const cfg={
 const app=initializeApp(cfg);
 /* App Check (reCAPTCHA v3, ফ্রি) — সাইট-কী বসালেই চালু হয়; খালি থাকলে সাইট আগের মতোই চলে।
    কনসোলে প্রথমে "মনিটর মোড", ১–২ সপ্তাহ পরে শুধু Realtime Database-এ Enforce করুন। */
+window.DD_API_BASE=window.DD_API_BASE||'';   // ঐচ্ছিক ডিফল্ট Railway URL (অ্যাডমিন সেটিংসের apiBase এটাকে ওভাররাইড করে)
 const APPCHECK_SITE_KEY='';   // ← আপনার reCAPTCHA v3 সাইট-কী এখানে বসান (পাবলিক হওয়াই স্বাভাবিক)
 if(APPCHECK_SITE_KEY){
   try{
     const ac=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js");
     // লোকাল টেস্টে (কেবল ডেভ): self.FIREBASE_APPCHECK_DEBUG_TOKEN=true;
-    ac.initializeAppCheck(app,{provider:new ac.ReCaptchaV3Provider(APPCHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});
+    const _acI=ac.initializeAppCheck(app,{provider:new ac.ReCaptchaV3Provider(APPCHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});window.$acGet=async()=>{try{return (await ac.getToken(_acI,false)).token}catch(e){return ''}};
   }catch(e){console.warn('AppCheck init failed',e)}
 }
 const db=getDatabase(app);
@@ -72,6 +75,8 @@ onAuthStateChanged(auth,async(u)=>{
 window.$auth={auth,authReady,RESELLER_DOMAIN,
   resellerEmail:(phone)=>phone+RESELLER_DOMAIN,
   derivePw,
+  idToken:async(force)=>{const u=auth.currentUser;return u?await u.getIdToken(!!force):null},
+  idClaims:async()=>{const u=auth.currentUser;if(!u)return {};try{return (await u.getIdTokenResult()).claims||{}}catch(e){return {}}},
   resellerSignIn:(phone,pinHash)=>signInWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
   resellerCreate:(phone,pinHash)=>createUserWithEmailAndPassword(auth,phone+RESELLER_DOMAIN,derivePw(pinHash,phone)),
   resellerSignOut:()=>signOut(auth),
@@ -2544,7 +2549,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
               <p class="text-sm font-bold" style="color:var(--fg)" x-text="n.title||'নোটিফিকেশন'"></p>
               <p class="text-xs mt-0.5" style="color:var(--fg2);white-space:pre-line" x-text="n.body||''"></p>
               <p x-show="n.orderId" class="text-[11px] font-bold mt-1" style="color:var(--accent)" x-text="'অর্ডার #'+n.orderId"></p>
-              <template x-if="n.appLink"><a :href="safeUrl(n.appLink)" target="_blank" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold px-3 py-1.5 rounded-xl text-white" style="background:var(--accent);text-decoration:none"><i class="fa-solid fa-download text-xs"></i><span x-text="n.linkLabel||'দেখুন'"></span></a></template>
+              <template x-if="n.appLink"><a :href="safeUrl(n.appLink)" target="_blank" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold px-3 py-1.5 rounded-xl text-white" style="background:var(--accent);text-decoration:none" rel="noopener noreferrer"><i class="fa-solid fa-download text-xs"></i><span x-text="n.linkLabel||'দেখুন'"></span></a></template>
               <template x-if="n.productKey||n.productId"><button type="button" @click="openNotifProduct(n)" class="inline-flex items-center gap-1.5 mt-2 text-xs font-bold px-3 py-1.5 rounded-xl text-white" style="background:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-bag-shopping text-xs"></i><span x-text="'পণ্য দেখুন'+(n.productId?' (#'+n.productId+')':'')"></span></button></template>
               <p class="text-xs mt-1" style="color:var(--fg3)" x-text="(n.date&&!isNaN(new Date(n.date))&&String(n.date).indexOf('T')>0)?new Date(n.date).toLocaleString('bn-BD'):(n.date||'')"></p>
             </div>
@@ -2993,7 +2998,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
   <!-- ═══ QUICK LINKS ═══ -->
   <div class="px-4 pt-3 grid grid-cols-2 gap-3 dd-hub-links">
-    <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="background:#1877F2;border:1.5px solid rgba(255,255,255,.15)"><i class="fa-brands fa-facebook text-sm"></i> Facebook পেজ</a>
+    <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="background:#1877F2;border:1.5px solid rgba(255,255,255,.15)" rel="noopener noreferrer"><i class="fa-brands fa-facebook text-sm"></i> Facebook পেজ</a>
     <button @click="activeTab='resell'" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="border:1.5px solid rgba(255,255,255,.15);cursor:pointer;background:var(--accent)"><i class="fa-solid fa-store text-sm"></i> রিসেলার হন</button>
   </div>
 
@@ -4130,7 +4135,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <span class="flex-1 text-left"><p class="text-sm font-bold">রিসেলার প্যানেল</p><p class="text-xs opacity-80" x-text="'ওয়ালেট: ৳'+(reseller?.walletBalance||0).toLocaleString()"></p></span>
       <i class="fa-solid fa-chevron-right text-xs"></i>
     </button>
-    <a x-show="settings.appLink" :href="safeUrl(settings.appLink)||'#'" target="_blank" class="app-download-btn">
+    <a x-show="settings.appLink" :href="safeUrl(settings.appLink)||'#'" target="_blank" class="app-download-btn" rel="noopener noreferrer">
       <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.15)"><i class="fa-brands fa-android text-2xl" style="color:#3DDC84"></i></div>
       <div class="flex-1">
         <p class="text-xs opacity-60 mb-0.5">ডাউনলোড করুন</p>
@@ -4298,11 +4303,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     </div>
 
     <div class="dd-card overflow-hidden">
-      <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="border-bottom:1px solid var(--border);text-decoration:none">
+      <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="border-bottom:1px solid var(--border);text-decoration:none" rel="noopener noreferrer">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E7F0FF"><i class="fa-brands fa-facebook" style="color:#1877F2;font-size:16px"></i></div>
         <span class="text-sm font-semibold flex-1" style="color:var(--fg)">Facebook পেজ</span><i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
       </a>
-      <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="text-decoration:none">
+      <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="text-decoration:none" rel="noopener noreferrer">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E6FFF1"><i class="fa-brands fa-whatsapp" style="color:#25D366;font-size:16px"></i></div>
         <span class="text-sm font-semibold flex-1" style="color:var(--fg)">WhatsApp সাপোর্ট</span><i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
       </a>
@@ -4410,6 +4415,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <div><label class="dd-label">পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellLoginForm.pin" data-ch="pw" placeholder="••••" @keydown.enter="resellDoLogin()" autocomplete="current-password"/></div>
           <p x-show="resellAuthError" class="text-xs font-semibold" style="color:#DC2626" x-text="resellAuthError"></p>
           <button type="button" @click="resellDoLogin()" :disabled="resellBusy" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid mr-2" :class="resellBusy?'fa-spinner fa-spin':'fa-right-to-bracket'"></i><span x-text="resellBusy?'লগইন হচ্ছে...':'লগইন করুন'"></span></button>
+          <button type="button" x-show="_otpOn('verifyPinReset')" @click="resellForgotPin()" class="w-full text-center text-xs font-bold mt-2" style="color:var(--accent);background:none;border:0;cursor:pointer">PIN ভুলে গেছেন? ফোনে কোড নিন</button>
         </div>
       </div>
     </div>
@@ -4464,7 +4470,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <div class="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-5 text-4xl" style="background:#FEF2F2"><i class="fa-solid fa-ban"></i></div>
         <p class="font-display text-xl mb-1" style="color:var(--fg)">অ্যাকাউন্ট ব্লক করা হয়েছে</p>
         <p class="text-sm px-6 mb-4" style="color:var(--fg3)">আপনার রিসেলার অ্যাকাউন্টটি সাময়িকভাবে ব্লক করা হয়েছে। সাহায্যের জন্য যোগাযোগ করুন।</p>
-        <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="btn-primary max-w-xs mx-auto block">WhatsApp সাপোর্ট</a>
+        <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" class="btn-primary max-w-xs mx-auto block" rel="noopener noreferrer">WhatsApp সাপোর্ট</a>
       </div>
     </template>
 
@@ -5618,7 +5624,8 @@ function App(){return{
   rcfg:{},learnCat:'সব',videoModal:{open:false,src:'',title:''},rpop:{open:false,key:'',once:true},fbRecharges:[],fbServices:[],fbMyServiceOrders:[],
   sellLinkModal:{open:false,url:'',price:0,p:null,busy:false,saving:false,saveErr:''},
   resellBlocked:false,activeLinkRec:null,
-  resellGate:false,rgPop:false,resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
+  resellGate:false,rgPop:false,otpUi:{open:false,phone:'',purpose:'',step:'send',code:'',pin:'',pin2:'',busy:false,err:'',left:null,cool:0,resolve:null},
+  resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
   ordPop:{open:false,o:null,st:'',q:[]},catScope:null,ordRefreshing:false,
   linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null},
   _dlChecked:false,_dlMiss:0,
@@ -6057,7 +6064,7 @@ function App(){return{
       res.forEach((v,i)=>{if(v)fresh.push({fbKey:list[i].fbKey,...v});else fail++});
       const before=JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]));
       try{const miss=(this.myOrders||[]).filter(o=>!o.fbKey&&o.id!=null&&!this._hid.includes(String(o.id))&&!['ডেলিভার্ড','বাতিল'].includes(o.status)).slice(0,30);
-        const mr=await Promise.all(miss.map(o=>this._wt(window.$db.getOrderById(o.id),9000,null)));mr.forEach(v=>{if(v&&v.fbKey)fresh.push(v)})}catch(e){}
+        const mr=await Promise.all(miss.map(o=>this._wt(this._trackOne(o),9000,null)));mr.forEach(v=>{if(v&&v.fbKey)fresh.push(v)})}catch(e){}
       if(fresh.length)this._syncOrders(fresh);
       upd=before!==JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]))?1:0;
       try{this._attachKeys()}catch(e){}
@@ -6704,8 +6711,52 @@ function App(){return{
     if(!this.otpValidPhone(raw)){this.showToast('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (01XXXXXXXXX)','error');return false}
     try{const b=await this._wt(window.$db.getBlock(this.otpNormPhone(raw)),3500,null);
         if(b){this.showToast('এই নম্বর দিয়ে অর্ডার করা যাচ্ছে না। সাপোর্টে যোগাযোগ করুন।','error');return false}}catch(e){}
+    if(this._otpOn('verifyAtOrder')){const _ph=this.otpNormPhone(raw);if(!(await this._otpClaimFresh(_ph,0))){const _ok=await this.otpFlow(_ph,'order');if(!_ok){this.showToast('ফোন যাচাই ছাড়া অর্ডার করা যাবে না','error');return false}}}
     return true;
   },
+
+  /* ---- ফোন যাচাই (OTP) : সব ফ্ল্যাগ বন্ধ থাকলে এই কোড কিছুই করে না ---- */
+  _otpApi(){const b=String((this.settings&&this.settings.apiBase)||window.DD_API_BASE||'').trim().replace(/\/+$/,'');return /^https:\/\/[^\s]+$/.test(b)?b:''},
+  _otpOn(flag){const s=this.settings||{};return s.phoneVerify===true&&s[flag]===true},
+  async _otpClaimFresh(phone,maxAgeSec){try{const c=await window.$auth.idClaims();if(c.vph!==phone)return false;return !maxAgeSec||(Date.now()/1000-Number(c.vat||0))<maxAgeSec}catch(e){return false}},
+  async _otpCall(path,body){
+    const api=this._otpApi();if(!api)return{ok:false,code:'NOAPI',message:'যাচাই সার্ভিস প্রস্তুত নয়'};
+    try{await window.$auth.authReady}catch(e){}
+    const tok=await window.$auth.idToken(false);if(!tok)return{ok:false,code:'NOAUTH',message:'সংযোগ ব্যর্থ, আবার চেষ্টা করুন'};
+    const h={'Content-Type':'application/json',Authorization:'Bearer '+tok};
+    try{const ac=window.$acGet?await window.$acGet():'';if(ac)h['X-Firebase-AppCheck']=ac}catch(e){}
+    const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),15000);
+    try{const r=await fetch(api+path,{method:'POST',headers:h,body:JSON.stringify(body),signal:ctl.signal});const j=await r.json().catch(()=>({}));return {...j,ok:!!j.ok&&r.ok}}
+    catch(e){return{ok:false,code:'NET',message:'ইন্টারনেট/সার্ভার সমস্যা, আবার চেষ্টা করুন'}}finally{clearTimeout(tm)}
+  },
+  otpFlow(raw,purpose){
+    const phone=this.otpNormPhone(raw);
+    return new Promise(res=>{this.otpUi={open:true,phone,purpose,step:'send',code:'',pin:'',pin2:'',busy:false,err:'',left:null,cool:0,resolve:res}});
+  },
+  _otpClose(ok){const r=this.otpUi.resolve;this.otpUi={...this.otpUi,open:false,resolve:null};clearInterval(this._otpT);if(r)r(ok)},
+  _otpTick(n){this.otpUi.cool=n;clearInterval(this._otpT);this._otpT=setInterval(()=>{if(!this.otpUi.open){clearInterval(this._otpT);return}this.otpUi.cool=Math.max(0,this.otpUi.cool-1);if(!this.otpUi.cool)clearInterval(this._otpT)},1000)},
+  async otpSend(){const u=this.otpUi;if(u.busy||u.cool>0)return;u.busy=true;u.err='';const r=await this._otpCall('/otp/send',{phone:u.phone,purpose:u.purpose});u.busy=false;
+    if(r.ok){u.step='code';u.code='';u.left=null;this._otpTick(60)}else u.err=r.message||'কোড পাঠানো যায়নি'},
+  async otpVerify(){const u=this.otpUi;if(u.busy)return;const code=this._bnToEn(u.code).replace(/\D/g,'');if(code.length!==6){u.err='৬ ডিজিটের কোড দিন';return}
+    u.busy=true;u.err='';const r=await this._otpCall('/otp/verify',{phone:u.phone,purpose:u.purpose,code});
+    if(!r.ok){u.busy=false;u.err=r.message||'যাচাই ব্যর্থ';if(r.left!=null)u.left=r.left;return}
+    try{await window.$auth.idToken(true)}catch(e){}
+    await new Promise(x=>setTimeout(x,700));          // ডাটাবেস সংযোগ নতুন টোকেন নেওয়ার সময়
+    if(u.purpose==='pin_reset'){u.busy=false;u.step='newpin';return}
+    u.busy=false;this._otpClose(true)},
+  async otpResetPin(){const u=this.otpUi;if(u.busy)return;const p=this._bnToEn(u.pin).trim(),p2=this._bnToEn(u.pin2).trim();
+    const pe=this._pinProblem(p);if(pe){u.err=pe;return}if(p!==p2){u.err='দুটো PIN মিলছে না';return}
+    u.busy=true;u.err='';const ph=u.phone,hash=await this._hash(p);
+    const r=await this._otpCall('/otp/reset-pin',{phone:ph,pinHash:hash});
+    if(!r.ok){u.busy=false;u.err=r.message||'PIN বদলানো যায়নি';return}
+    try{await window.$auth.resellerSignIn(ph,hash)}catch(e){u.busy=false;this._otpClose(true);this.resellAuthError='PIN বদলেছে, এখন নতুন PIN দিয়ে লগইন করুন।';return}
+    this._otpClose(true);try{this._thrReset('rl_'+ph)}catch(e){}
+    this._resellLoginSuccess(ph);this.showToast('PIN বদলানো হয়েছে','success')},
+  async resellForgotPin(){const ph=this.otpNormPhone(this._bnToEn(this.resellLoginForm.phone));
+    if(!this.otpValidPhone(ph))return this.resellAuthError='আগে রিসেলার মোবাইল নম্বর দিন';
+    this.resellAuthError='';await this.otpFlow(ph,'pin_reset')},
+  async otpStepUp(purpose){if(!this._otpOn('verifyWithdraw'))return true;const ph=this.resellSession;if(await this._otpClaimFresh(ph,540))return true;return await this.otpFlow(ph,purpose)},
+  async _trackOne(o){try{if(this._otpApi()&&o.phone){const r=await this._otpCall('/orders/track',{id:String(o.id),last4:String(o.phone).replace(/\D/g,'').slice(-4)});if(r.ok&&r.order)return r.order}}catch(e){}return window.$db.getOrderById(o.id)},
 
   /* ═══ TrxID ইউনিক-লক (usedTrx): একটা TrxID ঠিক একটা রেকর্ডের সাথে বাঁধা ═══ */
   _trxNorm(t){return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'')},
@@ -6849,7 +6900,7 @@ function App(){return{
     const o=this.inv.order;
     const items=(o.items||[]).map(i=>`• ${i.name}${i.size?' ('+i.size+')':''} ×${i.qty} = ৳${((i.resellerSellPrice||i.price)*i.qty).toLocaleString()}`).join('\n');
     const msg=`🛒 *${this.invBrandName} — অর্ডার ইনভয়েস*\n━━━━━━━━━━━━━━━\n📋 #${o.id}\n📅 ${o.date}\n👤 ${o.customerName} · ${o.phone}\n📍 ${o.district}, ${o.division}\n\n${items}\n\n💰 ৳${o.subtotal?.toLocaleString()} + 🚚 ৳${o.shipping?.toLocaleString()}\n━━━━━━━━━━━━━━━\n✅ *মোট: ৳${o.total?.toLocaleString()}*\n\nধন্যবাদ! 🙏`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank','noopener');
   },
   // Robust number parser — handles legacy/old product data where price might be
   // a string, have a ৳ symbol, extra spaces, or use Bengali numerals (০-৯)
@@ -6879,7 +6930,8 @@ function App(){return{
     localStorage.setItem('dd_profile',JSON.stringify(this.profile));
     this.form.name=this.profile.name;this.form.phone=this.profile.phone;
     if(this.profile.phone&&window.$db){
-      window.$db.updateUser(this.profile.phone,{name:this.profile.name||'',email:this.profile.email||'',numberSetAt:this.profile.numberSetAt,nameLockedAt:this.profile.nameLockedAt}).catch(()=>{});
+      {const _w=()=>window.$db.updateUser(this.profile.phone,{name:this.profile.name||'',email:this.profile.email||'',numberSetAt:this.profile.numberSetAt,nameLockedAt:this.profile.nameLockedAt}).catch(()=>{});const _ph=this.otpNormPhone(this.profile.phone);
+      if(this._otpOn('verifyAtSignup')&&this.otpValidPhone(_ph)){this._otpClaimFresh(_ph,0).then(ok=>ok?_w():this.otpFlow(_ph,'signup').then(v=>{if(v)_w()}))}else _w()}
     }
     this.showToast('প্রোফাইল সেভ হয়েছে!','success');
   },
@@ -6999,8 +7051,10 @@ function App(){return{
   _wt(p,ms,fb){return Promise.race([Promise.resolve(p),new Promise(r=>setTimeout(()=>r(fb),ms))])},
   _bnToEn(x){return String(x==null?'':x).replace(/[০-৯]/g,d=>'০১২৩৪৫৬৭৮৯'.indexOf(d))},
   // দুর্বল পিন (দৈর্ঘ্য < ৬, একই অঙ্ক, ক্রমিক, বহুল ব্যবহৃত) — মেসেজ ফেরত দেয়, ঠিক থাকলে ''
-  _pinWeak(pin){
+  _pinWeak(pin,enf){
     const p=String(pin||'');
+    const _mn=enf?Math.min(12,Math.max(6,Number(this.settings&&this.settings.minPinLength)||6)):6;   // নতুন সেট/বদলের সময় প্রযোজ্য; লগইন চেকে নয়
+    if(_mn>6&&p.length<_mn)return 'PIN কমপক্ষে '+String(_mn).replace(/[0-9]/g,d=>'০১২৩৪৫৬৭৮৯'[d])+' ডিজিটের হতে হবে!';
     if(p.length<6)return 'কমপক্ষে ৬ ডিজিটের পিন দিন!';
     if(/^(.)\1+$/.test(p)||'01234567890123456789'.includes(p)||'98765432109876543210'.includes(p)||/^(.{2,3})\1+$/.test(p)||['000123','123321','147258','159753','741852','789456','456789','112233','102030','010203','202020','121212','123123','112345','654123','963852','258369','246810','135790','001122','520520','555666','666888','888999'].includes(p))return 'সহজ পিন দেওয়া যাবে না (যেমন 000000, 111111, 123456)।';
     return '';
@@ -7009,7 +7063,7 @@ function App(){return{
     const p=String(pin||'');
     if(!/^[0-9]*$/.test(p))return 'পিন শুধু সংখ্যা (০-৯) হতে হবে!';
     if(p.length>12)return 'পিন সর্বোচ্চ ১২ ডিজিটের হতে পারবে!';
-    return this._pinWeak(p);
+    return this._pinWeak(p,true);
   },
   async _phoneHash(ph){return this._hash('dd-cust:'+String(ph||'').replace(/\D/g,'').slice(-11))},
   // পুরনো (পিন-ভিত্তিক) রেকর্ড Firebase Auth-এ মাইগ্রেট করা — মাইগ্রেটেড না হলে প্রমাণসহ authMigrated:true লেখা (যাচাই রুলস করে)
@@ -7077,6 +7131,7 @@ function App(){return{
           try{await window.$auth.resellerSignIn(f.phone,pinHash)}catch(se){this.resellAuthError='এই নম্বরে আগে থেকে অ্যাকাউন্ট আছে। লগইন করুন (পিন ভুলে গেলে সাপোর্টে জানান)।';return}
         }else throw ce;
       }
+      if(this._otpOn('verifyResellerSignup')&&!(await this._otpClaimFresh(f.phone,0))){const _ok=await this.otpFlow(f.phone,'reseller_signup');if(!_ok){if(created){try{await window.$auth.deleteCurrent()}catch(de){}}this.resellAuthError='ফোন যাচাই সম্পন্ন হয়নি, আবার চেষ্টা করুন।';return}}
       const ex=await this._getResellerOnce(f.phone);
       if(ex&&!created){this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';this.resellAuthMode='login';return}
       try{await this._ensureResellerRecord(f,pinHash,{referredBy,codeValid})}
@@ -7210,7 +7265,7 @@ function App(){return{
     this.custChecked=true;this.custReportData=null;
     const ph=String(this.sellForm.phone||'').replace(/\D/g,'').slice(-11);if(ph.length<11)return;
     // ব্যক্তিগত তথ্য (ঠিকানা ইত্যাদি) নয় — শুধু ফোন-হ্যাশ ভিত্তিক সংখ্যা customerStats থেকে পড়া হয়
-    const st=await window.$db.getCustomerStats(await this._phoneHash(ph));
+    let st;if(this.settings&&this.settings.serverStatsOnly===true&&this._otpApi()){const _r=await this._otpCall('/stats/lookup',{phone:ph});st=_r.ok?_r.stats:undefined}else st=await window.$db.getCustomerStats(await this._phoneHash(ph));
     if(st===undefined){this.custReportData={total:0,delivered:0,bad:0,label:'রিপোর্ট আনা যায়নি — একটু পরে আবার চেষ্টা করুন',color:'#B45309',last:''};return}
     const n=Number(st&&st.total)||0,d=Number(st&&st.delivered)||0,bd=Number(st&&st.cancelled)||0,last=Number(st&&st.lastOrderAt)||0;
     const rate=d+bd?d/(d+bd):null;
@@ -7221,7 +7276,7 @@ function App(){return{
   ago(p){const t=this._ts(p);if(!t)return '';const s=Math.max(0,Math.floor((this.now-t)/1000));if(s<60)return 'এইমাত্র';if(s<3600)return Math.floor(s/60)+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';return Math.floor(s/2592000)+' মাস আগে'},
   timeAgo(ts){if(!ts)return '';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'এইমাত্র';if(s<3600)return Math.max(1,Math.floor(s/60))+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';if(s<31536000)return Math.floor(s/2592000)+' মাস আগে';return Math.floor(s/31536000)+' বছর আগে'},
   openPost(p){this.postView=p;this.pvSize='';this.pvColor='';this.pvQty=1;this.pvPrice='';this.pvPopup=''},
-  async dlImage(url,name){try{const r=await fetch(url);const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){window.open(url,'_blank')}},
+  async dlImage(url,name){try{const r=await fetch(url);const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){window.open(url,'_blank','noopener')}},
   async dlAll(p){const ims=p.images||[];if(!ims.length)return this.showToast('কোনো ছবি নেই','error');this.showToast('ছবি ডাউনলোড হচ্ছে...','success');for(let i=0;i<ims.length;i++){await this.dlImage(ims[i],(p.name||'product').replace(/\s+/g,'_')+'_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,450))}},
   get pvNote(){const p=this.postView;const s=Number(this.pvPrice);if(!p||!s)return null;
     if(s<p.resellerPrice)return {c:'#DC2626',t:'সর্বনিম্ন বিক্রয়মূল্য ৳'+p.resellerPrice+' (রিসেলার প্রাইস)। এর নিচে দেওয়া যাবে না।'};
@@ -7313,6 +7368,7 @@ function App(){return{
     if(_p.max&&amt>_p.max)return this.showToast('সর্বোচ্চ উইথড্র ৳'+_p.max,'error');
     if(amt>(this.reseller?.walletBalance||0))return this.showToast('পর্যাপ্ত ব্যালেন্স নেই!','error');
     if(!this.withdrawForm.number.trim())return this.showToast('নাম্বার দিন!','error');
+    if(!(await this.otpStepUp('withdraw')))return this.showToast('ফোন যাচাই সম্পন্ন হয়নি','error');
     try{
       const _lk=await this._debitLock('withdraw');
       if(!_lk.ok)return this.showToast('আপনার আগের অনুরোধ প্রক্রিয়াধীন','error');
@@ -8148,6 +8204,7 @@ function App(){return{
     if(!f.type)return this.showToast('সিমের ধরন বেছে নিন!','error');
     if(!amt||amt<this.rechargeMin||amt>this.rechargeMax)return this.showToast('রিচার্জ ৳'+this.rechargeMin+' থেকে ৳'+this.rechargeMax+' এর মধ্যে হতে হবে','error');
     if(amt>this.walletAvail)return this.showToast('পর্যাপ্ত ব্যালেন্স নেই! আগে ব্যালেন্স অ্যাড করুন','error');
+    if(!(await this.otpStepUp('recharge')))return this.showToast('ফোন যাচাই সম্পন্ন হয়নি','error');
     this.rechargeBusy=true;
     try{
       const _lk=await this._debitLock('recharge');
@@ -8173,6 +8230,7 @@ function App(){return{
     const mn=Number(s.minQty)||1,mx=Number(s.maxQty)||100000;
     if(!q||q<mn||q>mx)return this.showToast('পরিমাণ '+mn+' থেকে '+mx+' এর মধ্যে হতে হবে','error');
     if(this.svcTotal>this.walletAvail)return this.showToast('পর্যাপ্ত ব্যালেন্স নেই! আগে ব্যালেন্স অ্যাড করুন','error');
+    if(!(await this.otpStepUp('service')))return this.showToast('ফোন যাচাই সম্পন্ন হয়নি','error');
     this.svcBusy=true;
     try{
       await window.$db.pushServiceOrder({resellerPhone:this.resellSession,serviceKey:s.fbKey,title:s.title,unitPrice:Number(s.unitPrice),unitLabel:s.unitLabel||'',qty:q,total:this.svcTotal,contact:this.svcContact.trim(),status:'pending',requestedAt:Date.now()});
@@ -8201,7 +8259,7 @@ function App(){return{
   emoFa(s,d){return emoFa(s,d)},emoTx(s){return emoTx(s)},
 }}
 </script>
-<script defer src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.3/dist/twemoji.min.js" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@twemoji/api@17.0.3/dist/twemoji.min.js" integrity="sha384-Y5xukbGJwykbHHkTbLJykYLcBPFxrwipTbEh0puxhkz9CZ90raTPGe2Ks4vCxsYU" crossorigin="anonymous"></script>
 <script>(function(){var t,run=function(){try{if(!window.twemoji)return;twemoji.parse(document.body,{folder:'svg',ext:'.svg',className:'emoji'});document.querySelectorAll('option img.emoji,textarea img.emoji').forEach(function(i){i.replaceWith(i.alt)})}catch(e){}};
 new MutationObserver(function(rs){if(rs.some(function(r){var el=r.target.nodeType===1?r.target:r.target.parentElement;return el&&!el.closest('option,textarea')})){clearTimeout(t);t=setTimeout(run,150)}}).observe(document.body,{childList:true,subtree:true,characterData:true});
 window.addEventListener('load',run)})();</script>
@@ -8754,5 +8812,29 @@ body{overflow-x:clip!important;overflow-y:visible!important;height:auto!importan
   document.addEventListener('DOMContentLoaded',function(){scan();new MutationObserver(later).observe(document.body,{childList:true,subtree:true})});
 })();
 </script>
+
+<!-- ফোন যাচাই (OTP) মডাল -->
+<div x-show="otpUi.open" role="dialog" aria-modal="true" aria-label="ফোন যাচাই" x-effect="otpUi.open&&otpUi.step==='code'&&$nextTick(()=>$refs.otpCode&&$refs.otpCode.focus())" style="display:none;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.55);align-items:center;justify-content:center;padding:16px" :style="otpUi.open?'display:flex':'display:none'" @keydown.escape.window="otpUi.open&&_otpClose(false)">
+  <div style="width:100%;max-width:360px;background:var(--card,#fff);color:var(--fg,#111);border:1px solid var(--border,#ddd);border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,.35)">
+    <p style="font-weight:800;font-size:16px;margin:0 0 6px" x-text="otpUi.step==='newpin'?'নতুন PIN দিন':'ফোন যাচাই'"></p>
+    <template x-if="otpUi.step==='send'"><div>
+      <p style="font-size:13px;margin:0 0 12px"><b x-text="otpUi.phone"></b> নম্বরে ৬ ডিজিটের একটি কোড এসএমএস করা হবে।</p>
+      <button class="btn-primary w-full" style="justify-content:center" :disabled="otpUi.busy" @click="otpSend()"><span x-text="otpUi.busy?'পাঠানো হচ্ছে...':'কোড পাঠান'"></span></button>
+    </div></template>
+    <template x-if="otpUi.step==='code'"><div>
+      <p style="font-size:13px;margin:0 0 10px"><b x-text="otpUi.phone"></b> নম্বরে পাঠানো ৬ ডিজিটের কোড লিখুন।</p>
+      <input x-ref="otpCode" aria-label="৬ ডিজিটের কোড" class="dd-input" type="tel" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••" x-model="otpUi.code" @keydown.enter="otpVerify()" style="text-align:center;letter-spacing:6px;font-size:20px"/>
+      <button class="btn-primary w-full" style="justify-content:center;margin-top:10px" :disabled="otpUi.busy" @click="otpVerify()"><span x-text="otpUi.busy?'যাচাই হচ্ছে...':'যাচাই করুন'"></span></button>
+      <button type="button" style="width:100%;margin-top:8px;font-size:12px;background:none;border:0;color:var(--accent,#2563EB);cursor:pointer" :disabled="otpUi.cool>0||otpUi.busy" @click="otpSend()" x-text="otpUi.cool>0?('আবার পাঠাতে '+otpUi.cool+' সেকেন্ড অপেক্ষা করুন'):'কোড আবার পাঠান'"></button>
+    </div></template>
+    <template x-if="otpUi.step==='newpin'"><div>
+      <input class="dd-input" type="password" inputmode="numeric" maxlength="12" aria-label="নতুন PIN" placeholder="নতুন PIN" x-model="otpUi.pin" style="margin-bottom:8px"/>
+      <input class="dd-input" type="password" inputmode="numeric" maxlength="12" aria-label="PIN আবার লিখুন" placeholder="PIN আবার লিখুন" x-model="otpUi.pin2" @keydown.enter="otpResetPin()"/>
+      <button class="btn-primary w-full" style="justify-content:center;margin-top:10px" :disabled="otpUi.busy" @click="otpResetPin()"><span x-text="otpUi.busy?'অপেক্ষা করুন...':'PIN বদলান ও লগইন করুন'"></span></button>
+    </div></template>
+    <p role="alert" x-show="otpUi.err" x-text="otpUi.err+(otpUi.left!=null&&otpUi.step==='code'?(' (আর '+otpUi.left+' বার চেষ্টা করা যাবে)'):'')" style="color:#DC2626;font-size:12px;margin:10px 0 0"></p>
+    <button type="button" style="width:100%;margin-top:12px;font-size:12px;background:none;border:0;color:var(--fg2,#666);cursor:pointer" @click="_otpClose(false)">বাতিল</button>
+  </div>
+</div>
 </body>
 </html>
