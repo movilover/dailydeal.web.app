@@ -6757,6 +6757,18 @@ function App(){return{
     this.resellAuthError='';await this.otpFlow(ph,'pin_reset')},
   async otpStepUp(purpose){if(!this._otpOn('verifyWithdraw'))return true;const ph=this.resellSession;if(await this._otpClaimFresh(ph,540))return true;return await this.otpFlow(ph,purpose)},
   async _trackOne(o){try{if(this._otpApi()&&o.phone){const r=await this._otpCall('/orders/track',{id:String(o.id),last4:String(o.phone).replace(/\D/g,'').slice(-4)});if(r.ok&&r.order)return r.order}}catch(e){}return window.$db.getOrderById(o.id)},
+  async _syncCartPrices(){   // verifyPrices চালু থাকলে: কার্টের দাম/নাম লাইভ পণ্যের সাথে মেলায় (রুলস ঠিক এটাই যাচাই করে)
+    const out={changed:false,missing:[]};
+    for(const it of this.cart){
+      const k=it.fbKey||it.id;
+      let lp=(this.fbProducts||[]).find(p=>(p.fbKey||p.id)===k);
+      if(!lp){try{lp=await window.$db.getProductByKey(k)}catch(e){lp=null}}
+      if(!lp||typeof lp.price!=='number'){out.missing.push(it.name||String(k));continue}
+      if(it.id!==k)it.id=k;                                        // অর্ডারের আইটেম-আইডি = পণ্যের কী
+      if(Number(it.price)!==lp.price||it.name!==lp.name){it.price=lp.price;it.name=lp.name;out.changed=true}
+    }
+    if(out.changed){try{this.syncCart()}catch(e){}}
+    return out},
 
   /* ═══ TrxID ইউনিক-লক (usedTrx): একটা TrxID ঠিক একটা রেকর্ডের সাথে বাঁধা ═══ */
   _trxNorm(t){return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'')},
@@ -6794,6 +6806,9 @@ function App(){return{
     if(this.form.pay==='cod'&&!this.codOn)return this.showToast('ক্যাশ অন ডেলিভারি এখন চালু নেই, প্রি-পেমেন্ট মেথড বেছে নিন।','error');
     if(this.form.pay!=='cod'&&!this.form.trxId.trim())return this.showToast('পেমেন্ট করে ট্রানজেকশন ID দিন!','error');
     if(!this.cart.length)return this.showToast('কার্ট খালি!','error');
+    if(this.settings&&this.settings.verifyPrices===true){const _sp=await this._syncCartPrices();
+      if(_sp.missing.length)return this.showToast('এই পণ্য এখন পাওয়া যাচ্ছে না, কার্ট থেকে সরান: '+_sp.missing.join(', '),'error');
+      if(_sp.changed)return this.showToast('কিছু পণ্যের দাম বদলেছে। নতুন মোট দেখে আবার অর্ডার করুন','error')}
     if(!(await this.otpGate(this.form.phone)))return;
     this.placing=true;
     const pLabel=this.form.pay==='cod'?'ক্যাশ অন ডেলিভারি':(this.selectedPM?.label||this.form.pay);
