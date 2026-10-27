@@ -110,6 +110,26 @@ window.$auth={auth,authReady,RESELLER_DOMAIN,
 const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+'_'+Math.random().toString(36).slice(2);localStorage.setItem('dd_uid',id);}return id;};
 // অথ রেডি হওয়া পর্যন্ত অপেক্ষা + permission/নেটওয়ার্ক এরর হলে নিজে থেকে আবার চেষ্টা (লাইভ ব্যালেন্স/অর্ডার আপডেটের জন্য)
 const _live=(mk,cb,tag)=>{let off=null,dead=false,tries=0;const start=async()=>{try{await authReady}catch(e){}if(dead)return;try{off=onValue(mk(),s=>{tries=0;cb(s)},e=>{console.warn(tag,e&&e.code);if(dead)return;if(++tries<=10)setTimeout(start,Math.min(30000,1500*tries))})}catch(e){if(!dead&&++tries<=10)setTimeout(start,2000*tries)}};start();return()=>{dead=true;try{off&&off()}catch(e){}}};
+/* ══ v7: দ্রুত প্রোডাক্ট লোড — REST (gzip, ওয়েবসকেট আটকায় না) + SDK ফলব্যাক + একটাই শেয়ার্ড ডাউনলোড ══ */
+const DB_URL=cfg.databaseURL;
+const _toArr=v=>v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[];
+const _restProducts=async(qs,ms,tok)=>{const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||40000);try{const r=await fetch(DB_URL+'/products.json'+(qs||'')+(tok?((qs?'&':'?')+'auth='+encodeURIComponent(tok)):''),{signal:c.signal});if(!r.ok)throw new Error('http'+r.status);return _toArr(await r.json())}finally{clearTimeout(t)}};
+let _allP=null;
+const _loadAllProducts=(force)=>{if(_allP&&!force)return _allP;
+  const p=(async()=>{
+    let tok=null;
+    for(let i=0;i<3;i++){
+      try{return await _restProducts('',40000,tok)}
+      catch(e){
+        const m=String(e&&e.message||'');
+        if(/http40[13]/.test(m)&&!tok){try{await authReady;tok=auth.currentUser?await auth.currentUser.getIdToken():null}catch(_){}if(tok)continue;break}
+        if(/http40[13]/.test(m))break;
+        await new Promise(r=>setTimeout(r,700*(i+1)));
+      }
+    }
+    try{const s=await get(ref(db,'products'));return _toArr(s.val())}catch(e){console.warn('allProducts',e&&e.code);return null}
+  })().then(a=>{if(!a&&_allP===p)_allP=null;return a});
+  _allP=p;return p};
 window.$db={pushReview:async(d)=>{await authReady;const cu=auth.currentUser;const r=push(ref(db,'reviews'));await set(r,{...d,...(cu?{uid:cu.uid}:{})});return r.key},
   newKey:(path)=>push(ref(db,path)).key,
   setOrderRate:async(d)=>{await authReady;const cu=auth.currentUser;if(!cu)return;return set(ref(db,'orderRate/'+cu.uid),d)},
@@ -155,17 +175,24 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   hideOrder:async(key)=>{await authReady;await update(ref(db,'orders/'+key),{userHidden:true,userHiddenAt:Date.now()});return true},   // ইউজার 'ডিলিট' = শুধু নিজের তালিকা থেকে লুকানো; অর্ডার ডাটাবেসে থেকে যায় (অ্যাডমিন রেকর্ডের জন্য)   // শুধু বাতিল অর্ডার (রুলস নিশ্চিত করে)
   listenProducts:(cb)=>{
-    const toArr=s=>{const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]};
-    // দ্রুত প্রথম পেইন্ট: সর্বশেষ ৪০টা প্রোডাক্ট (push-key টাইম-অর্ডারে, তাই createdAt ছাড়া পুরনো পণ্যও ঠিকঠাক আসে)
-    try{onValue(query(ref(db,'products'),orderByKey(),limitToLast(40)),s=>{const a=toArr(s);if(a.length)cb(a,false)},e=>console.warn('products preview',e&&e.code),{onlyOnce:true});}catch(e){}
-    // পূর্ণ লিস্টেনার — এরর হলে নিজে থেকে আবার চেষ্টা করে
-    let tries=0;
-    const full=()=>{try{onValue(ref(db,'products'),s=>{cb(toArr(s),true)},e=>{console.warn('products full',e&&e.code);if(tries++<4)setTimeout(full,2000+tries*1500);else cb(null,false,true)},{onlyOnce:false})}catch(e){cb(null,false,true)}};
-    setTimeout(full,2200);
+    let fullDone=false;
+    // ১) প্রথম পেইন্ট: সর্বশেষ ৪০টা (REST, ছোট ও দ্রুত) — পূর্ণ লিস্টের সঙ্গে সমান্তরালে
+    (async()=>{try{const a=await _restProducts('?orderBy=%22%24key%22&limitToLast=40',15000);if(a.length&&!fullDone)cb(a,false)}catch(e){try{onValue(query(ref(db,'products'),orderByKey(),limitToLast(40)),s=>{const a=_toArr(s.val());if(a.length&&!fullDone)cb(a,false)},()=>{},{onlyOnce:true})}catch(_){}}})();
+    // ২) পূর্ণ লিস্ট: সঙ্গে সঙ্গে শুরু (আগে ২.২ সেকেন্ড অপেক্ষা করত)
+    const live=()=>{try{onValue(query(ref(db,'products'),orderByKey(),limitToLast(60)),s=>{const a=_toArr(s.val());if(a.length)cb(a,false)},e=>console.warn('products live',e&&e.code))}catch(e){}};
+    (async()=>{
+      let a=await _loadAllProducts();
+      if(!a){await new Promise(r=>setTimeout(r,3000));a=await _loadAllProducts()}
+      fullDone=true;
+      if(a){cb(a,true);live()}else cb(null,false,true);
+    })();
+    // ৩) অ্যাপ অনেকক্ষণ ব্যাকগ্রাউন্ডে থাকলে ফিরে এলে লিস্ট রিফ্রেশ
+    let last=Date.now();
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden&&fullDone&&Date.now()-last>600000){last=Date.now();_loadAllProducts(true).then(a=>{if(a)cb(a,true)})}});
   },
   // ইনডেক্সড কুয়েরি: নির্দিষ্ট ক্যাটাগরি/সেকশন/ফ্ল্যাগের পণ্য সরাসরি আনে (পুরো লিস্ট লোডের অপেক্ষা ছাড়াই)
   getProductByKey:async(k)=>{try{const s=await get(ref(db,'products/'+k));const v=s.val();return v?{fbKey:k,...v}:null}catch(e){return null}},
-  getAllProductsOnce:async()=>{try{const s=await get(ref(db,'products'));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('allProducts',e&&e.code);return null}},
+  getAllProductsOnce:()=>_loadAllProducts(),
   getProductsByChild:async(child,val)=>{try{const s=await get(query(ref(db,'products'),orderByChild(child),equalTo(val)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('byChild',child,e&&e.code);return[]}},
   // Cloudinary URL অটো-অপ্টিমাইজ হেল্পার — থাম্বনেইল/ডিটেইল ছবি ছোট+কম্প্রেসড সাইজে আনতে
   optImg:(url,width)=>{
@@ -2007,6 +2034,10 @@ a.ord-live .ord-live-road i{font-size:12px}
 .rs-ic{font-size:22px;color:var(--accent)}
 .rs-name{font-weight:700;font-size:11.5px}
 </style>
+<style>/* v7: সাইডবার/পেজ লক — এদিক-ওদিক নড়াচড়া বন্ধ */
+html,body{overscroll-behavior-x:none}
+html.dd-lock,html.dd-lock body{overflow:hidden!important;height:100%!important;overscroll-behavior:none}
+</style>
 </head>
 <style id="dd-v5">
 /* footer: সাদা গ্যাপ বন্ধ + কম ফাঁকা */
@@ -2990,8 +3021,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 </div>
 
 <!-- ═══ RESELLER SIDEBAR DRAWER (NEW) ═══ -->
-<div class="col-overlay" x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5)" @click.self="resellSidebarOpen=false">
-  <div class="h-full overflow-y-auto transition-transform duration-200" :style="'width:82%;max-width:300px;background:var(--card);'+(resellSidebarOpen?'transform:translateX(0)':'transform:translateX(-100%)')">
+<div class="col-overlay" x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);touch-action:none;overscroll-behavior:contain" @click.self="resellSidebarOpen=false">
+  <div class="h-full overflow-y-auto overflow-x-hidden transition-transform duration-200" :style="'width:82%;max-width:300px;background:var(--card);touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;will-change:transform;'+(resellSidebarOpen?'transform:translateX(0)':'transform:translateX(-100%)')">
     <div class="p-4 flex items-center gap-3" style="background:var(--header)">
       <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style="background:var(--accent)" x-text="(reseller?.shopName||reseller?.name||'R').charAt(0)"></div>
       <div class="min-w-0"><p class="text-sm font-bold text-white truncate" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs text-white opacity-60" x-text="resellSession"></p></div>
@@ -6354,7 +6385,7 @@ function App(){return{
   get myWalletTxLabel(){return{bonus:'সাইনআপ বোনাস',commission:'রেফারেল কমিশন',profit:'বিক্রয় প্রফিট',withdrawal:'উইথড্র',admin_adjust:'অ্যাডমিন সমন্বয়'}},
   get invBrandName(){return(this.inv.order&&this.inv.order.orderType==='reseller')?(this.inv.order.resellerShopName||this.settings.siteName||'Daily Deal'):(this.settings.siteName||'Daily Deal')},
 
-  hasValidData(p){return p&&p.name&&p.price&&(p.images?.length>0||p.img)},
+  hasValidData(p){return !!(p&&p.name&&p.price)},
 
   // ⭐ SECTIONS helpers
   getSectionProducts(section){
@@ -6487,7 +6518,7 @@ function App(){return{
       this.$watch('activeCat',v=>{this.catN=6;if(v&&v!=='সব')this._fetchCat(v)});this.$watch('q',()=>{this.catN=6});
       this.$watch('activeSub',v=>{this.catN=6;if(v)this._fetchCat(v)});
       this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
-      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});
+      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});
     }catch(e){}
     try{this.$watch('activeTab',v=>{if(v==='allproducts')this.allSeen=true});if(this.activeTab==='allproducts')this.allSeen=true}catch(e){}
     /* SAFETY NET: the full-page skeleton (fixed, inset:0) only hides once
@@ -6712,11 +6743,8 @@ function App(){return{
     this._fullP=(async()=>{
       try{
         await this._dbReady();
-        const t0=Date.now();while(!this.prodsComplete&&!this.fullTried&&Date.now()-t0<2800)await new Promise(r=>setTimeout(r,150));   /* মূল লিস্টেনার চলছে কিনা আগে দেখা */
-        if(!this.prodsComplete){
-          const all=await Promise.race([window.$db.getAllProductsOnce(),new Promise(r=>setTimeout(()=>r(null),15000))]);
-          if(all&&all.length){this._mergeProds(this._normProds(all));this.prodsComplete=true;this.prodsFull=true}
-        }
+        const all=await Promise.race([window.$db.getAllProductsOnce(),new Promise(r=>setTimeout(()=>r(null),45000))]);   /* লিসেনারের সঙ্গে একই ডাউনলোড শেয়ার হয় */
+        if(all&&all.length){this._mergeProds(this._normProds(all));this.prodsComplete=true;this.prodsFull=true}
       }catch(e){console.warn('ensureFull',e)}
       this.fullTried=true;this._fullP=null;
     })();
@@ -6726,21 +6754,12 @@ function App(){return{
     name=this._cn(name);if(!name)return;
     if(this.prodsComplete){this.catDoneFor=name;return}
     window.__ddCq=(window.__ddCq||0)+1;this.catBusy=true;
-    try{await this._dbReady();
-      const tree=this._catTree(name),raw=new Set([...tree]);
-      (this.fbCategories||[]).forEach(c=>{if(c&&c.name&&tree.has(this._cn(c.name)))raw.add(c.name)});
-      const _r=await Promise.race([this._fetchBy('cat',[...raw].slice(0,12)),new Promise(r=>setTimeout(()=>r(-1),6000))]);
-      if((_r===-1||_r===0)&&!this.prodsComplete)await Promise.race([this._ensureFull(),new Promise(r=>setTimeout(r,17000))]);   /* ৬ সেকেন্ডের বেশি আটকে থাকবে না */
-    }catch(e){console.warn('fetchCat',e)}
+    try{await this._ensureFull()}catch(e){console.warn('fetchCat',e)}
     window.__ddCq--;this.catBusy=window.__ddCq>0;this.catDoneFor=name;
   },
-  async _fetchSections(){if(this.prodsComplete)return;try{await this._dbReady();const ids=this._realSecs.map(s=>s.fbKey||s.id).filter(Boolean).slice(0,8);await this._fetchBy('section',ids)}catch(e){}},
-  async _fetchResellable(){if(this.prodsComplete)return;try{await this._dbReady();await this._fetchBy('resellEnabled',[true])}catch(e){}},
-  async _fetchEid(){if(this.prodsComplete)return;try{await this._dbReady();
-    const r=await Promise.race([Promise.all([this._fetchBy('isEidCollection',[true]),this._fetchBy('isEidCollection',['true'])]),new Promise(x=>setTimeout(()=>x(-1),6000))]);
-    const ok=Array.isArray(r)&&r.some(n=>n===undefined||n>0);
-    if(!ok&&!this.prodsComplete)await Promise.race([this._ensureFull(),new Promise(x=>setTimeout(x,17000))]);
-  }catch(e){}},
+  async _fetchSections(){if(this.prodsComplete)return;try{await this._ensureFull()}catch(e){}},
+  async _fetchResellable(){if(this.prodsComplete)return;try{await this._ensureFull()}catch(e){}},
+  async _fetchEid(){if(this.prodsComplete)return;try{await this._ensureFull()}catch(e){}},
   _isEid(p){const v=p&&p.isEidCollection;return v===true||v==='true'||v===1||v==='1'||(p&&(p.isEid===true||p.eidCollection===true||p.eid===true))},
   _catTree(a){const st=new Set([a]);let ch=true,n=0;while(ch&&n++<5){ch=false;this.allCategories.forEach(c=>{if(c.parent&&st.has(c.parent)&&!st.has(c.name)){st.add(c.name);ch=true}})}return st},
   catOk(p){const a=this.activeCat;if(a==='সব')return true;if(!(this._catTree(a).has(p.cat)&&(!this.activeSub||p.cat===this.activeSub)))return false;const sc=this.catScope;if(sc&&sc.name===(this.activeSub||a))return this._inSec(p,sc.sec);return true},
@@ -7343,8 +7362,9 @@ function App(){return{
   },
   _listenMyReseller(){
     if(!this.resellSession)return;
-    this.resellRecLoaded=false;clearTimeout(this._rrT);this._rrT=setTimeout(()=>{this.resellRecLoaded=true},8000);
-    window.$db.listenReseller(this.resellSession,r=>{
+    const ph=this.resellSession;
+    this.resellRecLoaded=false;clearTimeout(this._rrT);this._rrT=setTimeout(()=>{this.resellRecLoaded=true},5000);
+    const apply=r=>{
       this.resellRecLoaded=true;clearTimeout(this._rrT);
       this.reseller=r;
       if(r){
@@ -7352,7 +7372,10 @@ function App(){return{
         this.resellShopNameInput=r.shopName||r.name||'';
         this.resellProfileForm={shopName:r.shopName||r.name||'',supportNumber:r.supportNumber||this.resellSession,showSupportOnInvoice:r.showSupportOnInvoice||'হ্যাঁ',email:r.email||'',district:r.district||'',address:r.address||''};
       }
-    });
+    };
+    window.$db.listenReseller(ph,apply);
+    /* দ্রুত পথ: ওয়েবসকেট ব্যস্ত থাকলেও REST দিয়ে রিসেলারের রেকর্ড সঙ্গে সঙ্গে আনা */
+    (async()=>{try{const t=await this._wt(window.$auth.idToken(),4000,null);if(!t)return;const res=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/resellers/'+encodeURIComponent(ph)+'.json?auth='+encodeURIComponent(t));if(!res.ok)return;const v=await res.json();if(v&&this.resellSession===ph&&!this.reseller)apply(v)}catch(e){}})();
   },
   async resellDoSignup(){
     this.resellAuthError='';
@@ -7433,7 +7456,7 @@ function App(){return{
       let _fast=false;
       try{
         // ধাপ ১: আগে থেকেই ফায়ারবেস অথেনটিকেশনে মাইগ্রেট করা থাকলে সরাসরি লগইন
-        await window.$auth.resellerSignIn(f.phone,pinHash);_fast=true;
+        await Promise.race([window.$auth.resellerSignIn(f.phone,pinHash),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'auth/network-request-failed'})),20000))]);_fast=true;
       }catch(authErr){
         const ac=authErr&&authErr.code;
         if(ac==='auth/network-request-failed')throw authErr;
@@ -7488,16 +7511,20 @@ function App(){return{
     this.showToast('স্বাগতম! ✅','success');
   },
   _attachResellerListeners(phone){
-    window.$db.listenMyWithdrawals(phone,ws=>this.fbWithdrawals=ws);
-    window.$db.listenMyResellerMessages(phone,ms=>this.fbResellerMessages=ms);
-    window.$db.listenMyWalletTx(phone,txs=>this.fbWalletTx=txs);
-    window.$db.listenMySupportTickets(phone,ts=>this.fbSupportTickets=ts);
-    window.$db.listenMyDeposits(phone,ds=>this.fbDeposits=ds);
-    window.$db.listenMyResellOrders(phone,os=>this.fbMyResellOrders=os);
-    window.$db.listenMyRecharges(phone,rs=>this.fbRecharges=rs);
-    window.$db.listenMyServiceOrders(phone,os=>this.fbMyServiceOrders=os);
     try{window.$db.listenBlock(phone,b=>{this.resellBlocked=!!b})}catch(e){}
     try{window.$db.listenActiveLink(phone,a=>{this.activeLinkRec=a;if(a&&a.exp>Date.now()){this._lkExp=a.exp;this._linkTick()}})}catch(e){}
+    /* ভারী লিস্টগুলো একটু পরে — আগে ড্যাশবোর্ড দেখা যাক */
+    clearTimeout(this._rlT);this._rlT=setTimeout(()=>{
+      if(this.resellSession!==phone)return;
+      window.$db.listenMyWithdrawals(phone,ws=>this.fbWithdrawals=ws);
+      window.$db.listenMyResellerMessages(phone,ms=>this.fbResellerMessages=ms);
+      window.$db.listenMyWalletTx(phone,txs=>this.fbWalletTx=txs);
+      window.$db.listenMySupportTickets(phone,ts=>this.fbSupportTickets=ts);
+      window.$db.listenMyDeposits(phone,ds=>this.fbDeposits=ds);
+      window.$db.listenMyResellOrders(phone,os=>this.fbMyResellOrders=os);
+      window.$db.listenMyRecharges(phone,rs=>this.fbRecharges=rs);
+      window.$db.listenMyServiceOrders(phone,os=>this.fbMyServiceOrders=os);
+    },350);
   },
   async resellLogout(){
     if(!(await this.askConfirm({title:'লগআউট করবেন?',msg:'রিসেলার একাউন্ট থেকে বের হয়ে যাবেন।',icon:'fa-solid fa-arrow-right-from-bracket',yesText:'লগআউট',yesIcon:'fa-solid fa-arrow-right-from-bracket',noText:'থাকুন'})))return;
@@ -7783,7 +7810,7 @@ function App(){return{
     return{downPayment,feeAmt,total,monthly,remaining,tenure:t};
   },
   installmentEligible(p){return!!(p&&p.installmentSettings&&p.installmentSettings.enabled&&(p.price||0)>=(p.installmentSettings.minOrderAmount||0))},
-  optImg(url,width){return window.$db.optImg(url,width)},
+  optImg(url,width){return url?window.$db.optImg(url,width):window.DD_PH},
   async confirmEditAddress(){if(await this.askConfirm({title:'ঠিকানা এডিট করবেন?',msg:'ঠিকানা বদলালে আগের ডেলিভারি তথ্যের সাথে অমিল হতে পারে।',tone:'brand',icon:'fa-solid fa-location-dot',yesText:'হ্যাঁ, এডিট করব',noText:'না'}))this.activeTab='orders';},
   installmentPreviewMonthly(p){
     if(!p||!p.installmentSettings)return'0';
