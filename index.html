@@ -165,6 +165,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   },
   // ইনডেক্সড কুয়েরি: নির্দিষ্ট ক্যাটাগরি/সেকশন/ফ্ল্যাগের পণ্য সরাসরি আনে (পুরো লিস্ট লোডের অপেক্ষা ছাড়াই)
   getProductByKey:async(k)=>{try{const s=await get(ref(db,'products/'+k));const v=s.val();return v?{fbKey:k,...v}:null}catch(e){return null}},
+  getAllProductsOnce:async()=>{try{const s=await get(ref(db,'products'));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('allProducts',e&&e.code);return null}},
   getProductsByChild:async(child,val)=>{try{const s=await get(query(ref(db,'products'),orderByChild(child),equalTo(val)));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){console.warn('byChild',child,e&&e.code);return[]}},
   // Cloudinary URL অটো-অপ্টিমাইজ হেল্পার — থাম্বনেইল/ডিটেইল ছবি ছোট+কম্প্রেসড সাইজে আনতে
   optImg:(url,width)=>{
@@ -3277,7 +3278,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
   <!-- ═══ PRODUCTS GRID (ক্যাটাগরি / সার্চ) ═══ -->
   <div class="px-4 pt-2" x-show="q!==''||(activeCat!=='সব'&&!showAccordion)" x-cloak>
-    <div class="bf-grid" x-show="catList.length===0&&!prodsComplete&&(loading||q!==''||catBusy||catDoneFor!==activeCat)"><template x-for="n in 6" :key="'sk'+n"><div class="bf-card bf-sk"><div class="bf-img shimmer"></div><div class="bf-info"><div class="shimmer" style="height:10px;width:50%;border-radius:6px"></div><div class="shimmer" style="height:12px;width:80%;border-radius:6px;margin-top:8px"></div></div><div class="bf-foot"><div class="shimmer" style="height:16px;width:45%;border-radius:6px"></div><div class="shimmer" style="height:36px;width:36px;border-radius:12px"></div></div></div></template></div>
+    <div class="bf-grid" x-show="catList.length===0&&!prodsComplete&&!fullTried&&(loading||q!==''||catBusy||catDoneFor!==activeCat)"><template x-for="n in 6" :key="'sk'+n"><div class="bf-card bf-sk"><div class="bf-img shimmer"></div><div class="bf-info"><div class="shimmer" style="height:10px;width:50%;border-radius:6px"></div><div class="shimmer" style="height:12px;width:80%;border-radius:6px;margin-top:8px"></div></div><div class="bf-foot"><div class="shimmer" style="height:16px;width:45%;border-radius:6px"></div><div class="shimmer" style="height:36px;width:36px;border-radius:12px"></div></div></div></template></div>
     <div class="bf-grid" x-show="catList.length>0">
       <template x-for="(p,pi) in catShow" :key="p.fbKey||p.id">
   <article class="bf-card">
@@ -3301,7 +3302,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     <div class="bf-more" x-show="catList.length>catN">
       <button type="button" class="bf-more-btn" @click="catN+=6"><span>আরও দেখুন</span><i class="fa-solid fa-angles-down"></i></button>
     </div>
-    <div class="text-center py-16" x-show="!loading&&catList.length===0&&(prodsComplete||(q===''&&!catBusy&&catDoneFor===activeCat))" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
+    <div class="text-center py-16" x-show="!loading&&catList.length===0&&!catBusy&&(prodsComplete||fullTried)" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-box-open"></i></div><p class="text-sm font-semibold">কোনো পণ্য পাওয়া যায়নি</p></div>
   </div>
 <div id="policy-section" class="px-4 pt-8" x-data="{open:null}" x-show="activeCat==='সব'&&q===''">
     
@@ -3665,8 +3666,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         </div>
       </template>
     </div>
-    <div x-show="!prodsComplete&&eidProducts.length===0" class="text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl" style="color:var(--accent)"></i><p class="text-sm font-semibold mt-2">লোড হচ্ছে...</p></div>
-    <div x-show="prodsComplete&&eidProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-moon"></i></div><p class="font-display text-xl mb-2" style="color:var(--fg)">ঈদ কালেকশন আসছে!</p><p class="text-sm">শীঘ্রই স্পেশাল পণ্য যোগ হবে</p></div>
+    <div x-show="!prodsComplete&&!fullTried&&eidProducts.length===0" class="text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-spinner fa-spin text-2xl" style="color:var(--accent)"></i><p class="text-sm font-semibold mt-2">লোড হচ্ছে...</p></div>
+    <div x-show="(prodsComplete||fullTried)&&eidProducts.length===0" class="text-center py-16" style="color:var(--fg3)"><div class="dd-empty-ic animate-float"><i class="fa-solid fa-moon"></i></div><p class="font-display text-xl mb-2" style="color:var(--fg)">ঈদ কালেকশন আসছে!</p><p class="text-sm">শীঘ্রই স্পেশাল পণ্য যোগ হবে</p></div>
   </div>
 </section>
 
@@ -4559,60 +4560,70 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <section x-show="activeTab==='resell'" x-cloak class="px-4 pt-4 animate-fade-in">
 
   <template x-if="!resellSession">
-    <div>
-      <div class="text-center mb-5">
-        <div class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-3 text-3xl" style="background:linear-gradient(135deg,#B8860B,#DAA520)"><i class="fa-solid fa-store"></i></div>
-        <p class="font-display text-xl" style="color:var(--fg)">রিসেলার পোর্টাল</p>
-        <p class="text-sm mt-1 px-4" style="color:var(--fg3)">নিজের শপ খুলুন, কম দামে পণ্য নিয়ে বিক্রি করুন, এবং রেফারেল থেকে বাড়তি আয় করুন</p>
+    <div class="rl-wrap">
+      <div class="rl-head">
+        <div class="rl-logo"><i class="fa-solid fa-store"></i></div>
+        <h2 class="rl-title">রিসেলার পোর্টাল</h2>
+        <p class="rl-sub">নিজের শপ খুলুন, কম দামে পণ্য নিয়ে বিক্রি করুন এবং রেফারেল থেকে বাড়তি আয় করুন</p>
       </div>
-      <div class="ddc-wrap rg-wrap" >
-        
-        <div class="ddc" data-theme="teal" data-wide data-validate x-effect="resellAuthError?DDChar.set($el,'sad',1600):((activeTab==='resell'&&resellAuthMode==='signup')?DDChar.walk($el):DDChar.unwalk($el))"></div></div>
-      <div x-show="false" class="rg-panel">
-        <p class="rg-hint"><i class="fa-solid fa-hand-pointer"></i> উপরের ক্যারেক্টারে ট্যাপ করুন</p>
-        <div class="rg-chips"><span><i class="fa-solid fa-sack-dollar"></i> বাড়তি আয়</span><span><i class="fa-solid fa-tags"></i> কম দামে পণ্য</span><span><i class="fa-solid fa-gift"></i> সাইন-আপ বোনাস</span></div>
-        <div class="rg-two">
-          <button type="button" class="rg-cta" @click="openResellForm('signup')"><i class="fa-solid fa-user-plus"></i> রেজিস্ট্রেশন</button>
-          <button type="button" class="rg-cta ghost" @click="openResellForm('login')"><i class="fa-solid fa-right-to-bracket"></i> লগইন</button>
-        </div>
-        <p class="text-xs mt-2" style="color:var(--fg3)">নতুন হলে রেজিস্ট্রেশন, আগে থেকে একাউন্ট থাকলে লগইন</p>
+      <div class="rl-feats">
+        <div><i class="fa-solid fa-sack-dollar"></i><span>বাড়তি আয়</span></div>
+        <div><i class="fa-solid fa-tags"></i><span>কম দামে পণ্য</span></div>
+        <div><i class="fa-solid fa-gift"></i><span>সাইন-আপ বোনাস</span></div>
       </div>
-      <div class="dd-card p-4">
-        <div class="flex gap-2 mb-4 p-1 rounded-2xl" style="background:var(--bg2)">
-          <button @click="resellAuthMode='signup';resellAuthError=''" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all" :style="resellAuthMode==='signup'?'background:var(--accent);color:#fff':'color:var(--fg3)'">রেজিস্ট্রেশন</button>
-          <button @click="resellAuthMode='login';resellAuthError=''" class="flex-1 py-2.5 rounded-xl text-sm font-bold transition-all" :style="resellAuthMode==='login'?'background:var(--accent);color:#fff':'color:var(--fg3)'">লগইন</button>
+      <div class="rl-card">
+        <div class="rl-tabs" role="tablist">
+          <button type="button" role="tab" :aria-selected="resellAuthMode==='login'" :class="resellAuthMode==='login'?'on':''" @click="resellAuthMode='login';resellAuthError=''">লগইন</button>
+          <button type="button" role="tab" :aria-selected="resellAuthMode==='signup'" :class="resellAuthMode==='signup'?'on':''" @click="resellAuthMode='signup';resellAuthError=''">নতুন রেজিস্ট্রেশন</button>
         </div>
 
-        <div x-show="resellAuthMode==='signup'" class="space-y-3" data-ddc-form>
-          <div><label class="dd-label">আপনার নাম *</label><input class="dd-input" x-model="resellSignupForm.name" data-ch="text" placeholder="আপনার সম্পূর্ণ নাম"/></div>
-          <div><label class="dd-label">শপের নাম *</label><input class="dd-input" x-model="resellSignupForm.shopName" data-ch="text" placeholder="যেমন: রুমা'স কালেকশন"/><p class="text-xs mt-1" style="color:var(--fg3)">কাস্টমারকে পাঠানো ইনভয়েসে এই নাম দেখাবে</p></div>
-          <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="resellSignupForm.phone" data-ch="text" placeholder="01XXXXXXXXX" maxlength="14"/><p class="text-xs mt-1 font-semibold" style="color:#DC2626" x-show="resellSignupForm.phone&&resellSignupForm.phone.replace(/\D/g,'').length>=11&&!otpValidPhone(resellSignupForm.phone)">সঠিক বাংলাদেশি নম্বর দিন</p><p class="text-xs mt-1" style="color:var(--fg3)">আসল নম্বর দিন — এই নম্বরেই লগইন হবে</p></div>
-          <div x-data="{sh:false}"><label class="dd-label">পিন (কমপক্ষে ৬ ডিজিট, শুধু সংখ্যা) *</label><div style="position:relative"><input class="dd-input" :type="sh?'text':'password'" inputmode="numeric" x-model="resellSignupForm.pin" data-ch="pw" data-cap="drop" placeholder="••••" style="padding-right:42px"/><button type="button" @click="sh=!sh" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:0;color:var(--fg3);cursor:pointer"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div></div>
-          <div><label class="dd-label">পিন আবার লিখুন *</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" data-ch="pw" data-cap="drop" placeholder="••••"/><p class="text-xs mt-1 font-semibold" x-show="resellSignupForm.confirmPin" :style="resellSignupForm.confirmPin===resellSignupForm.pin?'color:#16A34A':'color:#DC2626'" x-text="resellSignupForm.confirmPin===resellSignupForm.pin?'✓ পিন মিলেছে':'পিন মিলছে না'"></p></div>
-          <div><label class="dd-label">রেফারেল / প্রমো কোড (ঐচ্ছিক)</label><input class="dd-input" x-model="resellSignupForm.referralCode" data-ch="text" data-opt placeholder="যেমন: RS12345AB"/></div>
-          <label class="flex items-start gap-2.5 cursor-pointer pt-1">
-            <input type="checkbox" x-model="resellSignupForm.agree" class="mt-0.5"/>
-            <span class="text-xs" style="color:var(--fg2)">আমি রিসেলিং শর্তাবলীর সাথে সম্মত</span>
-          </label>
-          <p x-show="resellAuthError" class="text-xs font-semibold" style="color:#DC2626" x-text="resellAuthError"></p>
-          <button type="button" @click="resellDoSignup()" :disabled="resellBusy" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid mr-2" :class="resellBusy?'fa-spinner fa-spin':'fa-store'"></i><span x-text="resellBusy?'অপেক্ষা করুন...':'রিসেলার হিসেবে রেজিস্ট্রেশন করুন'"></span></button>
-        </div>
+        <!-- ══ লগইন ══ -->
+        <form x-show="resellAuthMode==='login'" @submit.prevent="resellDoLogin()" class="rl-form" novalidate>
+          <h3 class="rl-h">আপনার অ্যাকাউন্টে প্রবেশ করুন</h3>
+          <div class="rl-field">
+            <label for="rl-ph">মোবাইল নম্বর</label>
+            <div class="rl-in"><i class="fa-solid fa-mobile-screen-button"></i><input id="rl-ph" type="tel" inputmode="numeric" x-model="resellLoginForm.phone" placeholder="01XXXXXXXXX" maxlength="14" autocomplete="username"/></div>
+          </div>
+          <div class="rl-field" x-data="{sh:false}">
+            <label for="rl-pin">পিন</label>
+            <div class="rl-in"><i class="fa-solid fa-lock"></i><input id="rl-pin" :type="sh?'text':'password'" inputmode="numeric" x-model="resellLoginForm.pin" placeholder="আপনার পিন লিখুন" autocomplete="current-password"/><button type="button" class="rl-eye" @click="sh=!sh" :aria-label="sh?'পিন লুকান':'পিন দেখুন'"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div>
+          </div>
+          <div x-show="resellAuthError" x-cloak class="rl-err" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span x-text="resellAuthError"></span></div>
+          <button type="submit" class="rl-btn" :disabled="resellBusy"><span x-text="resellBusy?'লগইন হচ্ছে, অপেক্ষা করুন...':'লগইন করুন'"></span></button>
+          <button type="button" x-show="_otpOn('verifyPinReset')" @click="resellForgotPin()" class="rl-link">পিন ভুলে গেছেন? ফোনে কোড নিন</button>
+          <p class="rl-switch">নতুন রিসেলার? <button type="button" @click="resellAuthMode='signup';resellAuthError=''">রেজিস্ট্রেশন করুন</button></p>
+        </form>
 
-        <div x-show="resellAuthMode==='login'" class="space-y-3">
-          <div><label class="dd-label">মোবাইল নম্বর</label><input class="dd-input" type="tel" x-model="resellLoginForm.phone" data-ch="text" placeholder="01XXXXXXXXX" maxlength="14" @keydown.enter="resellDoLogin()" autocomplete="username"/></div>
-          <div><label class="dd-label">পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellLoginForm.pin" data-ch="pw" placeholder="••••" @keydown.enter="resellDoLogin()" autocomplete="current-password"/></div>
-          <p x-show="resellAuthError" class="text-xs font-semibold" style="color:#DC2626" x-text="resellAuthError"></p>
-          <button type="button" @click="resellDoLogin()" :disabled="resellBusy" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid mr-2" :class="resellBusy?'fa-spinner fa-spin':'fa-right-to-bracket'"></i><span x-text="resellBusy?'লগইন হচ্ছে...':'লগইন করুন'"></span></button>
-          <button type="button" x-show="_otpOn('verifyPinReset')" @click="resellForgotPin()" class="w-full text-center text-xs font-bold mt-2" style="color:var(--accent);background:none;border:0;cursor:pointer">PIN ভুলে গেছেন? ফোনে কোড নিন</button>
-        </div>
+        <!-- ══ রেজিস্ট্রেশন ══ -->
+        <form x-show="resellAuthMode==='signup'" @submit.prevent="resellDoSignup()" class="rl-form" novalidate>
+          <h3 class="rl-h">নতুন রিসেলার অ্যাকাউন্ট</h3>
+          <div class="rl-sec">১. পরিচিতি</div>
+          <div class="rl-field"><label for="rs-name">আপনার নাম *</label><div class="rl-in"><i class="fa-solid fa-user"></i><input id="rs-name" x-model="resellSignupForm.name" placeholder="আপনার সম্পূর্ণ নাম" autocomplete="name"/></div></div>
+          <div class="rl-field"><label for="rs-shop">শপের নাম *</label><div class="rl-in"><i class="fa-solid fa-store"></i><input id="rs-shop" x-model="resellSignupForm.shopName" placeholder="যেমন: রুমা'স কালেকশন"/></div><p class="rl-hint">কাস্টমারকে পাঠানো ইনভয়েসে এই নাম দেখাবে</p></div>
+          <div class="rl-sec">২. লগইন তথ্য</div>
+          <div class="rl-field"><label for="rs-ph">মোবাইল নম্বর *</label><div class="rl-in"><i class="fa-solid fa-mobile-screen-button"></i><input id="rs-ph" type="tel" inputmode="numeric" x-model="resellSignupForm.phone" placeholder="01XXXXXXXXX" maxlength="14" autocomplete="tel"/></div>
+            <p class="rl-bad" x-show="resellSignupForm.phone&&resellSignupForm.phone.replace(/\D/g,'').length>=11&&!otpValidPhone(resellSignupForm.phone)">সঠিক বাংলাদেশি নম্বর দিন</p>
+            <p class="rl-hint">আসল নম্বর দিন — এই নম্বর দিয়েই লগইন করবেন</p></div>
+          <div class="rl-field" x-data="{sh:false}"><label for="rs-pin">পিন (কমপক্ষে ৬ ডিজিট, শুধু সংখ্যা) *</label><div class="rl-in"><i class="fa-solid fa-lock"></i><input id="rs-pin" :type="sh?'text':'password'" inputmode="numeric" x-model="resellSignupForm.pin" placeholder="৬ ডিজিটের পিন" autocomplete="new-password"/><button type="button" class="rl-eye" @click="sh=!sh" :aria-label="sh?'পিন লুকান':'পিন দেখুন'"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div></div>
+          <div class="rl-field"><label for="rs-pin2">পিন আবার লিখুন *</label><div class="rl-in"><i class="fa-solid fa-lock"></i><input id="rs-pin2" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" placeholder="পিন আবার লিখুন" autocomplete="new-password"/></div>
+            <p class="rl-hint" x-show="resellSignupForm.confirmPin" :class="resellSignupForm.confirmPin===resellSignupForm.pin?'rl-okc':'rl-bad'" x-text="resellSignupForm.confirmPin===resellSignupForm.pin?'✓ পিন মিলেছে':'পিন মিলছে না'"></p></div>
+          <div class="rl-sec">৩. ঐচ্ছিক</div>
+          <div class="rl-field"><label for="rs-ref">রেফারেল / প্রমো কোড</label><div class="rl-in"><i class="fa-solid fa-ticket"></i><input id="rs-ref" x-model="resellSignupForm.referralCode" placeholder="যেমন: RS12345AB"/></div></div>
+          <label class="rl-agree"><input type="checkbox" x-model="resellSignupForm.agree"/><span>আমি রিসেলিং শর্তাবলীর সাথে সম্মত</span></label>
+          <div x-show="resellAuthError" x-cloak class="rl-err" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span x-text="resellAuthError"></span></div>
+          <button type="submit" class="rl-btn" :disabled="resellBusy"><span x-text="resellBusy?'অপেক্ষা করুন...':'রিসেলার হিসেবে রেজিস্ট্রেশন করুন'"></span></button>
+          <p class="rl-switch">আগে থেকে অ্যাকাউন্ট আছে? <button type="button" @click="resellAuthMode='login';resellAuthError=''">লগইন করুন</button></p>
+        </form>
       </div>
+      <p class="rl-help" x-show="settings.wa" x-cloak>সাহায্য লাগলে <a :href="'https://wa.me/'+(settings.wa||'')" target="_blank" rel="noopener noreferrer">WhatsApp সাপোর্টে</a> যোগাযোগ করুন</p>
     </div>
   </template>
 
   <template x-if="resellSession">
   <div>
 
-    <template x-if="resellStatus==='none'||resellReapplying">
+    <template x-if="resellStatus==='none'&&!resellRecLoaded&&!resellReapplying"><div class="rl-wrap"><div class="rl-loading"><div class="rl-logo"><i class="fa-solid fa-store"></i></div><p>আপনার অ্যাকাউন্ট লোড হচ্ছে...</p></div></div></template>
+    <template x-if="(resellStatus==='none'&&resellRecLoaded)||resellReapplying">
       <div>
         <div class="text-center mb-5">
           <div class="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-3 text-3xl" style="background:linear-gradient(135deg,#B8860B,#DAA520)"><i class="fa-solid fa-store"></i></div>
@@ -5813,7 +5824,7 @@ function App(){return{
   sellLinkModal:{open:false,url:'',price:0,p:null,busy:false,saving:false,saveErr:''},
   resellBlocked:false,activeLinkRec:null,
   resellGate:false,rgPop:false,otpUi:{open:false,phone:'',purpose:'',step:'send',code:'',pin:'',pin2:'',busy:false,err:'',left:null,cool:0,resolve:null},
-  resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
+  resellBusy:false,allSeen:false,prodsFull:false,prodsComplete:false,fullTried:false,resellRecLoaded:false,catBusy:false,catDoneFor:'',secLoaded:false,allLimit:30,secLimit:{},linkMin:15,linkCool:0,nowTs:Date.now(),
   ordPop:{open:false,o:null,st:'',q:[]},catScope:null,ordRefreshing:false,
   linkOrder:{open:false,loading:false,color:'',vi:0,expired:false,gone:false,exp:0,left:0,p:null,link:null,linkId:'',size:'',qty:1,name:'',phone:'',division:'',district:'',address:'',advance:'',placing:false,done:null},
   _dlChecked:false,_dlMiss:0,
@@ -6099,7 +6110,7 @@ function App(){return{
     get menProducts(){return this.allProducts.filter(p=>p.gender==='men')},
   get womenProducts(){return this.allProducts.filter(p=>p.gender==='women')},
   get generalProducts(){return this.allProducts.filter(p=>!p.gender||p.gender==='both'||p.gender==='general')},
-  get eidProducts(){return this.allProducts.filter(p=>p.isEidCollection===true)},
+  get eidProducts(){return this.allProducts.filter(p=>this._isEid(p))},
   // ⭐ PINNED products for homepage featured section
   get pinnedProducts(){
     if(!this.pinnedProductKeys.length)return[];
@@ -6109,7 +6120,11 @@ function App(){return{
   get filteredWomenProds(){if(!this.womenCatFilter)return this.womenProducts;return this.womenProducts.filter(p=>p.cat===this.womenCatFilter);},
   get gridClass(){return this.gridCols===3?'grid-3':this.gridCols===4?'grid-4':'grid-2'},
   get _navSig(){return this.activeTab+'|'+this.activeCat+'|'+(this.detailSheet.open?1:0)+'|'+(this.detailSheet.open&&this.detailSheet.prod?(this.detailSheet.prod.fbKey||this.detailSheet.prod.id||''):'')},
-  get filteredProds(){return this.allProducts.filter(p=>this.catOk(p)&&this.prodSearchText(p).includes((this.q||'').trim().toLowerCase()));},
+  get filteredProds(){
+    const q=(this.q||'').trim().toLowerCase(),k=this.fbProducts,a=this.activeCat,sb=this.activeSub,sc=this.catScope,fc=this.fbCategories,fs=this.fbSections,n=k?k.length:0,c=window.__ddFpc;
+    if(c&&c.k===k&&c.n===n&&c.a===a&&c.sb===sb&&c.q===q&&c.sc===sc&&c.fc===fc&&c.fs===fs)return c.v;
+    const v=this.allProducts.filter(p=>this.catOk(p)&&(q===''||this.prodSearchText(p).includes(q)));
+    window.__ddFpc={k,n,a,sb,q,sc,fc,fs,v};return v},
   /* ── দ্রুত হোম/ক্যাটাগরি লিস্ট (৬টি করে, "আরও দেখুন" চাপলে আরও ৬টি) ── */
   get helpPhone(){return '01868153781'},   // ← হেল্পলাইন নম্বর এখানে বদলান
   get helpWa(){return '88'+this.helpPhone},
@@ -6489,7 +6504,7 @@ function App(){return{
     setTimeout(()=>this._flushHome(true),1500);   // নেটওয়ার্ক আটকে গেলেও পেজ আটকে থাকবে না
     /* দ্রুত প্রথম পেইন্ট: আগের ভিজিটে ক্যাশ করা প্রোডাক্ট থাকলে সঙ্গে সঙ্গে দেখানো হয়,
        নেটওয়ার্ক রেসপন্স আসা পর্যন্ত অপেক্ষা না করেই — Firebase রেসপন্স এলে সাইলেন্টলি আপডেট হয়ে যাবে। */
-    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=parsed;this.loading=false;this.prodsFull=true;this._ready=true;try{const pk=JSON.parse(localStorage.getItem('dd_pin_keys')||'null');if(Array.isArray(pk)){this.pinnedProductKeys=pk;this.hCached=true}}catch(e){}}}}catch(e){}
+    try{const cp=localStorage.getItem('dd_cache_products');if(cp){const parsed=JSON.parse(cp);if(Array.isArray(parsed)&&parsed.length){this.fbProducts=this._normProds(parsed);this.loading=false;this.prodsFull=true;this._ready=true;try{const pk=JSON.parse(localStorage.getItem('dd_pin_keys')||'null');if(Array.isArray(pk)){this.pinnedProductKeys=pk;this.hCached=true}}catch(e){}}}}catch(e){}
     /* স্টেল-হোয়াইল-রিভ্যালিডেট: আগের ভিজিটের ছোট ডাটা (সেকশন, ক্যাটাগরি, বাটন কনফিগ, সেটিংস) সঙ্গে সঙ্গে দেখানো; নেটওয়ার্ক ডাটা এলে বদলে যায় */
     try{const rd=k=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):null}catch(e){return null}};
       const cc=rd('dd_c_cats');if(Array.isArray(cc)&&cc.length)this.fbCategories=cc;
@@ -6517,12 +6532,12 @@ function App(){return{
       /* প্রোডাক্ট প্রিভিউ সবার আগে শুরু (বাকি ডাটার সঙ্গে সমান্তরালে) — রেন্ডার হবে সবকিছু এলে একসাথে */
       this._homeLoad();
       window.$db.listenProducts((prods,full,failed)=>{
-        if(failed){this._stage('prod',()=>{this.prodsFull=true;this.loading=false;this.hPrev=true});this._flushHome(true);return}
+        if(failed){this.fullTried=true;this._stage('prod',()=>{this.prodsFull=true;this.loading=false;this.hPrev=true});this._flushHome(true);return}
         const n=this._normProds(prods);
         if(!this._ready){try{this._stg.imgs=[...n].sort((a,b)=>this._ts(b)-this._ts(a)).slice(0,8).map(p=>this.optImg((p.images&&p.images[0])||p.img||'',300))}catch(e){}}
         this._stage('prod',()=>{
           this.hPrev=true;
-          if(full){this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
+          if(full){this.fullTried=true;this.prodsComplete=true;this.prodsFull=true;this.fbProducts=n.sort((a,b)=>this._ts(b)-this._ts(a));}
           else{this._mergeProds(n);this.prodsFull=true}
           this.loading=false;
           try{this._openDeepLink()}catch(e){}
@@ -6646,7 +6661,7 @@ function App(){return{
   toggleSub(g,i){this.subOpen={...this.subOpen,[g.key]:!this.isOpen(g,i)}},
   get subCats(){const m=this.allCategories.find(c=>c.name===this.activeCat);if(!m)return [];const main=m.parent?(this.allCategories.find(c=>c.name===m.parent)||m):m;return this.allCategories.filter(c=>c.parent===main.name)},
   _cn(x){return String(x==null?'':x).replace(/[\u200b-\u200d\ufeff]/g,'').replace(/\s+/g,' ').trim()},
-  _normProds(arr){return (arr||[]).map(p=>p?({...p,sizes:this.splitList(p.sizes||p.size||p.sizeList,true),colors:this.splitList(p.colors)}):p)
+  _normProds(arr){return (arr||[]).map(p=>p?({...p,cat:this._cn(p.cat!=null&&p.cat!==''?p.cat:(p.category||'')),sizes:this.splitList(p.sizes||p.size||p.sizeList,true),colors:this.splitList(p.colors)}):p)
     .filter(p=>p&&typeof p.name==='string'&&p.name.trim())
     .map(p=>({...p,cat:this._cn(p.cat||p.category||''),price:this._num(p.price),oldPrice:this._num(p.oldPrice),resellerPrice:this._num(p.resellerPrice)}))
     .filter(p=>p.price>0)},
@@ -6689,7 +6704,24 @@ function App(){return{
   _dbReady(){return (window.$db&&window.$db.getProductsByChild)?Promise.resolve():new Promise(r=>window.addEventListener('firebase-ready',()=>r(),{once:true}))},
   async _fetchBy(child,vals){window.__ddF=window.__ddF||{};const todo=[...new Set(vals)].filter(v=>!window.__ddF[child+':'+v]);if(!todo.length)return;todo.forEach(v=>window.__ddF[child+':'+v]=1);
     const res=await Promise.all(todo.map(v=>window.$db.getProductsByChild(child,v)));res.forEach((r,i)=>{if(!r||!r.length)delete window.__ddF[child+':'+todo[i]]});   /* ফাঁকা/ব্যর্থ হলে পরের ক্লিকে আবার চেষ্টা */
-    this._mergeProds(this._normProds(res.flat()))},
+    const _fl=res.flat();this._mergeProds(this._normProds(_fl));return _fl.length},
+  /* ইনডেক্সড কুয়েরি ব্যর্থ/ফাঁকা হলে সব প্রোডাক্ট একবারে এনে নিশ্চিত করা — "পণ্য নেই" ভুল দেখানো বন্ধ */
+  _ensureFull(){
+    if(this.prodsComplete)return Promise.resolve();
+    if(this._fullP)return this._fullP;
+    this._fullP=(async()=>{
+      try{
+        await this._dbReady();
+        const t0=Date.now();while(!this.prodsComplete&&!this.fullTried&&Date.now()-t0<2800)await new Promise(r=>setTimeout(r,150));   /* মূল লিস্টেনার চলছে কিনা আগে দেখা */
+        if(!this.prodsComplete){
+          const all=await Promise.race([window.$db.getAllProductsOnce(),new Promise(r=>setTimeout(()=>r(null),15000))]);
+          if(all&&all.length){this._mergeProds(this._normProds(all));this.prodsComplete=true;this.prodsFull=true}
+        }
+      }catch(e){console.warn('ensureFull',e)}
+      this.fullTried=true;this._fullP=null;
+    })();
+    return this._fullP;
+  },
   async _fetchCat(name){
     name=this._cn(name);if(!name)return;
     if(this.prodsComplete){this.catDoneFor=name;return}
@@ -6697,13 +6729,19 @@ function App(){return{
     try{await this._dbReady();
       const tree=this._catTree(name),raw=new Set([...tree]);
       (this.fbCategories||[]).forEach(c=>{if(c&&c.name&&tree.has(this._cn(c.name)))raw.add(c.name)});
-      await Promise.race([this._fetchBy('cat',[...raw].slice(0,12)),new Promise(r=>setTimeout(r,6000))]);   /* ৬ সেকেন্ডের বেশি আটকে থাকবে না */
+      const _r=await Promise.race([this._fetchBy('cat',[...raw].slice(0,12)),new Promise(r=>setTimeout(()=>r(-1),6000))]);
+      if((_r===-1||_r===0)&&!this.prodsComplete)await Promise.race([this._ensureFull(),new Promise(r=>setTimeout(r,17000))]);   /* ৬ সেকেন্ডের বেশি আটকে থাকবে না */
     }catch(e){console.warn('fetchCat',e)}
     window.__ddCq--;this.catBusy=window.__ddCq>0;this.catDoneFor=name;
   },
   async _fetchSections(){if(this.prodsComplete)return;try{await this._dbReady();const ids=this._realSecs.map(s=>s.fbKey||s.id).filter(Boolean).slice(0,8);await this._fetchBy('section',ids)}catch(e){}},
   async _fetchResellable(){if(this.prodsComplete)return;try{await this._dbReady();await this._fetchBy('resellEnabled',[true])}catch(e){}},
-  async _fetchEid(){if(this.prodsComplete)return;try{await this._dbReady();await this._fetchBy('isEidCollection',[true])}catch(e){}},
+  async _fetchEid(){if(this.prodsComplete)return;try{await this._dbReady();
+    const r=await Promise.race([Promise.all([this._fetchBy('isEidCollection',[true]),this._fetchBy('isEidCollection',['true'])]),new Promise(x=>setTimeout(()=>x(-1),6000))]);
+    const ok=Array.isArray(r)&&r.some(n=>n===undefined||n>0);
+    if(!ok&&!this.prodsComplete)await Promise.race([this._ensureFull(),new Promise(x=>setTimeout(x,17000))]);
+  }catch(e){}},
+  _isEid(p){const v=p&&p.isEidCollection;return v===true||v==='true'||v===1||v==='1'||(p&&(p.isEid===true||p.eidCollection===true||p.eid===true))},
   _catTree(a){const st=new Set([a]);let ch=true,n=0;while(ch&&n++<5){ch=false;this.allCategories.forEach(c=>{if(c.parent&&st.has(c.parent)&&!st.has(c.name)){st.add(c.name);ch=true}})}return st},
   catOk(p){const a=this.activeCat;if(a==='সব')return true;if(!(this._catTree(a).has(p.cat)&&(!this.activeSub||p.cat===this.activeSub)))return false;const sc=this.catScope;if(sc&&sc.name===(this.activeSub||a))return this._inSec(p,sc.sec);return true},
   _inSec(p,sid){const ps=p.section||p.sectionId;if(ps===sid)return true;if(ps&&this._realSecs.some(x=>(x.fbKey||x.id)===ps))return false;const sec=this._realSecs.find(x=>(x.fbKey||x.id)===sid);if(!sec)return true;const n=this._cn(p.cat);return this.getSectionCategories(sec).some(c=>this._cn(c.name)===n)},
@@ -7305,7 +7343,9 @@ function App(){return{
   },
   _listenMyReseller(){
     if(!this.resellSession)return;
+    this.resellRecLoaded=false;clearTimeout(this._rrT);this._rrT=setTimeout(()=>{this.resellRecLoaded=true},8000);
     window.$db.listenReseller(this.resellSession,r=>{
+      this.resellRecLoaded=true;clearTimeout(this._rrT);
       this.reseller=r;
       if(r){
         if(r.status==='approved'&&r.myReferralCode&&!this._rcHealed){this._rcHealed=true;window.$auth.authReady.then(()=>window.$db.healReferralIndex(r.myReferralCode,this.resellSession))}
@@ -7365,8 +7405,17 @@ function App(){return{
       this._resellLoginSuccess(f.phone);
       this.resellSignupForm={name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false};
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
-    }catch(e){console.warn('signup',e);this.resellAuthError=(e&&e.code==='auth/network-request-failed')?'ইন্টারনেট সংযোগ চেক করুন।':(e&&e.code==='auth/operation-not-allowed')?'Firebase Authentication-এ Email/Password চালু করুন।':'সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    }catch(e){console.warn('signup',e);this.resellAuthError=this._authMsg(e)}
     finally{this.resellBusy=false}
+  },
+  _authMsg(e){
+    const c=String((e&&e.code)||''),m=String((e&&e.message)||''),k=c.replace('auth/','');
+    if(/network|offline/i.test(c+m))return 'ইন্টারনেট সংযোগ চেক করুন।';
+    if(c==='auth/too-many-requests')return 'অনেকবার ভুল চেষ্টা হয়েছে, কিছুক্ষণ পরে আবার চেষ্টা করুন।';
+    if(c==='auth/operation-not-allowed')return 'লগইন সেবা বন্ধ আছে (Email/Password চালু নেই)। সাপোর্টে জানান।';
+    if(/referer|api-key|unauthorized-domain|app-not-authorized|requests-from/i.test(c+m))return 'এই পেজ/ডোমেইন থেকে লগইন অনুমোদিত নয়। আপনার নিজের ওয়েবসাইট লিংক থেকে খুলে চেষ্টা করুন।';
+    if(/permission/i.test(c+m))return 'অনুমতি পাওয়া যায়নি। আবার চেষ্টা করুন, না হলে সাপোর্টে জানান।';
+    return 'সম্পন্ন করা যায়নি'+(k?' (কোড: '+k+')':'')+'। আবার চেষ্টা করুন, না হলে সাপোর্টে জানান।';
   },
   async resellDoLogin(){
     this.resellAuthError='';
@@ -7407,7 +7456,7 @@ function App(){return{
       this._resellLoginSuccess(f.phone);   // সাথে সাথে ঢুকিয়ে দেওয়া — রেকর্ড যাচাই ব্যাকগ্রাউন্ডে
       this._ensureResellerRecord({phone:f.phone},pinHash,{}).catch(e2=>console.warn('ensure',e2));
       this.resellLoginForm={phone:'',pin:''};
-    }catch(e){console.warn('login',e);if(!(e&&/network|offline/i.test(e.message||'')))this._thrFail('rl_'+f.phone);this.resellAuthError=(e&&/network|offline/i.test(e.message||''))?'ইন্টারনেট সংযোগ চেক করুন।':'পিন সঠিক নয় অথবা সমস্যা হয়েছে, আবার চেষ্টা করুন।'}
+    }catch(e){console.warn('login',e);const _sys=e&&/network|offline|referer|api-key|unauthorized|operation-not|app-not|requests-from|permission/i.test(String(e.code||'')+String(e.message||''));if(!_sys)this._thrFail('rl_'+f.phone);this.resellAuthError=this._authMsg(e)}
     finally{clearTimeout(_wd);this.resellBusy=false}
   },
   async resellChangePin(){
@@ -9119,6 +9168,52 @@ body{overflow-x:clip!important;overflow-y:visible!important;height:auto!importan
 .bf-rail::after{content:'';flex:0 0 2px}
 .bf-hg{scroll-snap-align:none!important;touch-action:pan-x pan-y!important;-webkit-user-drag:none;user-select:none;-webkit-touch-callout:none}
 .bf-hg-img img{-webkit-user-drag:none;pointer-events:none}
+/* ═══ ক্যাটাগরি ট্যাপ: সাথে সাথে সাড়া ═══ */
+.cat-scroll-wrap{touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.cat-circle-wrap,.cat-all-btn{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;position:relative;z-index:1}
+.cat-circle-wrap *,.cat-all-btn *{pointer-events:none}
+.cat-circle-wrap:active,.cat-all-btn:active{transform:none!important}
+
+/* ═══ রিসেলার লগইন/রেজিস্ট্রেশন: পরিষ্কার, প্রফেশনাল, কোনো অ্যানিমেশন নেই ═══ */
+.rl-wrap{max-width:460px;margin:0 auto;padding:4px 2px 24px}
+.rl-wrap,.rl-wrap *{animation:none!important;transition:none!important}
+.rl-head{text-align:center;padding:6px 8px 14px}
+.rl-logo{width:64px;height:64px;border-radius:18px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;background:var(--accent)}
+.rl-title{font-size:21px;font-weight:800;color:var(--fg);margin:0}
+.rl-sub{font-size:13px;line-height:1.55;color:var(--fg3);margin:6px auto 0;max-width:340px}
+.rl-feats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 14px}
+.rl-feats>div{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 4px;text-align:center;font-size:11px;font-weight:700;color:var(--fg2)}
+.rl-feats i{display:block;font-size:17px;color:var(--accent);margin-bottom:5px}
+.rl-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px;box-shadow:0 2px 12px var(--shadow)}
+.rl-tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg2);border-radius:14px;padding:4px;margin-bottom:16px}
+.rl-tabs button{border:0;background:transparent;color:var(--fg3);font-weight:800;font-size:13px;padding:11px 6px;border-radius:11px;cursor:pointer;font-family:inherit}
+.rl-tabs button.on{background:var(--accent);color:#fff}
+.rl-form{display:flex;flex-direction:column;gap:13px}
+.rl-h{font-size:15px;font-weight:800;color:var(--fg);margin:0 0 2px}
+.rl-sec{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--accent);border-top:1px solid var(--border);padding-top:11px;margin-top:2px}
+.rl-h+.rl-sec{border-top:0;padding-top:0;margin-top:0}
+.rl-field label{display:block;font-size:12px;font-weight:700;color:var(--fg2);margin:0 0 6px}
+.rl-in{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--border);border-radius:13px;padding:0 12px;min-height:48px}
+.rl-in:focus-within{border-color:var(--accent);background:var(--card)}
+.rl-in>i{color:var(--fg3);font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.rl-in input{flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--fg);font-size:16px;font-family:inherit;padding:12px 0}
+.rl-in input::placeholder{color:var(--fg3);opacity:.7}
+.rl-eye{border:0;background:transparent;color:var(--fg3);padding:8px;margin-right:-6px;cursor:pointer;font-size:15px}
+.rl-hint{font-size:11.5px;color:var(--fg3);margin:5px 2px 0}
+.rl-bad{font-size:11.5px;font-weight:700;color:#DC2626;margin:5px 2px 0}
+.rl-okc{color:#16A34A;font-weight:700}
+.rl-err{display:flex;gap:9px;align-items:flex-start;background:#FEF2F2;border:1px solid #FECACA;color:#B91C1C;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:700;line-height:1.5}
+.rl-err i{margin-top:2px}
+.rl-btn{width:100%;min-height:50px;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:15px;font-weight:800;font-family:inherit;cursor:pointer}
+.rl-btn:disabled{opacity:.65;cursor:default}
+.rl-link{border:0;background:transparent;color:var(--accent);font-size:12.5px;font-weight:700;cursor:pointer;padding:4px;font-family:inherit}
+.rl-switch{text-align:center;font-size:12.5px;color:var(--fg3);margin:2px 0 0}
+.rl-switch button{border:0;background:transparent;color:var(--accent);font-weight:800;cursor:pointer;font-family:inherit;font-size:12.5px;padding:0 2px}
+.rl-agree{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--fg2);cursor:pointer}
+.rl-agree input{margin-top:3px;width:16px;height:16px;accent-color:var(--accent)}
+.rl-help{text-align:center;font-size:12px;color:var(--fg3);margin:14px 0 0}
+.rl-help a{color:var(--accent);font-weight:800;text-decoration:none}
+.rl-loading{text-align:center;padding:70px 10px;color:var(--fg3);font-size:13px;font-weight:700}
 </style>
 </body>
 </html>
