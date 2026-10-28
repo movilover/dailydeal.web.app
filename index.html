@@ -4370,111 +4370,6 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <i class="fa-solid fa-download text-lg opacity-60"></i>
     </a>
 
-    <div class="dd-card p-4 space-y-3" x-data="{editMode:!profile.phone}">
-      <div class="flex items-center justify-between">
-        <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-user-pen" style="color:var(--accent)"></i>প্রোফাইল আপডেট</p>
-        <button x-show="!editMode" type="button" @click="editMode=true" class="text-xs font-bold flex-shrink-0" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>এডিট করুন</button>
-      </div>
-
-      <template x-if="!editMode">
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-sm"><span style="color:var(--fg3)">নাম</span><span class="font-bold" style="color:var(--fg)" x-text="profile.name||'—'"></span></div>
-          <div class="flex items-center justify-between text-sm"><span style="color:var(--fg3)">মোবাইল</span><span class="font-bold flex items-center gap-1.5" style="color:var(--fg)"><i class="fa-solid fa-circle-check" style="color:#16A34A;font-size:11px"></i><span x-text="profile.phone"></span></span></div>
-          <div class="flex items-center justify-between text-sm" x-show="profile.email"><span style="color:var(--fg3)">ইমেইল</span><span class="font-bold" style="color:var(--fg)" x-text="profile.email"></span></div>
-        </div>
-      </template>
-
-      <template x-if="editMode">
-        <div class="space-y-3">
-          <div>
-            <div class="flex items-center justify-between">
-              <label class="dd-label mb-0">নাম</label>
-              <span x-show="profile.nameLockedAt" class="text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-lock"></i>লকড</span>
-            </div>
-            <input class="dd-input" x-model="profile.name" data-ch="text" placeholder="আপনার নাম" :disabled="!!profile.nameLockedAt"/>
-            <button x-show="profile.nameLockedAt" @click="helplineOpen=true" type="button" class="text-xs font-bold mt-1.5" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-pen mr-1"></i>তথ্য পরিবর্তনের অনুরোধ করুন</button>
-          </div>
-          <div>
-            <label class="dd-label">মোবাইল</label>
-            <input class="dd-input" type="tel" x-model="profile.phone" placeholder="০১XXXXXXXXX" :disabled="numberLockDaysLeft>0"/>
-            <p class="lock-note" x-show="numberLockDaysLeft>0"><i class="fa-solid fa-lock"></i><span x-text="'নম্বর পরিবর্তনযোগ্য নয় — আরও '+numberLockDaysLeft+' দিন অপেক্ষা করুন (নিরাপত্তার জন্য ৭ দিনের লক)'"></span></p>
-          </div>
-          <div>
-            <label class="dd-label" x-text="t('emailOpt')"></label>
-            <input class="dd-input" type="email" x-model="profile.email" data-ch="text" placeholder="you@gmail.com"/>
-            <p class="text-xs mt-1" style="color:var(--fg3)"><i class="fa-solid fa-circle-info mr-1" style="color:var(--accent)"></i>Gmail যুক্ত থাকলে পাসওয়ার্ড ভুলে গেলে সহজে রিসেট করতে পারবেন — নিরাপত্তার জন্য সুপারিশকৃত।</p>
-          </div>
-          <div class="flex gap-2">
-            <button x-show="profile.phone" type="button" @click="editMode=false" class="text-xs font-bold px-4 rounded-xl" style="background:var(--bg2);color:var(--fg2);border:none;cursor:pointer">বাতিল</button>
-            <button @click="saveProfile();if(profile.phone)editMode=false" class="btn-primary flex-1"><i class="fa-solid fa-floppy-disk mr-2"></i>সেভ করুন</button>
-          </div>
-        </div>
-      </template>
-    </div>
-
-    <!-- Account security: ঐচ্ছিক ইমেইল+পাসওয়ার্ড (Firebase Auth) + রিকভারি -->
-    <div class="dd-card p-4 space-y-3">
-      <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-shield-halved" style="color:var(--accent)"></i>একাউন্ট নিরাপত্তা</p>
-
-      <template x-if="profile.hasPassword">
-        <div class="space-y-2">
-          <p class="text-xs flex items-center gap-1.5" style="color:var(--fg3)"><i class="fa-solid fa-circle-check" style="color:#16A34A"></i><span>একাউন্ট সুরক্ষিত — <b x-text="profile.email"></b></span></p>
-          <p class="text-xs" style="color:var(--fg3)">অন্য ডিভাইসে এই ইমেইল ও পাসওয়ার্ড দিয়ে লগইন করলে অর্ডার ও তথ্য ফিরে পাবেন।</p>
-          <button type="button" @click="acctSendResetForMe()" class="text-xs font-bold" style="background:none;border:none;cursor:pointer;color:var(--accent)"><i class="fa-solid fa-envelope mr-1"></i>পাসওয়ার্ড বদলের লিংক ইমেইলে পাঠান</button>
-        </div>
-      </template>
-
-      <template x-if="!profile.hasPassword">
-        <div class="space-y-3">
-          <p class="text-xs" style="color:var(--fg3)">ঐচ্ছিক: ইমেইল ও পাসওয়ার্ড যুক্ত করলে ভবিষ্যতে অন্য ডিভাইস থেকেও আপনার অর্ডার ও তথ্য রিকভার করতে পারবেন।</p>
-          <div>
-            <label class="dd-label">ইমেইল</label>
-            <input class="dd-input" type="email" x-model="securityForm.email" data-ch="text" :placeholder="profile.email||'you@gmail.com'"/>
-          </div>
-          <div x-data="{show:false}">
-            <label class="dd-label" x-text="profile.hasPassword?'নতুন পাসওয়ার্ড':'পাসওয়ার্ড সেট করুন'"></label>
-            <div style="position:relative">
-              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.newPw" data-ch="pw" placeholder="কমপক্ষে ৬ অক্ষর"/>
-              <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
-            </div>
-            <template x-if="securityForm.newPw">
-              <div class="mt-1.5">
-                <div class="rounded-full overflow-hidden" style="height:4px;background:var(--bg3)">
-                  <div class="h-full rounded-full transition-all duration-300" :style="'width:'+pwStrength(securityForm.newPw).pct+'%;background:'+pwStrength(securityForm.newPw).color"></div>
-                </div>
-                <p class="text-[11px] font-bold mt-1" :style="'color:'+pwStrength(securityForm.newPw).color" x-text="pwStrength(securityForm.newPw).label"></p>
-                <div class="mt-1.5 space-y-1">
-                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasLen(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasLen(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>কমপক্ষে ৬-৮ ক্যারেক্টার</p>
-                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasNum(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasNum(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা সংখ্যা আছে</p>
-                  <p class="text-[11px] flex items-center gap-1.5" :style="'color:'+(pwHasSpecial(securityForm.newPw)?'#16A34A':'var(--fg3)')"><i class="fa-solid" :class="pwHasSpecial(securityForm.newPw)?'fa-circle-check':'fa-circle'"></i>একটা স্পেশাল ক্যারেক্টার/বড় অক্ষর আছে</p>
-                </div>
-              </div>
-            </template>
-          </div>
-          <div x-data="{show:false}">
-            <label class="dd-label">পাসওয়ার্ড নিশ্চিত করুন</label>
-            <div style="position:relative">
-              <input class="dd-input" style="padding-right:40px" :type="show?'text':'password'" x-model="securityForm.confirmPw" data-ch="pw" placeholder="আবার লিখুন"/>
-              <button type="button" @click="show=!show" style="position:absolute;top:50%;right:12px;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--fg3)" tabindex="-1"><i class="fa-solid" :class="show?'fa-eye-slash':'fa-eye'"></i></button>
-            </div>
-            <template x-if="securityForm.confirmPw">
-              <p class="text-[11px] font-bold mt-1.5 flex items-center gap-1.5" :style="'color:'+(securityForm.newPw===securityForm.confirmPw?'#16A34A':'#DC2626')">
-                <i class="fa-solid" :class="securityForm.newPw===securityForm.confirmPw?'fa-circle-check':'fa-circle-xmark'"></i>
-                <span x-text="securityForm.newPw===securityForm.confirmPw?'পাসওয়ার্ড মিলেছে':'পাসওয়ার্ড মিলছে না'"></span>
-              </p>
-            </template>
-          </div>
-          <div class="flex gap-2">
-            <button @click="setAccountPassword()" :disabled="securityForm.saving" class="btn-primary flex-1" style="background:var(--fg)">
-              <span x-show="!securityForm.saving"><i class="fa-solid fa-key mr-2"></i><span>পাসওয়ার্ড সেট করুন</span></span>
-              <span x-show="securityForm.saving"><i class="fa-solid fa-spinner fa-spin"></i></span>
-            </button>
-          </div>
-        </div>
-      </template>
-
-      <button @click="openAcctRecover()" class="w-full text-center text-xs font-bold py-2" style="background:none;border:none;cursor:pointer;color:var(--accent)">অন্য ডিভাইস থেকে ফিরছেন? লগইন / পাসওয়ার্ড ভুলে গেছেন?</button>
-    </div>
 
     <!-- Addresses / Manage cards / Returns / Warranty (Noon-style account rows) -->
     <div class="dd-card overflow-hidden">
@@ -6972,13 +6867,13 @@ function App(){return{
 
 
   /* ═══ ফোন নম্বর যাচাই (শুধু ফরম্যাট + ব্লকলিস্ট) — SMS-OTP সরানো হয়েছে ═══ */
-  otpNormPhone(raw){let d=String(raw||'').replace(/[^\d]/g,'');if(d.startsWith('880'))d=d.slice(2);if(d.length===10&&d[0]==='1')d='0'+d;return d},
+  otpNormPhone(raw){let d=this._bnToEn(raw).replace(/[^\d]/g,'');if(d.startsWith('880'))d=d.slice(2);if(d.length===10&&d[0]==='1')d='0'+d;return d},
   otpValidPhone(raw){const d=this.otpNormPhone(raw);if(!/^01[3-9]\d{8}$/.test(d))return false;if(/^(\d)\1+$/.test(d.slice(2)))return false;if(/(0123456|1234567|2345678|3456789|9876543|8765432)/.test(d.slice(2)))return false;return true},
   async otpGate(raw){
     if(!this.otpValidPhone(raw)){this.showToast('সঠিক ১১ ডিজিটের মোবাইল নম্বর দিন (01XXXXXXXXX)','error');return false}
     try{const b=await this._wt(window.$db.getBlock(this.otpNormPhone(raw)),3500,null);
         if(b){this.showToast('এই নম্বর দিয়ে অর্ডার করা যাচ্ছে না। সাপোর্টে যোগাযোগ করুন।','error');return false}}catch(e){}
-    if(this._otpOn('verifyAtOrder')){const _ph=this.otpNormPhone(raw);if(!(await this._otpClaimFresh(_ph,0))){const _ok=await this.otpFlow(_ph,'order');if(!_ok){this.showToast('ফোন যাচাই ছাড়া অর্ডার করা যাবে না','error');return false}}}
+    /* ইউজারকে কোনো লগইন/OTP লাগবে না — অর্ডার সরাসরি আসবে, আমরা ফোনে যোগাযোগ করে কনফার্ম করব */
     return true;
   },
 
@@ -7061,7 +6956,7 @@ function App(){return{
   async placeOrder(){
     if(this._plBusy)return;this._plBusy=true;
     try{await this._placeOrderCore()}
-    catch(e){console.warn('placeOrder',e);this.placing=false;this.processingOrder=false;this.showToast('অর্ডার সম্পন্ন করা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন','error')}
+    catch(e){console.error('placeOrder',e);this.placing=false;this.processingOrder=false;this.showToast('অর্ডার সম্পন্ন করা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন ['+String((e&&(e.code||e.message))||e).slice(0,120)+']','error')}
     finally{this._plBusy=false}
   },
   _armPlaceWd(){clearTimeout(this._plWd);this._plWd=setTimeout(()=>{if(this.placing){this.placing=false;this.processingOrder=false;this.showToast('নেটওয়ার্ক ধীর — "অর্ডার" ট্যাবে দেখে নিন, না থাকলে আবার চেষ্টা করুন','error')}},45000)},
@@ -7104,7 +6999,7 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
-    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);if(_um!==undefined)order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap/{auth.uid}-এর সমান হতে হবে
+    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap/{auth.uid}-এর সমান হতে হবে
     if(!this.destAbroad&&this.form.loc&&isFinite(this.form.loc.lat)&&isFinite(this.form.loc.lng)){const L=this.form.loc;order.location={lat:L.lat,lng:L.lng,acc:Number(L.acc)||0,address:String(L.address||'').slice(0,250),url:('https://www.google.com/maps?q='+L.lat+','+L.lng)}}
     if(this.destAbroad){
       const cc=this.destCountry,city=this.form.city==='__other'?String(this.form.cityOther||'').trim():String(this.form.city||'').trim();
@@ -8438,7 +8333,7 @@ function App(){return{
       items:[{id:p.id||p.fbKey,name:p.name,price:p.price,resellerPrice:p.resellerPrice||0,resellerSellPrice:price,genCommission1:p.genCommission1||0,genCommission2:p.genCommission2||0,genCommission3:p.genCommission3||0,qty:o.qty,size:o.size||'',color:o.color||'',variantImg:((p.images||[])[o.vi]||''),variantNo:(o.vi||0)+1,productId:p.productId||'',img,images:p.images||[]}],
       subtotal:price*o.qty,shipping:this.loShipping,total:this.loGrand,trackingLink:null,
     };
-    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);if(_um!==undefined)order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap-এর সমান
+    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap-এর সমান
     const _k=o.key||(o.key='lk'+Date.now()+Math.random().toString(36).slice(2,7));
     if(o.loc&&isFinite(o.loc.lat)&&isFinite(o.loc.lng))order.location={lat:o.loc.lat,lng:o.loc.lng,acc:Number(o.loc.acc)||0,address:String(o.loc.address||'').slice(0,250),url:'https://www.google.com/maps?q='+o.loc.lat+','+o.loc.lng};
     // সেভের ৩টি ধাপ: পূর্ণ ডাটা → অপ্রয়োজনীয় ফিল্ড বাদ → রিসেলারের স্বাভাবিক অর্ডারের মতো ন্যূনতম ফরম্যাট (ডুপ্লিকেট হয় না — একই কী)
