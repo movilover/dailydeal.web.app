@@ -65,7 +65,7 @@ let _authReadyResolve;const authReady=new Promise(r=>{_authReadyResolve=r});
 onAuthStateChanged(auth,async(u)=>{
   if(u){
     { // সব ইউজার (সাধারণ ভিজিটর + রিসেলার) — রুলস শুধু uidMap-এ আগে কিছু না থাকলেই লিখতে দেয়; অ্যানোনিমাস (সাধারণ ভিজিটর) — এই ব্রাউজারের স্থায়ী dd_uid-কে auth.uid-এর সাথে যুক্ত করা হয়
-      try{const mref=ref(db,'uidMap/'+u.uid);const snap=await get(mref);if(!snap.exists())await set(mref,uid());}catch(e){}
+      try{const mref=ref(db,'uidMap/'+u.uid);await Promise.race([(async()=>{const snap=await get(mref);if(!snap.exists())await set(mref,uid());})(),new Promise(r=>setTimeout(r,4000))]);}catch(e){}
     }
     _authReadyResolve(u);
   }else{
@@ -172,7 +172,16 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenMySavings:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'savingsWallets'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
-  saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));await set(r,data);return r.key},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
+  saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));
+    const _sdk=set(r,data);let _t;const _slow=new Promise(res=>{_t=setTimeout(()=>res('slow'),9000)});
+    const _first=await Promise.race([_sdk.then(()=>'ok'),_slow]);clearTimeout(_t);
+    if(_first==='ok')return r.key;
+    /* SDK (ওয়েবসকেট) ৯ সেকেন্ডেও ack দেয়নি — একই কী-তে REST দিয়ে লিখি; রুলস একই থাকে */
+    const _tok=await auth.currentUser.getIdToken();const _u=DB_URL+'/orders/'+r.key+'.json?auth='+encodeURIComponent(_tok);
+    const _resp=await Promise.race([fetch(_u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'timeout'})),15000))]);
+    if(_resp.ok)return r.key;
+    try{const _g=await fetch(_u);if(_g.ok){const _v=await _g.json();if(_v&&String(_v.id)===String(data.id))return r.key}}catch(_e){}
+    const _pe=new Error('PERMISSION_DENIED (REST '+_resp.status+')');_pe.code='PERMISSION_DENIED';throw _pe},   // key ঐচ্ছিক, পুরনো কল অপরিবর্তিত
   updateOrder:async(key,data)=>update(ref(db,'orders/'+key),data),
   hideOrder:async(key)=>{await authReady;await update(ref(db,'orders/'+key),{userHidden:true,userHiddenAt:Date.now()});return true},   // ইউজার 'ডিলিট' = শুধু নিজের তালিকা থেকে লুকানো; অর্ডার ডাটাবেসে থেকে যায় (অ্যাডমিন রেকর্ডের জন্য)   // শুধু বাতিল অর্ডার (রুলস নিশ্চিত করে)
   listenProducts:(cb)=>{
@@ -7028,7 +7037,7 @@ function App(){return{
       if(!orderKey)orderKey=window.$db.newKey('orders');
       try{await window.$db.setOrderRate({at:Date.now(),refKey:orderKey})}catch(e){this.placing=false;return this.showToast('একটু অপেক্ষা করে (২০ সেকেন্ড) আবার চেষ্টা করুন','error')}
     }
-    try{if(window.$db){await this._saveT(window.$db.saveOrder(order,orderKey),25000);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);
+    try{if(window.$db){await this._saveT(window.$db.saveOrder(order,orderKey),35000);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);
       try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
       this.placing=false;
       const _c=(e&&e.code)||'';
@@ -7053,6 +7062,8 @@ function App(){return{
     const um=await g('uidMap/'+cu.uid);
     if(o.uid&&o.uid!==um)r.push('অর্ডারের uid আর uidMap মিলছে না');
     const st=(await g('settings/settings'))||{},sh=st.shipping||{};
+    if(st.phoneVerify===true&&st.verifyAtOrder===true)r.push('অ্যাডমিন সেটিংসে অর্ডারে ফোন যাচাই (phoneVerify+verifyAtOrder) চালু — রুলস OTP টোকেন চায়, কিন্তু সাইট এখন OTP নেয় না');
+    if((sh.dhaka!==undefined&&typeof sh.dhaka!=='number')||(sh.outside!==undefined&&typeof sh.outside!=='number'))r.push('অ্যাডমিন সেটিংসে ডেলিভারি চার্জ সংখ্যা নয়, লেখা (string) হিসেবে সেভ — রুলস তাই ৮০/১৫০ ধরে');
     const d=(typeof sh.dhaka==='number')?sh.dhaka:80,out=(typeof sh.outside==='number')?sh.outside:150;
     if(!o.intlDest&&o.shipping!==d&&o.shipping!==out)r.push('ডেলিভারি চার্জ ('+o.shipping+') অ্যাডমিন সেটিংসের ('+d+'/'+out+') সাথে মেলে না — পেজ রিফ্রেশ করুন');
     const exp=n(o.subtotal)+n(o.shipping)+n(o.codExtraCharge)-n(o.prepaidDiscount)-n(o.advanceShipDiscount)-n(o.promoDiscount);
@@ -8486,7 +8497,7 @@ function App(){return{
   },
   askConfirm(o){return new Promise(res=>{this._confirmRes=res;this.confirmDlg={open:true,tone:'danger',icon:'fa-solid fa-triangle-exclamation',title:'',msg:'',yesText:'নিশ্চিত',noText:'না',yesIcon:'fa-solid fa-check',...o}})},
   confirmClose(v){const r=this._confirmRes;this._confirmRes=null;this.confirmDlg={...this.confirmDlg,open:false};if(r)r(v)},
-  showToast(msg,type='success'){this.toast={show:true,msg:emoTx(msg),type};clearTimeout(this._tt);this._tt=setTimeout(()=>this.toast.show=false,3000)},
+  showToast(msg,type='success'){this.toast={show:true,msg:emoTx(msg),type};clearTimeout(this._tt);this._tt=setTimeout(()=>this.toast.show=false,(type==='error'&&String(msg).length>40)?10000:3000)},
   emoFa(s,d){return emoFa(s,d)},emoTx(s){return emoTx(s)},
 }}
 </script>
