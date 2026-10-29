@@ -172,12 +172,12 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenMySavings:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'savingsWallets'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
-  saveOrder:async(data,key)=>{await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));
+  saveOrder:async(data,key)=>{window.__ddStep='লগইন অপেক্ষা';await authReady;window.__ddStep='সার্ভারে সেভ (SDK)';if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));
     const _sdk=set(r,data);let _t;const _slow=new Promise(res=>{_t=setTimeout(()=>res('slow'),9000)});
     const _first=await Promise.race([_sdk.then(()=>'ok'),_slow]);clearTimeout(_t);
     if(_first==='ok')return r.key;
     /* SDK (ওয়েবসকেট) ৯ সেকেন্ডেও ack দেয়নি — একই কী-তে REST দিয়ে লিখি; রুলস একই থাকে */
-    const _tok=await auth.currentUser.getIdToken();const _u=DB_URL+'/orders/'+r.key+'.json?auth='+encodeURIComponent(_tok);
+    window.__ddStep='সার্ভারে সেভ (REST)';const _tok=await auth.currentUser.getIdToken();const _u=DB_URL+'/orders/'+r.key+'.json?auth='+encodeURIComponent(_tok);
     const _resp=await Promise.race([fetch(_u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'timeout'})),15000))]);
     if(_resp.ok)return r.key;
     try{const _g=await fetch(_u);if(_g.ok){const _v=await _g.json();if(_v&&String(_v.id)===String(data.id))return r.key}}catch(_e){}
@@ -3832,7 +3832,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <span class="font-display text-lg" style="color:var(--accent)" x-text="'৳'+(pendingInstallment.downPayment+shipping).toLocaleString()"></span>
         </div>
         <button @click="placeOrder()" :disabled="placing" class="btn-primary" style="flex:1.4;background:var(--accent)">
-          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
+          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে... <small x-text="_stepTxt"></small></span>
           <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>ডাউনপেমেন্ট নিশ্চিত করুন</span>
         </button>
       </div>
@@ -3984,7 +3984,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <span class="font-display text-lg" style="color:var(--accent)" x-text="'৳'+grandTotal.toLocaleString()"></span>
         </div>
         <button @click="placeOrder()" :disabled="placing" class="btn-primary" style="flex:1.4">
-          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে...</span>
+          <span x-show="placing"><i class="fa-solid fa-spinner fa-spin mr-2"></i>প্রসেস হচ্ছে... <small x-text="_stepTxt"></small></span>
           <span x-show="!placing"><i class="fa-solid fa-check-circle mr-2"></i>অর্ডার কনফার্ম করুন</span>
         </button>
       </div>
@@ -5674,7 +5674,7 @@ function App(){return{
   activeTab:'home',intlCats:[],intlCat:'সব',q:'',allProdsQ:'',allProdsSort:'newest',activeCat:'সব',oFilt:'সব',
   menCatFilter:'',womenCatFilter:'',
   sectionCatFilters:{},
-  placing:false,loading:true,_ready:false,_stg:{},_gNk:null,
+  placing:false,_stepTxt:'',loading:true,_ready:false,_stg:{},_gNk:null,
   activeTheme:'light',
   fbProducts:[],myOrders:[],fbCategories:[],fbSections:[],notifications:[],unreadNotifs:0,
   // ══ সঞ্চয় ওয়ালেট / লে-অ্যাওয়ে (NEW) ══
@@ -6965,10 +6965,10 @@ function App(){return{
   async placeOrder(){
     if(this._plBusy)return;this._plBusy=true;
     try{await this._placeOrderCore()}
-    catch(e){console.error('placeOrder',e);this.placing=false;this.processingOrder=false;this.showToast('অর্ডার সম্পন্ন করা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন ['+String((e&&(e.code||e.message))||e).slice(0,120)+']','error')}
+    catch(e){console.error('placeOrder',e);try{alert('অর্ডার ত্রুটি ['+(window.__ddStep||'?')+']: '+String((e&&(e.code||e.message))||e).slice(0,160))}catch(_){}this.placing=false;this.processingOrder=false;this.showToast('অর্ডার সম্পন্ন করা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন ['+String((e&&(e.code||e.message))||e).slice(0,120)+']','error')}
     finally{this._plBusy=false}
   },
-  _armPlaceWd(){clearTimeout(this._plWd);this._plWd=setTimeout(()=>{if(this.placing){this.placing=false;this.processingOrder=false;this.showToast('নেটওয়ার্ক ধীর — "অর্ডার" ট্যাবে দেখে নিন, না থাকলে আবার চেষ্টা করুন','error')}},45000)},
+  _armPlaceWd(){clearTimeout(this._plWd);window.__ddStep='শুরু';this._plT0=Date.now();clearInterval(this._plIv);this._plIv=setInterval(()=>{if(!this.placing){clearInterval(this._plIv);this._stepTxt='';return}this._stepTxt=(window.__ddStep||'')+' · '+Math.round((Date.now()-this._plT0)/1000)+'s'},500);this._plWd=setTimeout(()=>{if(this.placing){const _stp=window.__ddStep||'?';this.placing=false;this._plBusy=false;this.processingOrder=false;try{alert('অর্ডার সম্পন্ন হয়নি — এই ধাপে আটকে ছিল: '+_stp+'\nএই লেখার স্ক্রিনশট পাঠান।')}catch(_){}this.showToast('নেটওয়ার্ক ধীর — "অর্ডার" ট্যাবে দেখে নিন, না থাকলে আবার চেষ্টা করুন','error')}},45000)},
   _saveT(p,ms){return new Promise((res,rej)=>{const t=setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'timeout'})),ms);Promise.resolve(p).then(v=>{clearTimeout(t);res(v)},e=>{clearTimeout(t);rej(e)})})},
   _finishOrderUi(order,msg){
     setTimeout(()=>{this.processingOrder=false;try{this.showInvoice(order)}catch(e){console.warn('invoice',e)}this.showToast(msg,'success')},2200);
@@ -7008,7 +7008,7 @@ function App(){return{
       promoCode:this.appliedPromo||null,promoDiscount:this.promoDiscountAmount,
       total:this.grandTotal,advancePaid:this.form.pay==='cod'?0:this.grandTotal,dueOnDelivery:this.form.pay==='cod'?this.grandTotal:0,trackingLink:null,
     };
-    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap/{auth.uid}-এর সমান হতে হবে
+    window.__ddStep='ইউজার আইডি যাচাই';try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap/{auth.uid}-এর সমান হতে হবে
     if(!this.destAbroad&&this.form.loc&&isFinite(this.form.loc.lat)&&isFinite(this.form.loc.lng)){const L=this.form.loc;order.location={lat:L.lat,lng:L.lng,acc:Number(L.acc)||0,address:String(L.address||'').slice(0,250),url:('https://www.google.com/maps?q='+L.lat+','+L.lng)}}
     if(this.destAbroad){
       const cc=this.destCountry,city=this.form.city==='__other'?String(this.form.cityOther||'').trim():String(this.form.city||'').trim();
@@ -7025,7 +7025,7 @@ function App(){return{
     let orderKey=null;
     if(order.payType==='prepaid'){
       /* একই TrxID-র আগের চেষ্টা থাকলে শুধু তখনই আগের কী; নইলে সবসময় নতুন কী — আগের ব্যর্থ চেষ্টার আটকে থাকা কী নতুন অর্ডারকে ব্লক করত (রুলস: এক কী-তে দ্বিতীয়বার লেখা যায় না) */
-      let _prevClaim=null;try{_prevClaim=await this._wt(window.$db.getTrxClaim(this._trxNorm(this.form.trxId)),4000,null)}catch(e){}
+      window.__ddStep='TrxID যাচাই';let _prevClaim=null;try{_prevClaim=await this._wt(window.$db.getTrxClaim(this._trxNorm(this.form.trxId)),4000,null)}catch(e){}
       orderKey=(_prevClaim&&_prevClaim.refKey)?String(_prevClaim.refKey):window.$db.newKey('orders');
       this._reusedKey=!!(_prevClaim&&_prevClaim.refKey);
       localStorage.setItem('dd_pending_order_key',orderKey);
@@ -7033,11 +7033,11 @@ function App(){return{
       if(!c.ok){this.placing=false;return this.showToast(c.msg,'error')}
       order.trxId=c.trx;
     }
-    if(this.settings.orderRateLimit===true){   // S13 (ঐচ্ছিক সুইচ, ডিফল্ট বন্ধ)
+    if((this.settings||{}).orderRateLimit===true){window.__ddStep='রেট-লিমিট';   // S13 (ঐচ্ছিক সুইচ, ডিফল্ট বন্ধ)
       if(!orderKey)orderKey=window.$db.newKey('orders');
       try{await window.$db.setOrderRate({at:Date.now(),refKey:orderKey})}catch(e){this.placing=false;return this.showToast('একটু অপেক্ষা করে (২০ সেকেন্ড) আবার চেষ্টা করুন','error')}
     }
-    try{if(window.$db){await this._saveT(window.$db.saveOrder(order,orderKey),35000);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);
+    window.__ddStep='অর্ডার সেভ';try{if(window.$db){await this._saveT(window.$db.saveOrder(order,orderKey),35000);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);try{alert('অর্ডার সেভ ব্যর্থ ['+(window.__ddStep||'?')+'] কোড: '+String((e&&(e.code||e.message))||e).slice(0,160))}catch(_){}
       try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
       this.placing=false;
       const _c=(e&&e.code)||'';
@@ -7045,10 +7045,10 @@ function App(){return{
       if(!_why&&this._reusedKey)_why='এই TrxID দিয়ে আগের চেষ্টায় অর্ডার সার্ভারে সেভ হয়ে থাকতে পারে — "অর্ডার" ট্যাবে দেখুন, নইলে নতুন TrxID দিন';
       if(_why)console.warn('order diag:',_why);
       return this.showToast(_c==='no-auth'?'অর্ডার সেভ হয়নি: লগইন/অ্যানোনিমাস অথ চালু নেই। পেজ রিফ্রেশ করে আবার চেষ্টা করুন।':(/permission/i.test(_c)?'অর্ডার সেভ হয়নি: সার্ভার অনুমতি দেয়নি (Firebase রুলস/অথ সমস্যা)। কোড: '+_c+(_why?' — সম্ভাব্য কারণ: '+_why:''):(_c==='timeout'?'ইন্টারনেট ধীর — অর্ডার জমা হতে দেরি হচ্ছে। আগে "অর্ডার" ট্যাবে দেখুন, না থাকলে আবার চেষ্টা করুন।':'অর্ডার সেভ হয়নি। ইন্টারনেট দেখে আবার চেষ্টা করুন। '+_c)),'error')}
-    this._autoSaveCustomerAccount(order);
-    this.myOrders.unshift(typeof orderKey!=='undefined'?{...order,fbKey:orderKey}:order);
-    localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
-    this.cart=[];localStorage.removeItem('dd_cart');
+    window.__ddStep='অর্ডার সেভ হয়েছে, লোকাল আপডেট';try{this._autoSaveCustomerAccount(order)}catch(_e){console.warn(_e)}
+    try{this.myOrders.unshift(typeof orderKey!=='undefined'?{...order,fbKey:orderKey}:order)}catch(_e){}
+    try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(_e){console.warn('myorders',_e)}
+    this.cart=[];try{localStorage.removeItem('dd_cart')}catch(_e){}
     this.form.trxId='';this.form.promoCode='';this.form.loc=null;this.locMsg='';this.appliedPromo=null;this.placing=false;
     this.processingOrder=true;this._finishOrderUi(order,'অর্ডার সফল! ✅');
   },
@@ -8344,7 +8344,7 @@ function App(){return{
       items:[{id:p.id||p.fbKey,name:p.name,price:p.price,resellerPrice:p.resellerPrice||0,resellerSellPrice:price,genCommission1:p.genCommission1||0,genCommission2:p.genCommission2||0,genCommission3:p.genCommission3||0,qty:o.qty,size:o.size||'',color:o.color||'',variantImg:((p.images||[])[o.vi]||''),variantNo:(o.vi||0)+1,productId:p.productId||'',img,images:p.images||[]}],
       subtotal:price*o.qty,shipping:this.loShipping,total:this.loGrand,trackingLink:null,
     };
-    try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap-এর সমান
+    window.__ddStep='ইউজার আইডি যাচাই';try{const _um=await this._wt(window.$db.getUidMap(),4000,undefined);order.uid=_um?String(_um):''}catch(e){}   // রুলস: uid ফাঁকা অথবা uidMap-এর সমান
     const _k=o.key||(o.key='lk'+Date.now()+Math.random().toString(36).slice(2,7));
     if(o.loc&&isFinite(o.loc.lat)&&isFinite(o.loc.lng))order.location={lat:o.loc.lat,lng:o.loc.lng,acc:Number(o.loc.acc)||0,address:String(o.loc.address||'').slice(0,250),url:'https://www.google.com/maps?q='+o.loc.lat+','+o.loc.lng};
     // সেভের ৩টি ধাপ: পূর্ণ ডাটা → অপ্রয়োজনীয় ফিল্ড বাদ → রিসেলারের স্বাভাবিক অর্ডারের মতো ন্যূনতম ফরম্যাট (ডুপ্লিকেট হয় না — একই কী)
