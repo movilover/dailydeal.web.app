@@ -3077,6 +3077,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
   <!-- ═══ GLOBAL SECTION ═══ -->
   <section class="dd-gl" x-show="activeCat==='সব'&&q===''" x-cloak>
+    <div class="dd-gl-sky" aria-hidden="true"><span class="dd-gl-fly"><i class="fa-solid fa-plane"></i></span><span class="dd-gl-fly f2"><i class="fa-solid fa-plane"></i></span></div>
     <div class="dd-gl-eye"><i class="fa-solid fa-plane"></i></div>
     <p class="dd-gl-sub" style="margin:2px 0 0;font-weight:800;letter-spacing:.12em;text-transform:uppercase;font-size:12px;color:rgba(255,255,255,.78)" x-text="settings.siteName||'Daily Deal'"></p>
     <div class="dd-gl-big"><i class="fa-solid fa-earth-asia"></i><span>GLOBAL</span></div>
@@ -3279,21 +3280,21 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <a x-show="helpEmail" :href="'mailto:'+helpEmail" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
     </div>
     <h4 class="bf-f-h">কালেকশন</h4>
-    <ul class="bf-f-ul">
+    <ul class="bf-f-ul bf-f-pills">
       <template x-for="c in mainCategories.slice(0,8)" :key="c.fbKey||c.name"><li><a href="#" @click.prevent="activeCat=c.name;activeSub='';q='';catScope=null;window.scrollTo({top:0,behavior:'smooth'})" x-text="c.name"></a></li></template>
     </ul>
     <h4 class="bf-f-h">যোগাযোগ</h4>
-    <ul class="bf-f-ul">
-      <li><a href="#" @click.prevent="activeTab='orders';window.scrollTo({top:0})"><i class="fa-solid fa-truck-fast" style="color:#FBBF24"></i> অর্ডার ট্র্যাক করুন</a></li>
-      <li><a :href="'tel:'+helpPhone" x-text="helpPhone"></a></li>
-      <li x-show="helpEmail"><a :href="'mailto:'+helpEmail" x-text="helpEmail"></a></li>
+    <ul class="bf-f-ul bf-f-contact">
+      <li class="c-tr"><a href="#" @click.prevent="activeTab='orders'">অর্ডার ট্র্যাক করুন</a></li>
+      <li class="c-ph"><a :href="'tel:'+helpPhone" x-text="helpPhone"></a></li>
+      <li class="c-em" x-show="helpEmail"><a :href="'mailto:'+helpEmail" x-text="helpEmail"></a></li>
     </ul>
     <template x-if="settings.shopAddress"><div><h4 class="bf-f-h">ঠিকানা</h4><p class="bf-f-addr" x-text="settings.shopAddress"></p></div></template>
     <h4 class="bf-f-h">পেমেন্ট</h4>
     <div class="bf-f-pay"><span><i class="fa-solid fa-money-bill-wave" style="color:#FBBF24"></i> ক্যাশ অন ডেলিভারি</span><span>bKash</span><span>Nagad</span></div>
     <p class="bf-f-copy">© ২০২৬ <span x-text="settings.siteName||'Daily Deal'"></span>। সর্বস্বত্ব সংরক্ষিত।</p>
   </footer>
-  <div class="footer-safe-spacer" x-show="activeCat==='সব'&&q===''"></div>
+  <div class="footer-safe-spacer" x-show="false" style="display:none!important"></div>
 </section>
 
 <!-- ─── ALL PRODUCTS PAGE (Organized by Sections) ─── -->
@@ -5913,6 +5914,7 @@ function App(){return{
     try{
       this.$watch('activeCat',v=>{this.catN=6;if(v&&v!=='সব')this._fetchCat(v)});this.$watch('q',()=>{this.catN=6});
       this.$watch('activeSub',v=>{this.catN=6;if(v)this._fetchCat(v)});
+      this.$watch('activeTab',()=>{try{window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('activeCat',()=>{try{window.__ddTop&&window.__ddTop()}catch(e){}});
       this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
       this.$watch('resellSession',v=>{if(v)this._fetchResellable()});this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});
     }catch(e){}
@@ -8412,6 +8414,138 @@ body{overflow-x:clip!important;overflow-y:visible!important;height:auto!importan
     var tm=null;
     new MutationObserver(function(){ clearTimeout(tm); tm=setTimeout(prep,300); }).observe(document.body,{childList:true,subtree:true});
   }catch(e){}
+})();
+</script>
+
+<!-- ═════ DD-V3: নিচের ফাঁকা জায়গা লক, গ্লোবালে প্লেন/চিপ অ্যানিমেশন, ফুটার সাজানো ═════ -->
+<style id="dd-v3">
+/* নিচের ফাঁকা জায়গা বাদ — পেজ ফুটারেই শেষ */
+.bf-f{padding:26px 14px calc(18px + env(safe-area-inset-bottom,0px))!important;position:relative;overflow:hidden;background:radial-gradient(80% 26% at 50% 0,rgba(251,191,36,.11),transparent 72%),#070605}
+.footer-safe-spacer{display:none!important;height:0!important}
+main.dd-nopad{padding-bottom:0!important}
+
+
+/* গ্লোবাল: আকাশে উড়ন্ত প্লেন */
+.dd-gl>.dd-gl-sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.dd-gl-fly{position:absolute;left:-14%;top:80%;font-size:20px;line-height:1;opacity:0;animation:ddFly 7s cubic-bezier(.5,0,.55,1) infinite;will-change:left,top,transform}
+.dd-gl-fly i{display:block;color:var(--accent2);filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.dd-gl-fly::before{content:"";position:absolute;right:100%;top:50%;width:84px;height:2px;margin-right:3px;border-radius:2px;transform:translateY(-50%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.75))}
+.dd-gl-fly.f2{font-size:12px;top:92%;animation-name:ddFly2;animation-delay:3.6s;opacity:0}
+.dd-gl-fly.f2::before{width:50px}
+@keyframes ddFly{0%{left:-14%;top:82%;opacity:0;transform:rotate(-5deg)}8%{opacity:1}45%{left:42%;top:56%;transform:rotate(-15deg)}85%{left:100%;top:10%;opacity:1;transform:rotate(-30deg)}100%{left:110%;top:3%;opacity:0;transform:rotate(-34deg)}}
+@keyframes ddFly2{0%{left:-12%;top:96%;opacity:0;transform:rotate(-4deg)}10%{opacity:.8}50%{left:46%;top:70%;transform:rotate(-14deg)}88%{left:100%;top:28%;opacity:.8;transform:rotate(-26deg)}100%{left:108%;top:20%;opacity:0}}
+.dd-gl-eye i{animation:ddBob 2.6s ease-in-out infinite}
+.dd-gl-big i{animation:ddBob 3.2s ease-in-out infinite}
+@keyframes ddBob{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(-3px) rotate(-4deg)}}
+.dd-gl-big i{animation-name:ddBob2}
+@keyframes ddBob2{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.08)}}
+
+/* গ্লোবালের চিপ/বাটন নড়াচড়া */
+.dd-gl-chips{scroll-behavior:auto!important;padding:6px 2px 6px}
+.dd-gl-chip{position:relative;overflow:hidden;animation:ddChip 3.2s ease-in-out infinite}
+.dd-gl-chip::after{content:"";position:absolute;top:0;left:-70%;width:50%;height:100%;transform:skewX(-20deg);background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);animation:ddChipSh 4.2s ease-in-out infinite}
+@keyframes ddChip{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes ddChipSh{0%,55%{left:-70%}100%{left:130%}}
+.dd-gl-btn{position:relative;overflow:hidden;animation:ddBtnGlow 2.4s ease-in-out infinite}
+.dd-gl-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;transform:skewX(-20deg);background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);animation:ddChipSh 3s ease-in-out infinite}
+.dd-gl-btn i{animation:ddArrow 1.2s ease-in-out infinite}
+@keyframes ddBtnGlow{0%,100%{box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 40%,transparent)}50%{box-shadow:0 6px 24px color-mix(in srgb,var(--accent) 75%,transparent),0 0 0 4px color-mix(in srgb,var(--accent) 18%,transparent)}}
+@keyframes ddArrow{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
+
+/* ফুটার সাজসজ্জা */
+.bf-f::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),#FBBF24,var(--accent),transparent);background-size:200% 100%;animation:ftLine 5s linear infinite}
+@keyframes ftLine{from{background-position:0 0}to{background-position:200% 0}}
+.bf-f-brand{padding-bottom:2px}
+.bf-f-logo{position:relative;width:48px;height:48px}
+.bf-f-logo::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1.5px solid rgba(251,191,36,.55);animation:ftRing 2.6s ease-out infinite}
+@keyframes ftRing{0%{transform:scale(.9);opacity:.9}100%{transform:scale(1.35);opacity:0}}
+.bf-f-name{font-size:18px}
+.bf-f-about{font-size:12.5px;line-height:1.65;margin:10px 0 12px}
+.bf-f-soc{gap:8px;margin-bottom:0}
+.bf-f-soc a{width:40px;height:40px;border-radius:12px;font-size:15px;transition:transform .2s,color .2s,border-color .2s}
+.bf-f-soc a:active{transform:scale(.9);color:#FBBF24;border-color:#FBBF24}
+.bf-f-h{display:flex;align-items:center;gap:8px;margin:20px 0 10px;font-size:15px}
+.bf-f-h::before{content:"";width:4px;height:15px;border-radius:3px;background:linear-gradient(var(--accent),var(--accent2))}
+.bf-f-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.2),transparent);transform-origin:left}
+.bf-f-pills{display:flex;flex-wrap:wrap;gap:7px}
+.bf-f-pills li{margin:0!important}
+.bf-f-pills a{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:99px;background:#14110e;border:1px solid rgba(255,255,255,.1);color:#e6dfd3;font-size:12.5px;font-weight:600;transition:transform .15s,border-color .2s,background .2s}
+.bf-f-pills a::before{content:"\f054";font-family:"Font Awesome 6 Free";font-weight:900;font-size:8px;color:var(--accent2)}
+.bf-f-pills a:active{transform:scale(.94);border-color:var(--accent);background:rgba(251,191,36,.08)}
+.bf-f-contact li{margin:0 0 7px!important}
+.bf-f-contact a{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:14px;background:#100d0a;border:1px solid rgba(255,255,255,.09);color:#eee7da;font-size:13.5px;font-weight:600;transition:transform .15s,border-color .2s}
+.bf-f-contact a:active{transform:scale(.98);border-color:var(--accent)}
+.bf-f-contact a::before{font-family:"Font Awesome 6 Free";font-weight:900;flex:none;width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:12px;color:#FBBF24;background:rgba(251,191,36,.13)}
+.bf-f-contact .c-tr a::before{content:"\f48b"}
+.bf-f-contact .c-ph a::before{content:"\f095"}
+.bf-f-contact .c-em a::before{content:"\f0e0"}
+.bf-f-addr{font-size:13px}
+.bf-f-pay{gap:7px}
+.bf-f-pay span{padding:7px 11px;font-size:12px;border-radius:11px}
+.bf-f-copy{margin-top:20px;padding-top:14px;font-size:12px}
+
+/* ফুটার এন্ট্রি অ্যানিমেশন (স্ক্রলে এলে) */
+.bf-f.ft-pre .ft-i{opacity:0}
+.bf-f.ft-in .ft-i{animation:ftUp .62s cubic-bezier(.22,.68,0,1) both;animation-delay:var(--d,0s)}
+.bf-f.ft-in .bf-f-soc a.ft-i{animation-name:ftPop;animation-timing-function:cubic-bezier(.34,1.5,.5,1)}
+.bf-f.ft-in .bf-f-pills li.ft-i{animation-name:ftPop;animation-timing-function:cubic-bezier(.34,1.4,.5,1)}
+.bf-f.ft-in .bf-f-pay span.ft-i{animation-name:ftPop}
+.bf-f.ft-in .bf-f-h.ft-i::after{animation:ftGrow .9s ease both;animation-delay:calc(var(--d,0s) + .25s)}
+@keyframes ftUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes ftPop{0%{opacity:0;transform:scale(.6) translateY(8px)}100%{opacity:1;transform:none}}
+@keyframes ftGrow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@media (prefers-reduced-motion:reduce){.dd-gl-fly,.dd-gl-chip,.dd-gl-chip::after,.dd-gl-btn,.dd-gl-btn::after,.dd-gl-btn i,.bf-f::before,.bf-f-logo::after,.dd-gl-eye i,.dd-gl-big i{animation:none!important}.bf-f.ft-pre .ft-i{opacity:1}.dd-gl-fly{display:none}}
+</style>
+<script id="dd-v3-js">
+(function(){
+  var RM=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+  /* ট্যাব বা ক্যাটাগরি বদলালে সরাসরি পেজের একদম উপরে (smooth ছাড়া) */
+  window.__ddTop=function(){
+    var go=function(){try{window.scrollTo({top:0,left:0,behavior:'instant'})}catch(e){window.scrollTo(0,0)}document.documentElement.scrollTop=0;document.body.scrollTop=0};
+    go();requestAnimationFrame(go);setTimeout(go,60);
+  };
+  if(RM) return;
+
+  /* গ্লোবালের দেশের চিপ — নিজে নিজে ধীরে স্ক্রল (টাচ করলে থামে) */
+  function autoChips(el){
+    if(el.__auto) return; el.__auto=1;
+    var pos=0,dir=1,last=0,hold=0,vis=false,touch=false,rt=null;
+    new IntersectionObserver(function(e){vis=e[0].isIntersecting},{threshold:.1}).observe(el);
+    function stop(){touch=true;clearTimeout(rt)}
+    function go(){clearTimeout(rt);rt=setTimeout(function(){touch=false;pos=el.scrollLeft},1800)}
+    el.addEventListener('touchstart',stop,{passive:true});el.addEventListener('touchend',go,{passive:true});
+    el.addEventListener('mousedown',stop);el.addEventListener('mouseup',go);el.addEventListener('wheel',function(){stop();go()},{passive:true});
+    (function tick(t){
+      var dt=Math.min((t-last)/1000||0,.05);last=t;
+      var max=el.scrollWidth-el.clientWidth;
+      if(vis&&!touch&&max>4){
+        if(hold>0){hold-=dt}
+        else{pos+=dir*28*dt;if(pos>=max){pos=max;dir=-1;hold=1}else if(pos<=0){pos=0;dir=1;hold=1}el.scrollLeft=pos}
+      }
+      requestAnimationFrame(tick);
+    })(0);
+  }
+  /* ফুটার রিভিল */
+  var SELS='.bf-f-brand,.bf-f-about,.bf-f-soc a,.bf-f-h,.bf-f-pills li,.bf-f-contact li,.bf-f-addr,.bf-f-pay span,.bf-f-copy';
+  function footer(f){
+    if(f.__ft) return; f.__ft=1;
+    f.classList.add('ft-pre');
+    new IntersectionObserver(function(es,io){
+      if(!es[0].isIntersecting) return; io.disconnect();
+      var n=0;
+      f.querySelectorAll(SELS).forEach(function(el){
+        if(el.offsetParent===null&&el.tagName!=='A') return;
+        el.classList.add('ft-i'); el.style.setProperty('--d',Math.min(n*0.055,1.5).toFixed(2)+'s'); n++;
+      });
+      f.classList.remove('ft-pre'); f.classList.add('ft-in');
+    },{threshold:.08}).observe(f);
+  }
+  function scan(){
+    document.querySelectorAll('.dd-gl-chips').forEach(autoChips);
+    document.querySelectorAll('footer.bf-f').forEach(footer);
+  }
+  scan(); var tm=null;
+  new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(scan,250)}).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
 </body>
