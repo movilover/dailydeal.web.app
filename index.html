@@ -113,6 +113,19 @@ const uid=()=>{let id=localStorage.getItem('dd_uid');if(!id){id='u_'+Date.now()+
 const _live=(mk,cb,tag)=>{let off=null,dead=false,tries=0;const start=async()=>{try{await authReady}catch(e){}if(dead)return;try{off=onValue(mk(),s=>{tries=0;cb(s)},e=>{console.warn(tag,e&&e.code);if(dead)return;if(++tries<=10)setTimeout(start,Math.min(30000,1500*tries))})}catch(e){if(!dead&&++tries<=10)setTimeout(start,2000*tries)}};start();return()=>{dead=true;try{off&&off()}catch(e){}}};
 /* ══ v7: দ্রুত প্রোডাক্ট লোড — REST (gzip, ওয়েবসকেট আটকায় না) + SDK ফলব্যাক + একটাই শেয়ার্ড ডাউনলোড ══ */
 const DB_URL=cfg.databaseURL;
+/* দ্রুত লেখা: SDK ৬ সেকেন্ডে সাড়া না দিলে (ওয়েবসকেট আটকালে) একই রুলসে REST PUT */
+const _putFast=async(path,d)=>{
+  await authReady;if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}
+  const _sdk=set(ref(db,path),d);_sdk.catch(()=>{});
+  let _t;const _slow=new Promise(r=>{_t=setTimeout(()=>r('slow'),(window.__ddSdkSlow?1500:6000))});
+  const _f=await Promise.race([_sdk.then(()=>'ok'),_slow]);clearTimeout(_t);
+  if(_f==='ok')return;
+  window.__ddSdkSlow=true;
+  const _tok=await auth.currentUser.getIdToken();const _u=DB_URL+'/'+path+'.json?auth='+encodeURIComponent(_tok);
+  const _resp=await Promise.race([fetch(_u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'timeout'})),12000))]);
+  if(_resp.ok)return;
+  try{const _g=await fetch(_u);if(_g.ok){const _v=await _g.json();if(_v&&Object.keys(d).every(k=>String(_v[k])===String(d[k])))return}}catch(_e){}
+  const _pe=new Error('PERMISSION_DENIED (REST '+_resp.status+')');_pe.code='PERMISSION_DENIED';throw _pe};
 const _toArr=v=>v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[];
 const _restProducts=async(qs,ms,tok)=>{const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||40000);try{const r=await fetch(DB_URL+'/products.json'+(qs||'')+(tok?((qs?'&':'?')+'auth='+encodeURIComponent(tok)):''),{signal:c.signal});if(!r.ok)throw new Error('http'+r.status);return _toArr(await r.json())}finally{clearTimeout(t)}};
 let _allP=null;
@@ -133,8 +146,8 @@ const _loadAllProducts=(force)=>{if(_allP&&!force)return _allP;
   _allP=p;return p};
 window.$db={pushReview:async(d)=>{await authReady;const cu=auth.currentUser;const r=push(ref(db,'reviews'));await set(r,{...d,...(cu?{uid:cu.uid}:{})});return r.key},
   newKey:(path)=>push(ref(db,path)).key,
-  setOrderRate:async(d)=>{await authReady;const cu=auth.currentUser;if(!cu)return;return set(ref(db,'orderRate/'+cu.uid),d)},
-  claimTrx:async(k,d)=>set(ref(db,'usedTrx/'+k),d),
+  setOrderRate:async(d)=>{await authReady;const cu=auth.currentUser;if(!cu)return;return _putFast('orderRate/'+cu.uid,d)},
+  claimTrx:async(k,d)=>_putFast('usedTrx/'+k,d),
   getTrxClaim:async(k)=>{try{const s=await get(ref(db,'usedTrx/'+k));return s.exists()?s.val():null}catch(e){return null}},
   lockDebit:async(phone,d)=>set(ref(db,'pendingDebit/'+phone),d),
   unlockDebit:async(phone)=>{try{await remove(ref(db,'pendingDebit/'+phone));return true}catch(e){return false}},
@@ -173,9 +186,9 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenMyInstallments:(myUid,cb)=>{if(!myUid)return cb([]);return onValue(query(ref(db,'installmentOrders'),orderByChild('uid'),equalTo(myUid)),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])})},
   getUidMap:async()=>{await authReady;const cu=auth.currentUser;if(!cu)return null;const mref=ref(db,'uidMap/'+cu.uid);try{let sn=await get(mref);if(!sn.exists()){try{await set(mref,uid())}catch(e){}sn=await get(mref)}return sn.exists()?sn.val():null}catch(e){return null}},
   saveOrder:async(data,key)=>{window.__ddStep='লগইন অপেক্ষা';await authReady;window.__ddStep='সার্ভারে সেভ (SDK)';if(!auth.currentUser){const e=new Error('no-auth');e.code='no-auth';throw e}const r=key?ref(db,'orders/'+key):push(ref(db,'orders'));
-    const _sdk=set(r,data);let _t;const _slow=new Promise(res=>{_t=setTimeout(()=>res('slow'),9000)});
+    const _sdk=set(r,data);let _t;const _slow=new Promise(res=>{_t=setTimeout(()=>res('slow'),(window.__ddSdkSlow?1500:6000))});
     const _first=await Promise.race([_sdk.then(()=>'ok'),_slow]);clearTimeout(_t);
-    if(_first==='ok')return r.key;
+    if(_first==='ok')return r.key;window.__ddSdkSlow=true;
     /* SDK (ওয়েবসকেট) ৯ সেকেন্ডেও ack দেয়নি — একই কী-তে REST দিয়ে লিখি; রুলস একই থাকে */
     window.__ddStep='সার্ভারে সেভ (REST)';const _tok=await auth.currentUser.getIdToken();const _u=DB_URL+'/orders/'+r.key+'.json?auth='+encodeURIComponent(_tok);
     const _resp=await Promise.race([fetch(_u,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}),new Promise((_,rej)=>setTimeout(()=>rej(Object.assign(new Error('timeout'),{code:'timeout'})),15000))]);
@@ -7035,7 +7048,7 @@ function App(){return{
     }
     if((this.settings||{}).orderRateLimit===true){window.__ddStep='রেট-লিমিট';   // S13 (ঐচ্ছিক সুইচ, ডিফল্ট বন্ধ)
       if(!orderKey)orderKey=window.$db.newKey('orders');
-      try{await window.$db.setOrderRate({at:Date.now(),refKey:orderKey})}catch(e){this.placing=false;return this.showToast('একটু অপেক্ষা করে (২০ সেকেন্ড) আবার চেষ্টা করুন','error')}
+      try{const _rr=await this._wt(window.$db.setOrderRate({at:Date.now(),refKey:orderKey}),30000,'__timeout');if(_rr==='__timeout')throw Object.assign(new Error('timeout'),{code:'timeout'})}catch(e){this.placing=false;if(e&&e.code==='timeout')return this.showToast('ইন্টারনেট ধীর — একটু পর আবার চেষ্টা করুন','error');return this.showToast('একটু অপেক্ষা করে (২০ সেকেন্ড) আবার চেষ্টা করুন','error')}
     }
     window.__ddStep='অর্ডার সেভ';try{if(window.$db){await this._saveT(window.$db.saveOrder(order,orderKey),35000);try{localStorage.removeItem('dd_pending_order_key')}catch(e){}}}catch(e){console.warn('Firebase save failed',e);try{alert('অর্ডার সেভ ব্যর্থ ['+(window.__ddStep||'?')+'] কোড: '+String((e&&(e.code||e.message))||e).slice(0,160))}catch(_){}
       try{const q=JSON.parse(localStorage.getItem('dd_unsynced_orders')||'[]');q.push({key:orderKey,order,at:Date.now(),code:e&&e.code||''});localStorage.setItem('dd_unsynced_orders',JSON.stringify(q.slice(-10)))}catch(_){}
