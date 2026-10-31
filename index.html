@@ -5126,13 +5126,14 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   <div class="dlg-ic" style="background:#D1FAE5;color:#059669"><i class="fa-solid fa-link"></i></div>
   <p class="dlg-t">লিংক তৈরি হয়েছে</p>
   <p class="text-xs mt-1" style="color:var(--fg3)" x-text="(sellLinkModal.p?sellLinkModal.p.name:'')+' — ৳'+sellLinkModal.price"></p>
-  <div id="sellLinkUrl" class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2);user-select:all;-webkit-user-select:all" x-text="sellLinkModal.url"></div>
-  <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saving" style="color:#0F8F7A"><i class="fa-solid fa-spinner fa-spin"></i> সার্ভারে সেভ হচ্ছে... (কপি/শেয়ার এখনই করতে পারেন)</p>
+  <div id="sellLinkUrl" x-show="sellLinkModal.ready" class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2);user-select:all;-webkit-user-select:all" x-text="sellLinkModal.url"></div>
+  <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saving" style="color:#0F8F7A"><i class="fa-solid fa-spinner fa-spin"></i> সার্ভারে সেভ ও যাচাই হচ্ছে... একটু অপেক্ষা করুন — যাচাই হলেই লিংক দেখাবে ও কপি/শেয়ার করা যাবে।</p>
   <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.verified" style="color:#059669"><i class="fa-solid fa-circle-check"></i> লিংক লাইভ যাচাই হয়েছে — কাস্টমার এখন খুলতে পারবে</p>
   <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saveErr" style="color:#DC2626" x-text="sellLinkModal.saveErr"></p>
   <p class="text-xs mt-2 font-bold" style="color:#B45309" x-show="sellLinkModal.exp"><i class="fa-regular fa-clock"></i> সক্রিয় থাকবে: <span x-text="fmtLeft(Math.max(0,Math.ceil((sellLinkModal.exp-nowTs)/1000)))"></span> — এরপর লিংকটি কাজ করবে না।</p>
   <p class="text-xs mt-2" style="color:var(--fg3)">শেয়ার করলে প্রোডাক্টের ছবিসহ পাঠানো হবে। কাস্টমার লিংক খুলে এই দামেই কিনতে পারবে।</p>
-  <div class="flex gap-2 mt-4"><button @click="copySellLink()" class="dlg-b2"><i class="fa-regular fa-copy"></i> কপি</button><button @click="shareSellLink()" class="dlg-b1"><i class="fa-solid fa-share-nodes"></i> শেয়ার</button></div>
+  <div class="flex gap-2 mt-4" x-show="sellLinkModal.ready"><button @click="copySellLink()" class="dlg-b2"><i class="fa-regular fa-copy"></i> কপি</button><button @click="shareSellLink()" class="dlg-b1"><i class="fa-solid fa-share-nodes"></i> শেয়ার</button></div>
+  <button x-show="sellLinkModal.saveErr&&!sellLinkModal.saving" @click="retryLinkSave()" class="dlg-b1 mt-3 w-full"><i class="fa-solid fa-rotate-right"></i> আবার সেভ করুন</button>
   <button @click="sellLinkModal.open=false" class="text-xs mt-3 w-full" style="background:none;border:none;color:var(--fg3);cursor:pointer">বন্ধ করুন</button>
 </div></div>
 
@@ -7594,38 +7595,51 @@ function App(){return{
       this._lkP=newMap;this.activeLinkRec=nrec;this._linkTick();
       try{localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(nrec))}catch(e){}
       // লিংক সঙ্গে সঙ্গে দেখানো হয় (অপটিমিস্টিক) — সার্ভারে সেভ ও লাইভ যাচাই ব্যাকগ্রাউন্ডে চলে
-      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',verified:false,linkId:id};
+      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',verified:false,ready:false,linkId:id};
+      this._pendLink={id,rec,prevRec,nrec,ph};
       this._saveLinkBg(id,rec,prevRec,nrec,ph);
     }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
   },
+  retryLinkSave(){
+    const d=this._pendLink;if(!d||this.sellLinkModal.linkId!==d.id)return;
+    this.sellLinkModal.saving=true;this.sellLinkModal.saveErr='';this.sellLinkModal.ready=false;this.sellLinkModal.verified=false;
+    this._lkP=d.nrec.p;this.activeLinkRec=d.nrec;this._linkTick();
+    try{localStorage.setItem('dd_lastlink_'+d.ph,JSON.stringify(d.nrec))}catch(e){}
+    this._saveLinkBg(d.id,d.rec,d.prevRec,d.nrec,d.ph)},
   async _saveLinkBg(id,rec,prevRec,nrec,ph){
     let ok=false,lastErr=null;
-    for(let k=0;k<4&&!ok;k++){
-      try{ok=!!(await this._wt(window.$db.setSharedLink(id,rec).then(()=>true),12000,false))}
-      catch(e){lastErr=e;if(/permission/i.test(String((e&&e.message)||''))&&k>=1)break}
+    for(let k=0;k<3&&!ok;k++){
+      try{ok=!!(await this._wt(window.$db.setSharedLink(id,rec).then(()=>true),20000,false))}
+      catch(e){lastErr=e;if(/permission/i.test(String((e&&(e.code||e.message))||''))&&k>=1)break}
       if(!ok)await new Promise(r=>setTimeout(r,700*(k+1)));
     }
     const mine=this.sellLinkModal.linkId===id;
-    if(ok){
-      if(mine)this.sellLinkModal.saving=false;
-      window.$db.setActiveLink(ph,nrec);
-      // লাইভ যাচাই: কাস্টমার যেভাবে পড়বে (লগইন ছাড়া REST) ঠিক সেভাবে পড়ে দেখা হয় — লিংকটা সত্যিই খোলা যাবে কিনা
-      try{
-        const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/sharedLinks/'+encodeURIComponent(id)+'.json',{cache:'no-store'});
-        const v=r.ok?await r.json():null;
-        if(mine){
-          if(v)this.sellLinkModal.verified=true;
-          else this.sellLinkModal.saveErr='⚠️ লিংক সেভ হলেও কাস্টমারের দিক থেকে পড়া যাচ্ছে না ('+(r.ok?'ডাটাবেসে নেই':'HTTP '+r.status)+')। Firebase Rules-এ sharedLinks → $id → ".read": true আছে কিনা দেখুন।';
-        }
-      }catch(e){}
-    }else{
-      const msg=/permission/i.test(String((lastErr&&lastErr.message)||''))?'Firebase Rules আপডেট করুন (sharedLinks)':'লিংক সার্ভারে সেভ হয়নি — ইন্টারনেট চেক করে আবার চেষ্টা করুন';
-      if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.saveErr='⚠️ '+msg}
+    const fail=(msg)=>{
+      if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.ready=false;this.sellLinkModal.saveErr='⚠️ '+msg}
       // ব্যর্থ হলে শুধু এই লিংকের কুলডাউন বাতিল; অন্য প্রোডাক্টের কুলডাউন আগের মতোই থাকবে
       this.activeLinkRec=prevRec;this._lkP=(prevRec&&prevRec.p)||{};
       try{if(prevRec)localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(prevRec));else localStorage.removeItem('dd_lastlink_'+ph)}catch(e){}
-      this.showToast(msg,'error');
+      this.showToast('লিংক তৈরি হয়নি — বিস্তারিত দেখুন','error');
+    };
+    if(!ok){
+      let au='নেই';try{const u=window.$auth&&window.$auth.auth.currentUser;au=u?(u.email||'অ্যানোনিমাস'):'নেই'}catch(e){}
+      const code=String((lastErr&&(lastErr.code||lastErr.message))||'timeout/নেটওয়ার্ক').slice(0,120);
+      const perm=/permission/i.test(code);
+      return fail((perm?'সার্ভার লিংক সেভ করতে দিচ্ছে না (Firebase Rules/লগইন)':'লিংক সার্ভারে সেভ হয়নি — ইন্টারনেট চেক করুন')+' | কোড: '+code+' | লগইন: '+au+' | ফোন: '+ph);
     }
+    window.$db.setActiveLink(ph,nrec);
+    // লাইভ যাচাই: কাস্টমার যেভাবে পড়বে (লগইন ছাড়া REST) ঠিক সেভাবে পড়ে দেখা হয়
+    let v=null,st='';
+    try{
+      for(let t=0;t<3&&!v;t++){
+        const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/sharedLinks/'+encodeURIComponent(id)+'.json',{cache:'no-store'});
+        st=r.ok?'ডাটাবেসে নেই':'HTTP '+r.status;v=r.ok?await r.json():null;
+        if(!v&&t<2)await new Promise(z=>setTimeout(z,1200));
+      }
+    }catch(e){ // যাচাই করা যায়নি (নেটওয়ার্ক) — সেভ সফল হয়েছে, তাই লিংক দেখানো হবে
+      if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.ready=true}return}
+    if(v){if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.verified=true;this.sellLinkModal.ready=true}}
+    else fail('লিংক সেভ হয়েছে বলা হলেও কাস্টমারের দিক থেকে পড়া যাচ্ছে না ('+st+')। Firebase Rules-এ sharedLinks → $id → ".read": true আছে কিনা এবং Rules Publish করা হয়েছে কিনা দেখুন।');
   },
   async copyPostDesc(p){const t=String((p&&(p.desc||p.description))||(p&&p.name)||'').trim();if(!t)return this.showToast('কপি করার মতো বিবরণ নেই','error');if(await this.copyText(t))this.showToast('বিবরণ কপি হয়েছে ✅','success');else this.showToast('কপি হয়নি — বিবরণে চেপে ধরে কপি করুন','error')},
   async shareSellLink(){const m=this.sellLinkModal;if(m.p)await this._shareWithImage(m.p,m.url,m.p.name+' — ৳'+m.price)},
