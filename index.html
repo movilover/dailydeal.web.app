@@ -5792,8 +5792,23 @@ function App(){return{
     this.appliedPromo=code;
     this.showToast('প্রোমো কোড প্রয়োগ হয়েছে! 🎉','success');
   },
+  _normLog(v){
+    try{
+      if(!v)return [];
+      const a=Array.isArray(v)?v:(typeof v==='object'?Object.values(v):[v]);
+      const tm=x=>{if(x==null||x==='')return 0;if(typeof x==='number')return x;const n=Number(x);if(!isNaN(n))return n;const p=Date.parse(x);return isNaN(p)?0:p};
+      return a.map(e=>{
+        if(e==null)return null;
+        if(typeof e!=='object')return String(e).trim()?{text:String(e),t:0}:null;
+        const tx=e.text||e.msg||e.message||e.note||e.title||e.update||e.desc||e.description||'';
+        if(!String(tx).trim())return null;
+        const rt=e.t!=null?e.t:(e.time!=null?e.time:(e.at!=null?e.at:(e.ts!=null?e.ts:(e.createdAt!=null?e.createdAt:(e.date!=null?e.date:e.timestamp)))));
+        return {...e,text:String(tx),t:tm(rt)};
+      }).filter(Boolean);
+    }catch(err){return []}
+  },
   _ordScan(o){
-    const _i0=(o.items||[])[0]||{},pn=_i0.name,sfx=(pn?' — '+pn:'')+(_i0.productId?' · পণ্য ID #'+_i0.productId:''),add=(k,ic,ti,bd,ts)=>{if(this._ordN.some(x=>x.fbKey===k))return;this._ordN.push({fbKey:k,icon:ic,title:ti,body:bd,orderId:o.id,date:new Date(ts).toISOString()})};
+    const _i0=(o.items||[])[0]||{},pn=_i0.name,sfx=(pn?' — '+pn:'')+(_i0.productId?' · পণ্য ID #'+_i0.productId:''),add=(k,ic,ti,bd,ts)=>{if(this._ordN.some(x=>x.fbKey===k))return;this._ordN.push({fbKey:k,icon:ic,title:ti,body:bd,orderId:o.id,date:(function(){var _d=new Date(ts);return isNaN(_d.getTime())?new Date().toISOString():_d.toISOString()})()})};
     const M={'পেন্ডিং':['fa-solid fa-receipt','অর্ডার গ্রহণ করা হয়েছে'],'প্রসেসিং':['fa-solid fa-boxes-packing','প্যাকিং/প্রসেসিং শুরু হয়েছে'],'পাঠানো হচ্ছে':['fa-solid fa-truck-fast','কুরিয়ারে পাঠানো হয়েছে'],'ডেলিভারিতে':['fa-solid fa-truck-fast','ডেলিভারির জন্য বের হয়েছে'],'ডেলিভার্ড':['fa-solid fa-house-circle-check','ডেলিভারি সম্পন্ন হয়েছে'],'বাতিল':['fa-solid fa-circle-xmark','অর্ডার বাতিল হয়েছে']}[o.status];
     if(M)add('st'+o.id+'_'+o.status,M[0],'অর্ডার #'+o.id,M[1]+sfx,o.trackUpdatedAt||(this._ordFirst?0:Date.now()));
     if(o.trackingLink||o.trackId)add('trl'+o.id,'fa-solid fa-location-arrow','অর্ডার #'+o.id+' — ট্র্যাকিং',(o.courier||'কুরিয়ার')+' ট্র্যাকিং এখন দেখা যাবে — অর্ডার পেজে "ট্র্যাকিং" বাটনে চাপুন'+sfx,o.trackUpdatedAt||(this._ordFirst?0:Date.now()));
@@ -5801,12 +5816,13 @@ function App(){return{
     (o.adjustments||[]).forEach((e,i)=>add('adj'+o.id+'_'+(e.t||i)+'_'+e.amount,'fa-solid fa-scale-balanced','অর্ডার #'+o.id+' — '+(e.amount<0?'টাকা কমানো/ডিসকাউন্ট':'মূল্য সমন্বয়'),(e.kind==='delivery'?'ডেলিভারি চার্জ ':'পণ্যের দাম ')+(e.amount<0?'−৳':'+৳')+Math.abs(e.amount||0).toLocaleString()+(e.reason?' · কারণ: '+e.reason:'')+' · বর্তমান মোট ৳'+Number(o.total||0).toLocaleString(),e.t||(this._ordFirst?0:Date.now())));
   },
   _syncOrders(orders){
-          orders.forEach(fbOrder=>{
+          orders.forEach(fbOrder=>{try{
             ['trackLog','adjustments','items'].forEach(k=>{if(fbOrder[k]&&!Array.isArray(fbOrder[k]))fbOrder[k]=Object.values(fbOrder[k])});
+            {const _tl=this._normLog(fbOrder.trackLog);fbOrder.trackLog=_tl.length?_tl:this._normLog(fbOrder.trackUpdates||fbOrder.updates||fbOrder.statusLog||fbOrder.statusHistory||fbOrder.timeline||fbOrder.history)}
             if(fbOrder.userHidden===true){const _id=String(fbOrder.id);if(!this._hid.includes(_id)){this._hid=[...this._hid,_id];try{localStorage.setItem('dd_hid',JSON.stringify(this._hid))}catch(e){}this.myOrders=this.myOrders.filter(x=>String(x.id)!==_id)}return}
             if(this._hid.includes(String(fbOrder.id)))return;
             fbOrder.status=this.normSt(fbOrder.status);
-            this._ordScan(fbOrder);
+            try{this._ordScan(fbOrder)}catch(_e){console.warn('ordScan',_e&&_e.message)}
             const localIdx=this.myOrders.findIndex(mo=>String(mo.id)===String(fbOrder.id));
             if(localIdx>-1){
               const prev=this.myOrders[localIdx];
@@ -5816,7 +5832,7 @@ function App(){return{
               if(fbOrder.trackNote&&prev.trackNote!==fbOrder.trackNote)this.showToast('🚚 #'+fbOrder.id+': '+fbOrder.trackNote,'success');
               this.myOrders[localIdx]={...prev,status:fbOrder.status||prev.status,fbKey:fbOrder.fbKey||prev.fbKey,trackingLink:fbOrder.trackingLink||null,courier:fbOrder.courier||'',trackId:fbOrder.trackId||'',trackNote:fbOrder.trackNote||'',trackLog:fbOrder.trackLog||[],trackUpdatedAt:fbOrder.trackUpdatedAt||0,total:(fbOrder.total!==undefined?fbOrder.total:prev.total),adjustments:fbOrder.adjustments||[],origTotal:fbOrder.origTotal||null,dueOnDelivery:(fbOrder.dueOnDelivery!==undefined?fbOrder.dueOnDelivery:prev.dueOnDelivery),refundDue:fbOrder.refundDue||0};
             }else{this.myOrders.unshift({...fbOrder,trackLog:fbOrder.trackLog||[],adjustments:fbOrder.adjustments||[]})}
-          });
+          }catch(_oe){console.warn('syncOrder',_oe&&_oe.message)}});
           localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders));
           try{localStorage.setItem('dd_ordN',JSON.stringify(this._ordN.slice(-300)))}catch(e){}
           this._mergeNotifs();this._ordFirst=false;
