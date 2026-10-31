@@ -6051,9 +6051,13 @@ function App(){return{
   catProdCount(c,section){try{const t=this._catTree(c.name),sid=section&&(section.fbKey||section.id),sc=sid&&sid!=='__other';return this.allProducts.filter(p=>t.has(p.cat)&&(!sc||this._inSec(p,sid))).length}catch(e){return 0}},
   openCatFromAll(c){const _sid=this._catSec(c);this.catScope=_sid?{name:c.name,sec:_sid}:null;this.activeCat=c.parent?c.parent:c.name;this.activeSub=c.parent?c.name:'';this.q='';this.activeTab='home';this._goCatProds()},
   retryEarlyLink(){this._elStarted=false;this._dlChecked=false;this.linkOrder={...this.linkOrder,netFail:false,loading:true};this._earlyLink()},
-  _fastGet(path,pre){return new Promise(res=>{let done=false,fails=0;const ok=v=>{if(!done){done=true;res({v})}},bad=()=>{if(++fails>=2&&!done){done=true;res({err:1})}};
-    (pre||fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/'+path+'.json').then(r=>{if(!r.ok)throw new Error('http');return r.json()})).then(v=>ok(v),bad);
-    (async()=>{for(let i=0;i<150&&!(window.$db&&window.$db.getOnce);i++)await new Promise(r=>setTimeout(r,100));return window.$db.getOnce(path)})().then(v=>ok(v),bad);
+  _fastGet(path,pre){return new Promise(res=>{let done=false,fails=0;
+    // ফিক্স: SDK getOnce এরর হলে null দেয় (এরর গিলে ফেলে) — সেই null-কে "লিংক নেই" ধরলে ভুলভাবে "লিংকটি আর পাওয়া যাচ্ছে না" আসত।
+    // এখন: যেকোনো উৎস থেকে নন-null এলে সঙ্গে সঙ্গে গ্রহণ; null শুধু তখনই গ্রহণ যখন REST নিশ্চিত করে (সফল রেসপন্স = সত্যিই নেই); নইলে নেটওয়ার্ক-ত্রুটি।
+    const ok=v=>{if(!done){done=true;res({v})}},bad=()=>{if(++fails>=2&&!done){done=true;res({err:1})}};
+    let restNull=false,sdkNull=false;const both=()=>{if(done)return;if(restNull)return ok(null);if(sdkNull&&fails>=1)bad()};
+    (pre||fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/'+path+'.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('http');return r.json()})).then(v=>{if(v!=null)return ok(v);restNull=true;both()},()=>{bad();both()});
+    (async()=>{for(let i=0;i<150&&!(window.$db&&window.$db.getOnce);i++)await new Promise(r=>setTimeout(r,100));return window.$db.getOnce(path)})().then(v=>{if(v!=null)return ok(v);sdkNull=true;both()},()=>{bad();both()});
     setTimeout(()=>{if(!done){done=true;res({err:1})}},9000)})},
   async _earlyLink(){
     const l=new URLSearchParams(location.search).get('l');if(!l||this._elStarted)return;this._elStarted=true;
@@ -6064,6 +6068,9 @@ function App(){return{
     // ১) লিংক — প্রিফেচ (REST) ও SDK একসাথে, যেটা আগে আসে
     let r=await this._fastGet('sharedLinks/'+encodeURIComponent(l),window.__ddL);
     if(r.err&&window.__ddL){window.__ddL=null;window.__ddP=null;r=await this._fastGet('sharedLinks/'+encodeURIComponent(l))}
+    if(r.err)return netFail();
+    // ফিক্স: রিসেলার লিংক তৈরির পর সার্ভারে সেভ ব্যাকগ্রাউন্ডে হয় — তাই প্রথমবার null এলে ২ বার (১.৫ সেকেন্ড পরপর) আবার চেক করা হয়
+    for(let t=0;t<2&&!r.err&&!r.v;t++){await new Promise(z=>setTimeout(z,1500));window.__ddL=null;window.__ddP=null;r=await this._fastGet('sharedLinks/'+encodeURIComponent(l))}
     if(r.err)return netFail();
     const link=r.v;if(!link)return dead(true);
     const exp=Number(link.expiresAt)||0,now=Date.now();
@@ -7509,7 +7516,7 @@ function App(){return{
     }else p=this.findProdByKey(pk);
     if(!p&&this._dlMiss<1){this._dlMiss++;return} // প্রথম (আংশিক) লোডে না পেলে পূর্ণ লোডের জন্য অপেক্ষা
     this._dlChecked=true;
-    if(l&&!link){this.linkOrder={...this.linkOrder,open:true,gone:true,expired:false,p:null,link:null,done:null};return}
+    if(l&&!link){if(this._elStarted)return;this.linkOrder={...this.linkOrder,open:true,gone:true,expired:false,p:null,link:null,done:null};return}
     if(!p)return this.showToast('প্রোডাক্টটি এখন পাওয়া যাচ্ছে না','error');
     if(l)this.openLinkOrder(p,link,l);
     else{this.detailSheet={open:true,prod:p};this._updateShareMeta(p)}
