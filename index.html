@@ -5106,7 +5106,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <p class="text-xs mt-2" style="color:var(--fg3)">SKU: <span x-text="postView.sku||String(postView.id||'').slice(-6)"></span></p>
       <div class="mt-3"><p class="text-sm font-bold mb-1.5"><i class="fa-regular fa-clock mr-1" style="color:var(--accent)"></i>লিংক কতক্ষণ সক্রিয় থাকবে?</p>
         <div class="flex flex-wrap gap-2"><template x-for="m in [3,5,15,30,60,180,1440]" :key="m"><button type="button" @click="linkMin=m" class="pv-size" :class="linkMin===m?'on':''" x-text="m>=1440?'১ দিন':(m>=60?(m/60).toLocaleString('bn-BD')+' ঘণ্টা':m.toLocaleString('bn-BD')+' মিনিট')"></button></template></div>
-        <p class="text-xs mt-1.5" style="color:#B45309" x-show="linkCool>0"><i class="fa-solid fa-hourglass-half"></i> আগের লিংকের মেয়াদ শেষ হতে <b x-text="fmtLeft(linkCool)"></b> বাকি — তারপর নতুন লিংক বানাতে পারবেন।</p></div>
+        <p class="text-xs mt-1.5" style="color:#B45309" x-show="linkCool>0"><i class="fa-solid fa-hourglass-half"></i> এই প্রোডাক্টের আগের লিংকের মেয়াদ শেষ হতে <b x-text="fmtLeft(linkCool)"></b> বাকি — তারপর এই প্রোডাক্টের নতুন লিংক বানাতে পারবেন। অন্য প্রোডাক্টের লিংক এখনই বানানো যাবে।</p></div>
       <button type="button" @click="genSellLink()" :disabled="sellLinkModal.busy||linkCool>0" class="pv-dl mt-3" :style="linkCool>0?'opacity:.5':''" style="border-color:var(--accent);color:var(--accent)"><i class="fa-solid fa-link"></i> <span x-text="sellLinkModal.busy?'লিংক তৈরি হচ্ছে...':'আমার দামে লিংক জেনারেট করুন'"></span></button>
       <p class="text-xs mt-1.5" style="color:var(--fg3)">নিচে আপনার বিক্রয়মূল্য লিখে এই বাটন চাপুন — লিংক খুললে কাস্টমার আপনার দেওয়া দামেই প্রোডাক্ট দেখবে ও সরাসরি অর্ডার করতে পারবে। অর্ডার আপনি এপ্রুভ করলে আমাদের কাছে যাবে।</p>
       <div class="mt-3" x-show="postView.sizes&&postView.sizes.length>0"><p class="text-sm font-bold mb-2">সাইজ</p><div class="flex flex-wrap gap-2"><template x-for="s in (postView.sizes||[])" :key="s"><button @click="pvSize=s" class="pv-size" :class="pvSize===s?'on':''" x-text="s"></button></template></div></div>
@@ -5128,6 +5128,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   <p class="text-xs mt-1" style="color:var(--fg3)" x-text="(sellLinkModal.p?sellLinkModal.p.name:'')+' — ৳'+sellLinkModal.price"></p>
   <div id="sellLinkUrl" class="mt-3 p-2.5 rounded-xl text-xs break-all font-mono" style="background:var(--bg2);border:1px solid var(--border);color:var(--fg2);user-select:all;-webkit-user-select:all" x-text="sellLinkModal.url"></div>
   <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saving" style="color:#0F8F7A"><i class="fa-solid fa-spinner fa-spin"></i> সার্ভারে সেভ হচ্ছে... (কপি/শেয়ার এখনই করতে পারেন)</p>
+  <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.verified" style="color:#059669"><i class="fa-solid fa-circle-check"></i> লিংক লাইভ যাচাই হয়েছে — কাস্টমার এখন খুলতে পারবে</p>
   <p class="text-xs mt-2 font-bold" x-show="sellLinkModal.saveErr" style="color:#DC2626" x-text="sellLinkModal.saveErr"></p>
   <p class="text-xs mt-2 font-bold" style="color:#B45309" x-show="sellLinkModal.exp"><i class="fa-regular fa-clock"></i> সক্রিয় থাকবে: <span x-text="fmtLeft(Math.max(0,Math.ceil((sellLinkModal.exp-nowTs)/1000)))"></span> — এরপর লিংকটি কাজ করবে না।</p>
   <p class="text-xs mt-2" style="color:var(--fg3)">শেয়ার করলে প্রোডাক্টের ছবিসহ পাঠানো হবে। কাস্টমার লিংক খুলে এই দামেই কিনতে পারবে।</p>
@@ -5144,6 +5145,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <div class="lo-brandbar"><i></i></div>
       <p class="text-sm mt-3" style="color:var(--fg3)">আপনার প্রোডাক্ট লোড হচ্ছে...</p>
       <p class="text-xs mt-3" style="color:var(--fg3)" x-show="linkOrder.netFail">ইন্টারনেট ধীর — লোড হতে দেরি হচ্ছে।</p>
+      <p class="text-xs mt-1 break-all" style="color:var(--fg3);opacity:.7;max-width:300px" x-show="linkOrder.netFail&&linkOrder.diag" x-text="linkOrder.diag"></p>
       <button x-show="linkOrder.netFail" class="btn-primary mt-3" style="max-width:240px" @click="retryEarlyLink()"><i class="fa-solid fa-rotate-right mr-2"></i>আবার চেষ্টা করুন</button></div>
   </template>
   <template x-if="linkOrder.open&&(linkOrder.gone||linkOrder.expired)&&!linkOrder.done&&!linkOrder.loading">
@@ -5153,6 +5155,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <div class="lo-x"><i class="fa-solid" :class="linkOrder.gone?'fa-link-slash':'fa-hourglass-end'"></i></div>
       <p class="font-bold text-lg" x-text="linkOrder.gone?'লিংকটি আর পাওয়া যাচ্ছে না':'লিংকের মেয়াদ শেষ হয়ে গেছে'"></p>
       <p class="text-sm mt-1" style="color:var(--fg3)" x-text="linkOrder.gone?'এই লিংকটি মুছে ফেলা হয়েছে বা সঠিক নয়।':'নিরাপত্তার জন্য এই অফার লিংকের সময়সীমা শেষ।'"></p>
+      <p class="text-xs mt-2 break-all" style="color:var(--fg3);opacity:.7;max-width:300px" x-show="linkOrder.diag" x-text="linkOrder.diag"></p>
       <button class="btn-primary mt-5" style="max-width:280px" @click="closeLinkOrder();activeTab='home'"><i class="fa-solid fa-house mr-2"></i>আমাদের সাইটে ঘুরে দেখুন</button>
       <button class="mt-3 text-sm font-bold" style="background:none;border:1.5px solid var(--accent);color:var(--accent);border-radius:14px;padding:11px 22px;max-width:280px;width:100%;cursor:pointer" @click="closeLinkOrder();activeTab='resell'"><i class="fa-solid fa-store mr-2"></i>রিসেলার হয়ে আয় করুন</button>
       <a :href="_siteBase()" class="text-xs mt-4" style="color:var(--fg3)" x-text="_siteBase().replace(/^https?:\/\//,'').replace(/\/$/,'')"></a>
@@ -6054,25 +6057,25 @@ function App(){return{
   _fastGet(path,pre){return new Promise(res=>{let done=false,fails=0;
     // ফিক্স: SDK getOnce এরর হলে null দেয় (এরর গিলে ফেলে) — সেই null-কে "লিংক নেই" ধরলে ভুলভাবে "লিংকটি আর পাওয়া যাচ্ছে না" আসত।
     // এখন: যেকোনো উৎস থেকে নন-null এলে সঙ্গে সঙ্গে গ্রহণ; null শুধু তখনই গ্রহণ যখন REST নিশ্চিত করে (সফল রেসপন্স = সত্যিই নেই); নইলে নেটওয়ার্ক-ত্রুটি।
-    const ok=v=>{if(!done){done=true;res({v})}},bad=()=>{if(++fails>=2&&!done){done=true;res({err:1})}};
-    let restNull=false,sdkNull=false;const both=()=>{if(done)return;if(restNull)return ok(null);if(sdkNull&&fails>=1)bad()};
-    (pre||fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/'+path+'.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('http');return r.json()})).then(v=>{if(v!=null)return ok(v);restNull=true;both()},()=>{bad();both()});
+    const ok=v=>{if(!done){done=true;res({v})}},bad=()=>{if(++fails>=2&&!done){done=true;res({err:1,why})}};
+    let restNull=false,sdkNull=false,why='';const both=()=>{if(done)return;if(restNull)return ok(null);if(sdkNull&&fails>=1)bad()};
+    (pre||fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/'+path+'.json',{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('http'+r.status);return r.json()})).then(v=>{if(v!=null)return ok(v);restNull=true;both()},e=>{why='REST '+((e&&e.message)||'fail');bad();both()});
     (async()=>{for(let i=0;i<150&&!(window.$db&&window.$db.getOnce);i++)await new Promise(r=>setTimeout(r,100));return window.$db.getOnce(path)})().then(v=>{if(v!=null)return ok(v);sdkNull=true;both()},()=>{bad();both()});
-    setTimeout(()=>{if(!done){done=true;res({err:1})}},9000)})},
+    setTimeout(()=>{if(!done){done=true;res({err:1,why:why||'timeout'})}},9000)})},
   async _earlyLink(){
     const l=new URLSearchParams(location.search).get('l');if(!l||this._elStarted)return;this._elStarted=true;
     this.linkOrder={...this.linkOrder,open:true,loading:true,netFail:false,gone:false,expired:false,p:null,link:null,done:null};
     try{document.documentElement.classList.remove('dd-lk')}catch(e){}
-    const dead=(gone)=>{window.__ddLkReady=true;this._dlChecked=true;this.linkOrder={...this.linkOrder,open:true,loading:false,gone,expired:!gone,p:null,link:null,done:null}};
-    const netFail=()=>{window.__ddLkReady=true;this.linkOrder={...this.linkOrder,open:true,loading:true,netFail:true}};
+    const dead=(gone,diag)=>{window.__ddLkReady=true;this._dlChecked=true;this.linkOrder={...this.linkOrder,open:true,loading:false,gone,expired:!gone,p:null,link:null,done:null,diag:diag||''}};
+    const netFail=(why)=>{window.__ddLkReady=true;this.linkOrder={...this.linkOrder,open:true,loading:true,netFail:true,diag:why?('কারণ: '+why):''}};
     // ১) লিংক — প্রিফেচ (REST) ও SDK একসাথে, যেটা আগে আসে
     let r=await this._fastGet('sharedLinks/'+encodeURIComponent(l),window.__ddL);
     if(r.err&&window.__ddL){window.__ddL=null;window.__ddP=null;r=await this._fastGet('sharedLinks/'+encodeURIComponent(l))}
     if(r.err)return netFail();
     // ফিক্স: রিসেলার লিংক তৈরির পর সার্ভারে সেভ ব্যাকগ্রাউন্ডে হয় — তাই প্রথমবার null এলে ২ বার (১.৫ সেকেন্ড পরপর) আবার চেক করা হয়
     for(let t=0;t<2&&!r.err&&!r.v;t++){await new Promise(z=>setTimeout(z,1500));window.__ddL=null;window.__ddP=null;r=await this._fastGet('sharedLinks/'+encodeURIComponent(l))}
-    if(r.err)return netFail();
-    const link=r.v;if(!link)return dead(true);
+    if(r.err)return netFail(r.why);
+    const link=r.v;if(!link)return dead(true,'ডাটাবেসে এই লিংক-আইডি নেই: '+l);
     const exp=Number(link.expiresAt)||0,now=Date.now();
     if(exp&&now>exp+864e5){try{window.$db&&window.$db.removeSharedLink&&window.$db.removeSharedLink(l)}catch(e){}return dead(true)}
     if(exp&&now>exp){this._dlLink=link;return dead(false)}
@@ -7202,7 +7205,7 @@ function App(){return{
   _ts(p){const t=Number(p.createdAt||p.timestamp);if(t>1e12)return t;const k=String(p.fbKey||''),C='-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz';if(k.length<8)return 0;let n=0;for(let i=0;i<8;i++)n=n*64+C.indexOf(k[i]);return n},
   ago(p){const t=this._ts(p);if(!t)return '';const s=Math.max(0,Math.floor((this.now-t)/1000));if(s<60)return 'এইমাত্র';if(s<3600)return Math.floor(s/60)+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';return Math.floor(s/2592000)+' মাস আগে'},
   timeAgo(ts){if(!ts)return '';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'এইমাত্র';if(s<3600)return Math.max(1,Math.floor(s/60))+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';if(s<31536000)return Math.floor(s/2592000)+' মাস আগে';return Math.floor(s/31536000)+' বছর আগে'},
-  openPost(p){this.postView=p;this.pvSize='';this.pvColor='';this.pvQty=1;this.pvPrice='';this.pvPopup=''},
+  openPost(p){this.postView=p;this.pvSize='';this.pvColor='';this.pvQty=1;this.pvPrice='';this.pvPopup='';this.linkCool=this._lkLeft(p);this._linkTick()},
   async dlImage(url,name){try{const r=await fetch(url);const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){window.open(url,'_blank','noopener')}},
   async dlAll(p){const ims=p.images||[];if(!ims.length)return this.showToast('কোনো ছবি নেই','error');this.showToast('ছবি ডাউনলোড হচ্ছে...','success');for(let i=0;i<ims.length;i++){await this.dlImage(ims[i],(p.name||'product').replace(/\s+/g,'_')+'_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,450))}},
   get pvNote(){const p=this.postView;const s=Number(this.pvPrice);if(!p||!s)return null;
@@ -7557,8 +7560,16 @@ function App(){return{
       this.$nextTick(()=>{const f=document.querySelector('section [data-ddc-form]');f&&f.scrollIntoView({behavior:'smooth',block:'center'})})},380);
   },
   fmtLeft(s){s=Math.max(0,Math.floor(s));const h=Math.floor(s/3600),m=Math.floor(s%3600/60),c=s%60,b=n=>String(n).padStart(2,'0').replace(/\d/g,d=>'০১২৩৪৫৬৭৮৯'[d]);return (h?b(h)+':':'')+b(m)+':'+b(c)},
-  _linkTick(){if(this._lkT)return;this._lkT=setInterval(()=>{this.nowTs=Date.now();const c=this._lkExp?Math.ceil((this._lkExp-this.nowTs)/1000):0;this.linkCool=c>0?c:0;
+  _linkTick(){if(this._lkT)return;this._lkT=setInterval(()=>{this.nowTs=Date.now();this.linkCool=this._lkLeft(this.postView);
     const o=this.linkOrder;if(o.open&&o.exp){o.left=Math.max(0,Math.ceil((o.exp-this.nowTs)/1000));if(o.left<=0&&!o.expired&&!o.done){o.expired=true}}},1000)},
+  // ── প্রতি-প্রোডাক্ট লিংক কুলডাউন: একই প্রোডাক্টের লিংক মেয়াদ শেষ হওয়া পর্যন্ত আবার বানানো যাবে না; অন্য প্রোডাক্টের লিংক যত খুশি ──
+  _pkKey(p){return String((p&&(p.fbKey||p.id))||'').replace(/[.#$\[\]\/]/g,'_').slice(0,120)},
+  _lkMap(withLocal){
+    const out={},now=Date.now(),add=r=>{const m=r&&r.p;if(m&&typeof m==='object')Object.keys(m).forEach(k=>{const e=m[k];if(e&&Number(e.exp)>now&&(!out[k]||e.exp>out[k].exp))out[k]={id:e.id,exp:Number(e.exp)}})};
+    add(this.activeLinkRec);add({p:this._lkP});
+    if(withLocal&&this.resellSession){try{add(JSON.parse(localStorage.getItem('dd_lastlink_'+this.resellSession)||'null'))}catch(e){}}
+    return out},
+  _lkLeft(p){const k=this._pkKey(p);if(!k)return 0;const e=this._lkMap(false)[k];return e&&e.exp>Date.now()?Math.ceil((e.exp-Date.now())/1000):0},
   async genSellLink(){
     const p=this.postView;if(!p||!this.resellSession)return;
     const s=Number(this.pvPrice);
@@ -7566,12 +7577,10 @@ function App(){return{
     if(s<p.resellerPrice){this.pvPopup='low';return}
     if(this.sellLinkModal.busy)return;
     if(this.resellBlocked)return this.showToast('আপনার একাউন্টে লিংক তৈরি বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।','error');
-    const ph=this.resellSession;
-    // কুলডাউন যাচাই: লাইভ ক্যাশ + লোকাল স্টোরেজ থেকে — নেটওয়ার্কের জন্য অপেক্ষা নেই, তাই লিংক ১ সেকেন্ডের মধ্যে তৈরি হয়
-    let act=this.activeLinkRec||null,loc=null;
-    try{loc=JSON.parse(localStorage.getItem('dd_lastlink_'+ph)||'null')}catch(e){}
-    if(loc&&(!act||(loc.exp||0)>(act.exp||0)))act=loc;
-    if(act&&act.exp>Date.now()){this._lkExp=act.exp;this._linkTick();return this.showToast('আগের লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত নতুন লিংক বানানো যাবে না','error')}
+    const ph=this.resellSession,pk=this._pkKey(p);
+    // কুলডাউন যাচাই (শুধু এই প্রোডাক্টের): লাইভ ক্যাশ + লোকাল স্টোরেজ — নেটওয়ার্কের জন্য অপেক্ষা নেই
+    const prevMap=this._lkMap(true),cur=prevMap[pk];
+    if(cur&&cur.exp>Date.now()){this._linkTick();return this.showToast('এই প্রোডাক্টের আগের লিংকের মেয়াদ শেষ না হওয়া পর্যন্ত নতুন লিংক বানানো যাবে না। অন্য প্রোডাক্টের লিংক বানাতে পারবেন।','error')}
     this.sellLinkModal.busy=true;
     try{
       const mins=Number(this.linkMin)||15,now=Date.now(),exp=now+mins*60000;
@@ -7579,15 +7588,17 @@ function App(){return{
       const promo=String((this.reseller&&(this.reseller.myReferralCode||this.reseller.promoCode))||ph.slice(-5)).replace(/[^A-Za-z0-9]/g,'').slice(0,12)||ph.slice(-5);
       const pid=String(p.productId||p.id||'').replace(/[^A-Za-z0-9]/g,'').slice(0,10)||'P';
       const id=promo+'-'+pid+'-'+Math.random().toString(36).slice(2,8);
-      const nrec={id,exp};
-      this._lkExp=exp;this._linkTick();this.activeLinkRec=nrec;
+      const newMap={...prevMap,[pk]:{id,exp}};
+      const nrec={id,exp,p:newMap};
+      const pv=Object.values(prevMap),prevRec=pv.length?{id:'prev',exp:Math.max(...pv.map(e=>e.exp)),p:prevMap}:null;
+      this._lkP=newMap;this.activeLinkRec=nrec;this._linkTick();
       try{localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(nrec))}catch(e){}
-      // লিংক সঙ্গে সঙ্গে দেখানো হয় (অপটিমিস্টিক) — সার্ভারে সেভ ব্যাকগ্রাউন্ডে চলে
-      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',linkId:id};
-      this._saveLinkBg(id,rec,act,nrec,ph);
+      // লিংক সঙ্গে সঙ্গে দেখানো হয় (অপটিমিস্টিক) — সার্ভারে সেভ ও লাইভ যাচাই ব্যাকগ্রাউন্ডে চলে
+      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',verified:false,linkId:id};
+      this._saveLinkBg(id,rec,prevRec,nrec,ph);
     }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
   },
-  async _saveLinkBg(id,rec,old,nrec,ph){
+  async _saveLinkBg(id,rec,prevRec,nrec,ph){
     let ok=false,lastErr=null;
     for(let k=0;k<4&&!ok;k++){
       try{ok=!!(await this._wt(window.$db.setSharedLink(id,rec).then(()=>true),12000,false))}
@@ -7598,12 +7609,21 @@ function App(){return{
     if(ok){
       if(mine)this.sellLinkModal.saving=false;
       window.$db.setActiveLink(ph,nrec);
-      if(old&&old.id&&old.id!==id)window.$db.removeSharedLink(old.id);
+      // লাইভ যাচাই: কাস্টমার যেভাবে পড়বে (লগইন ছাড়া REST) ঠিক সেভাবে পড়ে দেখা হয় — লিংকটা সত্যিই খোলা যাবে কিনা
+      try{
+        const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/sharedLinks/'+encodeURIComponent(id)+'.json',{cache:'no-store'});
+        const v=r.ok?await r.json():null;
+        if(mine){
+          if(v)this.sellLinkModal.verified=true;
+          else this.sellLinkModal.saveErr='⚠️ লিংক সেভ হলেও কাস্টমারের দিক থেকে পড়া যাচ্ছে না ('+(r.ok?'ডাটাবেসে নেই':'HTTP '+r.status)+')। Firebase Rules-এ sharedLinks → $id → ".read": true আছে কিনা দেখুন।';
+        }
+      }catch(e){}
     }else{
       const msg=/permission/i.test(String((lastErr&&lastErr.message)||''))?'Firebase Rules আপডেট করুন (sharedLinks)':'লিংক সার্ভারে সেভ হয়নি — ইন্টারনেট চেক করে আবার চেষ্টা করুন';
       if(mine){this.sellLinkModal.saving=false;this.sellLinkModal.saveErr='⚠️ '+msg}
-      this.activeLinkRec=null;this._lkExp=0;this.linkCool=0;
-      try{localStorage.removeItem('dd_lastlink_'+ph)}catch(e){}
+      // ব্যর্থ হলে শুধু এই লিংকের কুলডাউন বাতিল; অন্য প্রোডাক্টের কুলডাউন আগের মতোই থাকবে
+      this.activeLinkRec=prevRec;this._lkP=(prevRec&&prevRec.p)||{};
+      try{if(prevRec)localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(prevRec));else localStorage.removeItem('dd_lastlink_'+ph)}catch(e){}
       this.showToast(msg,'error');
     }
   },
