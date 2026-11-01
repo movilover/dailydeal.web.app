@@ -2771,7 +2771,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
       <!-- ১) কাস্টমারের সব তথ্য এক জায়গায় -->
       <div class="inv-det">
-        <template x-for="m in inv.meta.filter(x=>x.l!=='অর্ডার আইডি'&&x.l!=='তারিখ'&&x.v)" :key="m.l"><div :class="m.l==='ঠিকানা'?'c2':''"><small x-text="m.l"></small><b x-text="m.v"></b></div></template>
+        <template x-for="m in (inv.meta||[]).filter(x=>x.l!=='অর্ডার আইডি'&&x.l!=='তারিখ'&&x.v)" :key="m.l"><div :class="m.l==='ঠিকানা'?'c2':''"><small x-text="m.l"></small><b x-text="m.v"></b></div></template>
       </div>
 
       <!-- ২) ট্র্যাকিং (সংক্ষিপ্ত) -->
