@@ -57,6 +57,7 @@ if(APPCHECK_SITE_KEY){
     const _acI=ac.initializeAppCheck(app,{provider:new ac.ReCaptchaV3Provider(APPCHECK_SITE_KEY),isTokenAutoRefreshEnabled:true});window.$acGet=async()=>{try{return (await ac.getToken(_acI,false)).token}catch(e){return ''}};
   }catch(e){console.warn('AppCheck init failed',e)}
 }
+if(localStorage.getItem('dd_lp')==='1'){try{const _dbm=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js");if(_dbm&&_dbm.forceLongPolling)_dbm.forceLongPolling()}catch(e){console.warn("longpoll",e)}}   /* এই ডিভাইসে ওয়েবসকেট সমস্যা ধরা পড়লে লং-পোলিং */
 const db=getDatabase(app);
 const auth=getAuth(app);
 const RESELLER_DOMAIN='@r.dailydeal.world';
@@ -6209,7 +6210,7 @@ function App(){return{
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
       window.$db.listenPinnedProducts(pins=>{const ks=pins.map(p=>p.productKey||p.fbKey).filter(Boolean);this.pinnedProductKeys=ks;try{localStorage.setItem('dd_pin_keys',JSON.stringify(ks))}catch(e){}this._homePins(ks)});
-      window.$db.listenHangerProducts&&window.$db.listenHangerProducts(l=>{const ks=l.map(x=>x.k);this.hangerKeys=ks;try{localStorage.setItem('dd_hanger_keys',JSON.stringify(ks))}catch(e){}this._hangerLoad(ks)});
+      try{window.$db.listenHangerProducts&&window.$db.listenHangerProducts(l=>{const ks=l.map(x=>x.k);this.hangerKeys=ks;try{localStorage.setItem('dd_hanger_keys',JSON.stringify(ks))}catch(e){}this._hangerLoad(ks)})}catch(e){}
       window.$auth.authReady.then(async()=>{
         let myUid=localStorage.getItem('dd_uid')||'';
         try{const _m=await window.$db.getUidMap();if(_m)myUid=String(_m)}catch(e){}
@@ -7199,7 +7200,7 @@ function App(){return{
       window.$db.listenMyWalletTx(phone,txs=>this.fbWalletTx=txs);
       window.$db.listenMySupportTickets(phone,ts=>this.fbSupportTickets=ts);
       window.$db.listenMyDeposits(phone,ds=>this.fbDeposits=ds);
-      window.$db.listenMyResellOrders(phone,os=>{this.fbMyResellOrders=os;try{this._rsCheckNew(os)}catch(e){}});
+      window.$db.listenMyResellOrders(phone,os=>{this.fbMyResellOrders=os;this._rsSdkAt=Date.now();try{this._rsCheckNew(os)}catch(e){}});
       window.$db.listenMyRecharges(phone,rs=>this.fbRecharges=rs);
       window.$db.listenMyServiceOrders(phone,os=>this.fbMyServiceOrders=os);
     },350);
@@ -7812,7 +7813,7 @@ function App(){return{
     const t=await this._wt(window.$auth.idToken(),5000,null);if(!t)return null;
     const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
     try{
-      const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/orders.json?orderBy='+encodeURIComponent('"resellerPhone"')+'&equalTo='+encodeURIComponent('"'+phone+'"')+'&limitToLast=80&auth='+encodeURIComponent(t),{cache:'no-store',signal:ctl.signal});
+      const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/orders.json?orderBy='+encodeURIComponent('"resellerPhone"')+'&equalTo='+encodeURIComponent('"'+phone+'"')+'&limitToLast=15&auth='+encodeURIComponent(t),{cache:'no-store',signal:ctl.signal});
       if(!r.ok)return null;const v=await r.json();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[];
     }catch(e){return null}finally{clearTimeout(to)}
   },
@@ -7838,11 +7839,15 @@ function App(){return{
       const l=await this._rsRestOrders(phone);
       if(l&&this.resellSession===phone)this._rsApply(l);
     };
-    tick();this._rsPollT=setInterval(tick,12000);
+    // ব্যান্ডউইথ বাঁচাতে: ছোট কোয়েরি (সর্বশেষ ১৫টি), ৩০ সেকেন্ড পরপর; SDK লিসেনার সচল থাকলে প্রতি ২ মিনিটে একবার
+    setTimeout(()=>{if(!this._rsSdkAt&&this.resellSession===phone){try{localStorage.setItem('dd_lp','1')}catch(e){}}},25000);   // SDK ২৫ সেকেন্ডেও চুপ → পরের লোডে লং-পোলিং
+    let n=0;const slow=async()=>{n++;if(this._rsSdkAt&&n%4!==0)return;await tick()};
+    tick();this._rsPollT=setInterval(slow,30000);
     if(!this._rsVis){this._rsVis=1;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&this.resellSession)this._rsRefresh(true)})}
   },
   async _rsRefresh(silent){
     const ph=this.resellSession;if(!ph||this.rsRefreshing)return;
+    if(silent&&Date.now()-(this._rsLast||0)<20000)return;this._rsLast=Date.now();
     this.rsRefreshing=true;let l=null;try{l=await this._rsRestOrders(ph)}finally{this.rsRefreshing=false}
     if(l&&this.resellSession===ph)this._rsApply(l);
     if(!silent)this.showToast(l?'অর্ডার তালিকা আপডেট হয়েছে ✅':'এখন আপডেট আনা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন',l?'success':'error');
