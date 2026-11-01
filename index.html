@@ -237,6 +237,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenNotifications:(cb)=>onValue(ref(db,'notifications'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCustomButtons:(cb)=>onValue(ref(db,'customButtons'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenPinnedProducts:(cb)=>onValue(ref(db,'pinnedProducts'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenHangerProducts:(cb)=>onValue(ref(db,'hangerProducts'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({k,n:Number(d&&d.n)||0})).sort((x,y)=>x.n-y.n):[])},e=>{console.warn('hangerProducts',e&&e.code)}),
   registerUser:async()=>{await authReady;const cu=auth.currentUser;const id=uid();await set(ref(db,'users/'+id),{lastSeen:new Date().toISOString(),uid:id,...(cu?{ownerUid:cu.uid}:{})});},
   // ══ Auth (phone+PIN, NEW) ══
   saveUser:async(phone,data)=>{await authReady;const cu=auth.currentUser;return set(ref(db,'users/'+phone),{...data,...(cu?{ownerUid:cu.uid}:{})})},
@@ -5373,7 +5374,7 @@ function App(){return{
   fxHold:0,badgePop:false,cartBump:false,
   myWallet:{balance:0},walletTx:[],
   walletModal:{open:false,tab:'deposit',amount:'',method:'bkash',account:'',trxId:'',saving:false},
-  customButtons:[],pinnedProductKeys:[],
+  customButtons:[],pinnedProductKeys:[],hangerKeys:(()=>{try{const v=JSON.parse(localStorage.getItem('dd_hanger_keys')||'[]');return Array.isArray(v)?v:[]}catch(e){return[]}})(),_hgDone:false,
   notifOpen:false,marqueeText:'',marqueeEnabled:true,hPrev:false,hWomen:false,hPin:false,hForce:false,hCached:false,
   selectedSizes:{},selectedVar:{},subOpen:{},now:Date.now(),lang:localStorage.getItem('dd_lang')||'bn',country:localStorage.getItem('dd_country')||'BD',langOpen:false,countryOpen:false,fbReviews:[],detailQty:1,activeSub:'',revForm:{rating:5,text:'',name:'',img:''},wish:(()=>{try{return JSON.parse(localStorage.getItem('dd_wish')||'[]')}catch(e){return[]}})(),cart:[],
   gridCols:2,homepageLimit:8,homeShown:12,homeN:6,catN:6,homeSort:'feat',sortOpen:false,searchFocus:false,sellView:false,postView:null,pvSize:'',pvColor:'',pvQty:1,pvPrice:'',pvPopup:'',custChecked:false,sellTermsOpen:false,policies:[
@@ -5752,7 +5753,8 @@ function App(){return{
   get helpEmail(){return 'dailydealhelp@gmail.com'},
   get homeBase(){const seen=new Set(),out=[];[...this.pinnedProducts,...this.newestProducts].forEach(p=>{if(p&&this.hasValidData(p)&&!seen.has(p.fbKey)){seen.add(p.fbKey);out.push(p)}});return out},
   get homeFeat(){return this._sortBy(this.homeBase)},
-  get hangerItems(){return this.homeBase.slice(0,8)},
+  /* অ্যাডমিন থেকে বাছাই করা হ্যাঙ্গার পণ্য (hangerProducts); কিছু বাছাই না থাকলে/পাওয়া না গেলে আগের স্বয়ংক্রিয় তালিকা */
+  get hangerItems(){const ks=this.hangerKeys;if(Array.isArray(ks)&&ks.length){const out=[],seen=new Set();ks.forEach(k=>{if(seen.has(k))return;seen.add(k);const p=this.allProducts.find(x=>x.fbKey===k);if(p&&this.hasValidData(p))out.push(p)});if(out.length||!this._hgDone)return out}return this.homeBase.slice(0,8)},
   get catList(){return this._sortBy(this.filteredProds.filter(p=>this.hasValidData(p)))},
   get catShow(){return this.catList.slice(0,this.catN)},
   get sortLabel(){return ({feat:'ফিচার্ড',new:'নতুন',low:'দাম: কম → বেশি',high:'দাম: বেশি → কম'})[this.homeSort]||'ফিচার্ড'},
@@ -5797,6 +5799,7 @@ function App(){return{
     return '<svg viewBox="0 0 48 48" class="hca" aria-hidden="true"><path class="hca-bolt" d="M27 5 11 27h10l-3 16 19-24H26z" fill="#FDE047" stroke="#fff" stroke-width="1.500" stroke-linejoin="round"/><path class="hca-fl1" d="M38 10l1.200 3 3 1.200-3 1.200L38 18.500l-1.200-3.100-3-1.200 3-1.200z" fill="#fff"/><path class="hca-fl2" d="M9 34l1 2.500 2.500 1-2.500 1-1 2.500-1-2.500-2.500-1 2.500-1z" fill="#fff"/></svg>'},
   get homeOk(){return this.hForce||this.hCached||(this.hPrev&&this.hWomen&&this.hPin)},
   async _homePins(ks){try{const have=new Set((this.fbProducts||[]).map(p=>p.fbKey));const miss=ks.filter(k=>!have.has(k));if(miss.length){const arr=(await Promise.all(miss.map(k=>window.$db.getProductByKey(k)))).filter(Boolean);if(arr.length)this._mergeProds(this._normProds(arr))}}catch(e){}this.hPin=true},
+  async _hangerLoad(ks){try{const have=new Set((this.fbProducts||[]).map(p=>p.fbKey));const miss=ks.filter(k=>!have.has(k));if(miss.length){const arr=(await Promise.all(miss.map(k=>window.$db.getProductByKey(k)))).filter(Boolean);if(arr.length)this._mergeProds(this._normProds(arr))}}catch(e){}this._hgDone=true},
   _homeLoad(){this.hWomen=true;setTimeout(()=>{this.hForce=true},1500)},   /* আগে এখানে বাড়তি 'women' কুয়েরি চলত — সরিয়ে হোম দ্রুত করা হয়েছে */
   get pinnedGroups(){const ps=this.pinnedProducts;return [
     {key:'men',title:'ছেলেদের ভাইরাল পণ্য',items:ps.filter(p=>p.gender==='men')},
@@ -6186,7 +6189,7 @@ function App(){return{
           else{this._mergeProds(n);this.prodsFull=true}
           this.loading=false;
           try{this._openDeepLink()}catch(e){}
-          if(full){try{const u=new Map();[...this.homeClean.flatMap(s=>s.items.slice(0,s.lim*2)),...this.pinnedProducts,...this.fbProducts.slice(0,60)].forEach(x=>u.set(x.fbKey,x));localStorage.setItem('dd_cache_products',JSON.stringify([...u.values()].slice(0,110)))}catch(e){}}
+          if(full){try{const u=new Map();[...this.homeClean.flatMap(s=>s.items.slice(0,s.lim*2)),...this.pinnedProducts,...this.hangerItems,...this.fbProducts.slice(0,60)].forEach(x=>u.set(x.fbKey,x));localStorage.setItem('dd_cache_products',JSON.stringify([...u.values()].slice(0,110)))}catch(e){}}
         });
       });
       window.$db.registerUser().catch(()=>{});setInterval(()=>this.now=Date.now(),60000);
@@ -6202,6 +6205,7 @@ function App(){return{
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
       window.$db.listenPinnedProducts(pins=>{const ks=pins.map(p=>p.productKey||p.fbKey).filter(Boolean);this.pinnedProductKeys=ks;try{localStorage.setItem('dd_pin_keys',JSON.stringify(ks))}catch(e){}this._homePins(ks)});
+      window.$db.listenHangerProducts&&window.$db.listenHangerProducts(l=>{const ks=l.map(x=>x.k);this.hangerKeys=ks;try{localStorage.setItem('dd_hanger_keys',JSON.stringify(ks))}catch(e){}this._hangerLoad(ks)});
       window.$auth.authReady.then(async()=>{
         let myUid=localStorage.getItem('dd_uid')||'';
         try{const _m=await window.$db.getUidMap();if(_m)myUid=String(_m)}catch(e){}
