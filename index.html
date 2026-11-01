@@ -4649,7 +4649,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
             <template x-if="resellOrdersSubTab==='link'">
               <div class="space-y-3">
-                <p class="text-xs" style="color:var(--fg3)">আপনার শেয়ার করা লিংক থেকে কাস্টমার অর্ডার দিলে এখানে আসবে। এপ্রুভ করলে অর্ডারটি আমাদের কাছে ডেলিভারির জন্য যাবে।</p>
+                <div class="flex items-center justify-between gap-2"><p class="text-xs" style="color:var(--fg3)">আপনার শেয়ার করা লিংক থেকে কাস্টমার অর্ডার দিলে এখানে আসবে। যাচাই করে এপ্রুভ করলে অর্ডারটি আমাদের কাছে ডেলিভারির জন্য যাবে।</p>
+                  <button @click="_rsRefresh(false)" :disabled="rsRefreshing" class="text-xs font-bold px-3 py-2 rounded-xl flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer"><i class="fa-solid fa-rotate-right" :class="rsRefreshing?'fa-spin':''"></i> রিফ্রেশ</button></div>
                 <div x-show="myResellOrders.filter(o=>o.linkOrder).length===0" class="text-center py-14" style="color:var(--fg3)"><i class="fa-solid fa-link text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">কোনো লিংক অর্ডার নেই</p></div>
                 <template x-for="o in myResellOrders.filter(o=>o.linkOrder)" :key="o.fbKey||o.id">
                   <div class="dd-card overflow-hidden">
@@ -4667,9 +4668,12 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                         <div><p style="color:var(--fg3)">আপনার প্রফিট</p><p class="font-mono text-sm font-bold" style="color:#16A34A" x-text="'৳'+(o.items||[]).reduce((s,it)=>s+((it.resellerSellPrice||it.price||0)-(it.resellerPrice||0))*it.qty,0).toLocaleString()"></p></div>
                       </div>
                     </div>
+                    <div class="px-4 pb-2" x-show="o.status==='রিসেলার অ্যাপ্রুভাল'&&o.deliveryAdvance"><p class="text-xs font-bold px-3 py-2 rounded-xl" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A"><i class="fa-solid fa-hand-holding-dollar mr-1"></i><span x-text="'কাস্টমার বলেছে ডেলিভারি চার্জ ৳'+(o.shipping||0)+' আগেই পেমেন্ট করেছে — আপনার একাউন্টে এসেছে কিনা যাচাই করে এপ্রুভ করুন'"></span></p></div>
+                    <div class="px-4 pb-2" x-show="o.status==='রিসেলার অ্যাপ্রুভাল'&&!o.deliveryAdvance"><p class="text-xs font-bold px-3 py-2 rounded-xl" style="background:#F3F4F6;color:#4B5563"><i class="fa-solid fa-truck mr-1"></i>ডেলিভারি চার্জ অগ্রিম দেয়নি — পুরো টাকা ক্যাশ অন ডেলিভারিতে</p></div>
+                    <div class="px-4 pb-2" x-show="o.deliveryAdvanceVerified"><p class="text-xs font-bold px-3 py-2 rounded-xl" style="background:#ECFDF5;color:#047857"><i class="fa-solid fa-circle-check mr-1"></i>ডেলিভারি চার্জ অগ্রিম — আপনি যাচাই করেছেন</p></div>
                     <div class="px-4 pb-3 flex gap-2" x-show="o.status==='রিসেলার অ্যাপ্রুভাল'">
                       <a :href="'tel:'+o.phone" class="btn-ghost flex-1 text-center text-xs font-bold" style="text-decoration:none;padding:10px"><i class="fa-solid fa-phone mr-1"></i>কল</a>
-                      <button @click="resellerApproveLinkOrder(o)" class="btn-primary flex-1 text-xs" style="justify-content:center;padding:10px"><i class="fa-solid fa-check mr-1"></i>এপ্রুভ</button>
+                      <button @click="resellerApproveLinkOrder(o)" class="btn-primary flex-1 text-xs" style="justify-content:center;padding:10px"><i class="fa-solid fa-check mr-1"></i><span x-text="o.deliveryAdvance?'যাচাই করে এপ্রুভ':'এপ্রুভ'"></span></button>
                       <button @click="resellerRejectLinkOrder(o)" class="flex-1 text-xs font-bold rounded-xl" style="background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;cursor:pointer;padding:10px"><i class="fa-solid fa-xmark mr-1"></i>বাতিল</button>
                     </div>
                   </div>
@@ -5434,7 +5438,7 @@ function App(){return{
   resellPinForm:{old:'',nw:'',cf:'',busy:false,err:''},
   resellSignupForm:{name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false},
   // ══ RESELLER / MLM (NEW) ══
-  reseller:null,fbMyOrders:[],fbMyResellOrders:[],fbWithdrawals:[],custReportData:null,
+  reseller:null,fbMyOrders:[],fbMyResellOrders:[],rsRefreshing:false,fbWithdrawals:[],custReportData:null,
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
   resellSidebarOpen:false,
@@ -7185,6 +7189,7 @@ function App(){return{
   },
   _attachResellerListeners(phone){
     try{window.$db.listenBlock(phone,b=>{this.resellBlocked=!!b})}catch(e){}
+    try{this._rsPollStart(phone)}catch(e){}   // SDK লিসেনার ঝুলে গেলেও লিংক অর্ডার যেন আসে (REST পোলিং)
     try{window.$db.listenActiveLink(phone,a=>{this.activeLinkRec=a;if(a&&a.exp>Date.now()){this._lkExp=a.exp;this._linkTick()}})}catch(e){}
     /* ভারী লিস্টগুলো একটু পরে — আগে ড্যাশবোর্ড দেখা যাক */
     clearTimeout(this._rlT);this._rlT=setTimeout(()=>{
@@ -7194,7 +7199,7 @@ function App(){return{
       window.$db.listenMyWalletTx(phone,txs=>this.fbWalletTx=txs);
       window.$db.listenMySupportTickets(phone,ts=>this.fbSupportTickets=ts);
       window.$db.listenMyDeposits(phone,ds=>this.fbDeposits=ds);
-      window.$db.listenMyResellOrders(phone,os=>this.fbMyResellOrders=os);
+      window.$db.listenMyResellOrders(phone,os=>{this.fbMyResellOrders=os;try{this._rsCheckNew(os)}catch(e){}});
       window.$db.listenMyRecharges(phone,rs=>this.fbRecharges=rs);
       window.$db.listenMyServiceOrders(phone,os=>this.fbMyServiceOrders=os);
     },350);
@@ -7802,13 +7807,97 @@ function App(){return{
     try{if(history.length>1){history.back()}else{window.close()}}catch(e){}
     setTimeout(()=>{if(left)return;try{window.close()}catch(e){}setTimeout(()=>{if(!left&&!done)this.closeLinkOrder()},250)},450)},
   get pendingLinkOrders(){return this.myResellOrders.filter(o=>o.status==='রিসেলার অ্যাপ্রুভাল')},
+  // ══ লিংক অর্ডার: রিসেলারের কাছে পৌঁছানো (REST পোলিং — SDK ওয়েবসকেট ঝুলে গেলেও কাজ করে) ══
+  async _rsRestOrders(phone){
+    const t=await this._wt(window.$auth.idToken(),5000,null);if(!t)return null;
+    const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),12000);
+    try{
+      const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/orders.json?orderBy='+encodeURIComponent('"resellerPhone"')+'&equalTo='+encodeURIComponent('"'+phone+'"')+'&limitToLast=80&auth='+encodeURIComponent(t),{cache:'no-store',signal:ctl.signal});
+      if(!r.ok)return null;const v=await r.json();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[];
+    }catch(e){return null}finally{clearTimeout(to)}
+  },
+  _rsApply(list){
+    if(!Array.isArray(list))return;
+    const sig=a=>JSON.stringify(a.map(o=>[o.fbKey,o.status,o.trackNote||'',o.trackingLink||'',(o.trackLog||[]).length,o.userHidden||0,o.deliveryAdvanceVerified||0]).sort());
+    const map=new Map((this.fbMyResellOrders||[]).map(o=>[o.fbKey,o]));list.forEach(o=>map.set(o.fbKey,o));
+    const merged=[...map.values()];
+    if(sig(merged)!==sig(this.fbMyResellOrders||[]))this.fbMyResellOrders=merged;
+    this._rsCheckNew(merged);
+  },
+  _rsCheckNew(list){
+    const pend=(list||[]).filter(o=>o&&o.linkOrder&&o.status==='রিসেলার অ্যাপ্রুভাল').map(o=>o.fbKey);
+    if(this._rsSeen===undefined){this._rsSeen=new Set(pend);return}   // প্রথমবার নীরবে (ড্যাশবোর্ডের অ্যালার্টে দেখা যায়)
+    const fresh=pend.filter(k=>!this._rsSeen.has(k));fresh.forEach(k=>this._rsSeen.add(k));
+    if(fresh.length){this.showToast('🔔 নতুন লিংক অর্ডার ('+fresh.length+'টি) — যাচাই করে এপ্রুভ করুন','success');try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+  },
+  _rsPollStart(phone){
+    clearInterval(this._rsPollT);this._rsSeen=undefined;
+    const tick=async()=>{
+      if(this.resellSession!==phone){clearInterval(this._rsPollT);return}
+      if(document.hidden)return;
+      const l=await this._rsRestOrders(phone);
+      if(l&&this.resellSession===phone)this._rsApply(l);
+    };
+    tick();this._rsPollT=setInterval(tick,12000);
+    if(!this._rsVis){this._rsVis=1;document.addEventListener('visibilitychange',()=>{if(!document.hidden&&this.resellSession)this._rsRefresh(true)})}
+  },
+  async _rsRefresh(silent){
+    const ph=this.resellSession;if(!ph||this.rsRefreshing)return;
+    this.rsRefreshing=true;let l=null;try{l=await this._rsRestOrders(ph)}finally{this.rsRefreshing=false}
+    if(l&&this.resellSession===ph)this._rsApply(l);
+    if(!silent)this.showToast(l?'অর্ডার তালিকা আপডেট হয়েছে ✅':'এখন আপডেট আনা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন',l?'success':'error');
+  },
+  _rsLocal(key,patch){this.fbMyResellOrders=(this.fbMyResellOrders||[]).map(x=>x.fbKey===key?{...x,...patch}:x)},
+  // অর্ডার আপডেট: আগে REST PATCH (দ্রুত, লগইন টোকেনসহ — রুলস একই), না হলে SDK
+  async _orderPatch(key,data){
+    try{
+      const t=await this._wt(window.$auth.idToken(),5000,null);
+      if(t){
+        const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),10000);
+        try{
+          const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/orders/'+encodeURIComponent(key)+'.json?auth='+encodeURIComponent(t),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),signal:ctl.signal});
+          if(r.ok)return true;
+          if(r.status===401||r.status===403)throw Object.assign(new Error('permission'),{code:'PERMISSION_DENIED'});
+        }finally{clearTimeout(to)}
+      }
+    }catch(e){if(e&&e.code==='PERMISSION_DENIED')throw e}
+    const ok=await this._wt(window.$db.updateOrder(key,data).then(()=>true),12000,false);
+    if(!ok)throw new Error('timeout');return true;
+  },
   async resellerApproveLinkOrder(o){
-    if(!(await this.askConfirm({title:'অর্ডার এপ্রুভ করবেন?',msg:(o.deliveryAdvance?'কাস্টমার জানিয়েছে ডেলিভারি চার্জ ৳'+(o.shipping||0)+' আগেই দেওয়া হয়েছে — নিশ্চিত হয়ে এপ্রুভ করুন। ':'')+'এপ্রুভ করলে অর্ডারটি ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-circle-check',yesText:'এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না'})))return;
-    try{await window.$db.updateOrder(o.fbKey,{status:'পেন্ডিং',resellerApprovedAt:Date.now(),placedAt:o.timestamp||null,timestamp:new Date().toISOString()});this.showToast('অর্ডার এপ্রুভ হয়েছে ✅','success')}catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন','error')}
+    if(this._rsBusy||!o||!o.fbKey)return;
+    this._rsBusy=true;
+    try{await this._rsApproveRun(o)}finally{this._rsBusy=false}
+  },
+  async _rsApproveRun(o){
+    const ship=Number(o.shipping)||0,tot=Number(o.total)||0;
+    let patch={status:'পেন্ডিং',resellerApprovedAt:Date.now(),placedAt:o.timestamp||null,timestamp:new Date().toISOString()};
+    if(o.deliveryAdvance){
+      // কাস্টমার বলেছে ডেলিভারি চার্জ আগে দিয়েছে → রিসেলার যাচাই করবে
+      const got=await this.askConfirm({title:'ডেলিভারি চার্জ যাচাই করুন',msg:'কাস্টমার জানিয়েছে ডেলিভারি চার্জ ৳'+ship+' আগেই পেমেন্ট করেছে। আপনার বিকাশ/নগদ/ব্যাংকে টাকাটা এসেছে কিনা দেখে নিন। টাকা পেয়ে থাকলে "হ্যাঁ, পেয়েছি" চাপুন — অর্ডারটি তখন ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-hand-holding-dollar',yesText:'হ্যাঁ, পেয়েছি',yesIcon:'fa-solid fa-check',noText:'পাইনি'});
+      if(got){
+        patch={...patch,deliveryAdvanceVerified:true,deliveryAdvanceVerifiedAt:Date.now(),advancePaid:ship,dueOnDelivery:Math.max(0,tot-ship),payMethod:'ডেলিভারি চার্জ অগ্রিম (রিসেলার যাচাইকৃত) — বাকি ক্যাশ অন ডেলিভারি'};
+      }else{
+        const cod=await this.askConfirm({title:'অগ্রিম পাননি?',msg:'তাহলে ডেলিভারি চার্জসহ পুরো ৳'+tot+' ক্যাশ অন ডেলিভারিতে কালেক্ট করা হবে। এভাবে অর্ডার এপ্রুভ করবেন?',icon:'fa-solid fa-circle-question',yesText:'হ্যাঁ, COD হিসেবে এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না, থাক'});
+        if(!cod)return;
+        patch={...patch,deliveryAdvance:false,deliveryAdvanceVerified:false,collectAmount:tot,payMethod:'ক্যাশ অন ডেলিভারি (অগ্রিম যাচাই হয়নি — রিসেলার লিংক)'};
+      }
+    }else{
+      if(!(await this.askConfirm({title:'অর্ডার এপ্রুভ করবেন?',msg:'কাস্টমার ডেলিভারি চার্জ অগ্রিম দেয়নি — পুরো ৳'+(Number(o.collectAmount)||tot)+' ক্যাশ অন ডেলিভারিতে কালেক্ট হবে। এপ্রুভ করলে অর্ডারটি ডেলিভারির জন্য আমাদের কাছে চলে যাবে।',icon:'fa-solid fa-circle-check',yesText:'এপ্রুভ',yesIcon:'fa-solid fa-check',noText:'না'})))return;
+    }
+    try{await this._orderPatch(o.fbKey,patch);this._rsLocal(o.fbKey,patch);this.showToast('অর্ডার এপ্রুভ হয়েছে ✅ — এখন আমাদের কাছে ডেলিভারির জন্য গেছে','success')}
+    catch(e){this.showToast(/permission/i.test(String((e&&(e.code||e.message))||''))?'এপ্রুভ হয়নি — অনুমতি নেই (অর্ডারটি আগেই পরিবর্তিত হয়ে থাকতে পারে)':'ব্যর্থ! ইন্টারনেট দেখে আবার চেষ্টা করুন','error')}
   },
   async resellerRejectLinkOrder(o){
+    if(this._rsBusy||!o||!o.fbKey)return;
+    this._rsBusy=true;
+    try{await this._rsRejectRun(o)}finally{this._rsBusy=false}
+  },
+  async _rsRejectRun(o){
     if(!(await this.askConfirm({title:'অর্ডার বাতিল করবেন?',msg:'বাতিল করলে এই অর্ডারটি আর প্রসেস হবে না।',icon:'fa-solid fa-triangle-exclamation',yesText:'বাতিল করুন',noText:'না'})))return;
-    try{await window.$db.updateOrder(o.fbKey,{status:'বাতিল',cancelledBy:'reseller',cancelledAt:Date.now()});this.showToast('অর্ডার বাতিল হয়েছে','success')}catch(e){this.showToast('ব্যর্থ!','error')}
+    const patch={status:'বাতিল',cancelledBy:'reseller',cancelledAt:Date.now()};
+    try{await this._orderPatch(o.fbKey,patch);this._rsLocal(o.fbKey,patch);this.showToast('অর্ডার বাতিল হয়েছে','success')}
+    catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন','error')}
   },
   // ── ছবি দিয়ে প্রোডাক্ট সার্চ (কালার + শেপ মিলিয়ে) ──
   _sigFromImg(img){
