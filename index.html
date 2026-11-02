@@ -12,7 +12,7 @@
 <meta property="og:description" content="বিশ্বস্ত অনলাইন শপিং প্ল্যাটফর্ম। সেরা পণ্য, সেরা দাম, দ্রুত ডেলিভারি।"/>
 <meta property="og:image" content=""/>
 <script>/* v6: রিসেলার লিংকে ক্লিক করলে Firebase SDK লোডের অপেক্ষা না করে সঙ্গে সঙ্গে REST দিয়ে লিংক+প্রোডাক্ট আনা শুরু */
-(function(){try{var l=new URLSearchParams(location.search).get('l');if(!l)return;var DB='https://daily-deal-online-shopping-default-rtdb.firebaseio.com';var g=function(p){return fetch(DB+'/'+p+'.json').then(function(r){if(!r.ok)throw new Error('http'+r.status);return r.json()})};window.__ddL=g('sharedLinks/'+encodeURIComponent(l));window.__ddP=window.__ddL.then(function(k){return k&&k.productKey?g('products/'+encodeURIComponent(k.productKey)):null});window.__ddL.catch(function(){});window.__ddP.catch(function(){});document.documentElement.classList.add('dd-lk');setTimeout(function(){document.documentElement.classList.remove('dd-lk')},6000)}catch(e){}})();
+(function(){try{var l=new URLSearchParams(location.search).get('l');if(!l)return;var DB='https://daily-deal-online-shopping-default-rtdb.firebaseio.com';var g=function(p){return fetch(DB+'/'+p+'.json').then(function(r){if(!r.ok)throw new Error('http'+r.status);return r.json()})};var pk=new URLSearchParams(location.search).get('k');window.__ddL=g('sharedLinks/'+encodeURIComponent(l));var p0=pk?g('products/'+encodeURIComponent(pk)):null;if(p0)p0.catch(function(){});window.__ddP=window.__ddL.then(function(k){return k&&k.productKey?((p0&&String(k.productKey)===pk)?p0:g('products/'+encodeURIComponent(k.productKey))):null});window.__ddL.catch(function(){});window.__ddP.catch(function(){});document.documentElement.classList.add('dd-lk');document.documentElement.classList.add('dd-lkp');setTimeout(function(){document.documentElement.classList.remove('dd-lk')},6000);setTimeout(function(){document.documentElement.classList.remove('dd-lkp')},20000)}catch(e){}})();
 (function(){var t,on=false,ps=[];addEventListener('scroll',function(){if(!on){on=true;try{ps=document.getAnimations().filter(function(a){try{return a.playState==='running'&&a.effect.getComputedTiming().iterations===Infinity}catch(e){return false}});ps.forEach(function(a){a.pause()})}catch(e){ps=[]}}clearTimeout(t);t=setTimeout(function(){on=false;ps.forEach(function(a){try{a.play()}catch(e){}});ps=[]},160)},{passive:true,capture:true})})();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -2211,6 +2211,54 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
 </style>
 <body :class="'theme-'+activeTheme" class="theme-light">
 
+<!-- ════════ লিংক-প্রিভিউ: রিসেলার লিংক খুললে সঙ্গে সঙ্গে পণ্যের ছবি-নাম-দাম দেখায়; অর্ডার ফর্ম তৈরি হলেই সরে যায় ════════ -->
+<style id="dd-lkpre-css">
+#dd-lkpre{display:none}
+html.dd-lkp #dd-lkpre{position:fixed;inset:0;z-index:2147483001;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(120% 75% at 50% 40%,#1c0e06 0%,#100a06 55%,#0B0907 100%);transition:opacity .28s ease}
+#dd-lkpre.out{opacity:0;pointer-events:none}
+#dd-lkpre .lp-card{width:min(92vw,340px);background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);animation:lpIn .3s cubic-bezier(.2,.9,.3,1) both}
+#dd-lkpre .lp-top{padding:11px 16px;background:linear-gradient(135deg,#0F0D0B,#2D1A10);color:#fff;font:800 17px/1 'Playfair Display',Georgia,serif;letter-spacing:.2px}
+#dd-lkpre .lp-top b{color:#EE5A24;font-weight:800}
+#dd-lkpre .lp-img{width:100%;height:min(42vh,300px);background:#f3efe9 center/cover no-repeat;position:relative;overflow:hidden}
+#dd-lkpre .lp-img::after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-100%);animation:lpSh 1.2s linear infinite}
+#dd-lkpre .lp-body{padding:12px 16px 16px}
+#dd-lkpre .lp-name{font:700 15px/1.35 'Hind Siliguri',system-ui,sans-serif;color:#111;min-height:20px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#dd-lkpre .lp-price{font:800 24px/1.2 'Hind Siliguri',system-ui,sans-serif;color:#E8380D;margin-top:4px;min-height:29px}
+#dd-lkpre .lp-load{margin-top:10px;font:600 12px 'Hind Siliguri',system-ui,sans-serif;color:#777}
+#dd-lkpre .lp-bar{height:3px;background:#eee;border-radius:3px;overflow:hidden;margin-top:7px}
+#dd-lkpre .lp-bar i{display:block;height:100%;width:40%;border-radius:3px;background:linear-gradient(90deg,#E8380D,#F59E0B);animation:lpBar 1s ease-in-out infinite}
+@keyframes lpIn{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes lpSh{to{transform:translateX(100%)}}
+@keyframes lpBar{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+</style>
+<div id="dd-lkpre" aria-hidden="true"><div class="lp-card"><div class="lp-top">Daily <b>Deal</b></div><div class="lp-img" id="lp-img"></div><div class="lp-body"><div class="lp-name" id="lp-name"></div><div class="lp-price" id="lp-price"></div><div class="lp-load">অর্ডার ফর্ম তৈরি হচ্ছে…</div><div class="lp-bar"><i></i></div></div></div></div>
+<script>
+(function(){
+  var el=document.getElementById('dd-lkpre'),root=document.documentElement;
+  if(!el||!root.classList.contains('dd-lkp'))return;
+  var q=function(i){return document.getElementById(i)};
+  try{
+    if(window.__ddL){
+      window.__ddL.then(function(lk){
+        if(!lk)return;
+        var pr=Number(lk.price);if(pr>0)q('lp-price').textContent='৳'+pr.toLocaleString('en-US');
+        return window.__ddP;
+      }).then(function(p){
+        if(!p)return;
+        if(p.name)q('lp-name').textContent=String(p.name);
+        var im=p.images?(Array.isArray(p.images)?p.images[0]:Object.values(p.images)[0]):(p.img||p.image||'');
+        if(typeof im==='string'&&/^https?:\/\//i.test(im))q('lp-img').style.backgroundImage='url("'+im.replace(/["\\\n\r]/g,'')+'")';
+      }).catch(function(){});
+    }
+  }catch(e){}
+  var t0=Date.now();
+  (function tick(){
+    if(window.__ddLkReady||Date.now()-t0>20000){el.classList.add('out');setTimeout(function(){root.classList.remove('dd-lkp')},320);return}
+    setTimeout(tick,60);
+  })();
+})();
+</script>
+
 <!-- ════════ BRAND SPLASH (প্রতি সেশনে একবার: লোগো + নামের ওপর ডানদিকে চলা লোডিং-ঝলক) ════════ -->
 <style id="dd-splash-css">
 #dd-splash{--dd-sp-name:url("data:image/png;base64,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");position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;
@@ -2219,7 +2267,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   opacity:1;transition:opacity .4s ease,visibility 0s linear .4s;
   animation:ddSpAuto .01s linear 13s forwards}          /* JS না চললেও ৬.৫ সেকেন্ডে নিজে সরে যায়: সাইট কখনো আটকে থাকবে না */
 #dd-splash.dd-sp-out{opacity:0;visibility:hidden;pointer-events:none}
-#dd-splash .dd-sp-logo{position:relative;width:min(54vw,260px);height:calc(min(54vw,260px)*1.0064);animation:ddSpIn .22s ease-out both}   /* পুরনো WebView-এ aspect-ratio না চললেও উচ্চতা ঠিক থাকে */
+#dd-splash .dd-sp-logo{position:relative;width:min(54vw,260px);height:calc(min(54vw,260px)*1.0064);animation:ddSpIn .34s cubic-bezier(.2,1.15,.3,1) both}   /* পুরনো WebView-এ aspect-ratio না চললেও উচ্চতা ঠিক থাকে */
 #dd-splash .dd-sp-bag{position:absolute;left:12.77%;top:0;width:73.69%;height:74.11%;object-fit:contain;-webkit-user-drag:none;user-select:none;
   filter:drop-shadow(0 0 22px rgba(255,92,24,.38));animation:ddSpFloat 2.2s ease-in-out infinite;will-change:transform}
 #dd-splash .dd-sp-name,#dd-splash .dd-sp-shine{position:absolute;left:0;top:78.30%;width:100%;height:21.70%}
@@ -2229,7 +2277,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   animation:ddSpSweep 1.25s linear infinite}
 @keyframes ddSpSweep{from{background-position:-60% 0}to{background-position:160% 0}}   /* বাঁ থেকে ডানে, বারবার */
 @keyframes ddSpFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-@keyframes ddSpIn{from{opacity:.4;transform:scale(.96)}to{opacity:1;transform:none}}
+@keyframes ddSpIn{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:none}}
 @keyframes ddSpAuto{to{opacity:0;visibility:hidden;pointer-events:none}}
 @media (prefers-reduced-motion:reduce){#dd-splash .dd-sp-bag{animation:none}#dd-splash .dd-sp-shine{animation-duration:2.6s}}
 /* ── ইন্ট্রো: লোগো ভেঙে ছড়িয়ে আবার জোড়া লাগবে + পেন্সিলে নাম লেখা ── */
@@ -2262,6 +2310,7 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
   var el=document.getElementById('dd-splash'); if(!el){ window.__ddSplashActive=false; return; }
   window.__ddSplashActive=true;
   var isLk=false;try{isLk=!!new URLSearchParams(location.search).get('l')}catch(e){}
+  if(isLk){ try{ el.parentNode.removeChild(el) }catch(e){} window.__ddSplashActive=false; try{ window.dispatchEvent(new Event('dd-splash-done')) }catch(e){} return; }   /* লিংক-ভিজিট: ভারী স্প্ল্যাশ নয় — সঙ্গে সঙ্গে পণ্যের প্রিভিউ */
   try{ if(!isLk&&sessionStorage.getItem('ddSpSeen')==='1'){ el.parentNode.removeChild(el); window.__ddSplashActive=false; return; } sessionStorage.setItem('ddSpSeen','1'); }catch(e){}
   /* ═══ ইন্ট্রো অ্যানিমেশন (ফিক্সড): (১) ব্যাগ আসে → ভেঙে ছড়ায় → জোড়া লাগে (২) পেন্সিলে নাম লেখা (৩) নাম লেখা শেষে ~১.৪ সেকেন্ড থেমে স্মুথভাবে হোমে যায়
      আগের সমস্যা: সময় ঘড়ির (setTimeout/Date.now) ওপর ছিল, সাইট লোড হওয়ার সময় ব্রাউজার আটকে গেলে লেখা দেরিতে শুরু হতো আর স্প্ল্যাশ মাঝপথেই সরে যেত।
@@ -2277,10 +2326,10 @@ body{width:100%;min-height:100vh;min-height:100dvh;overflow-x:clip!important}
       var LEAD=0,        /* ব্যাগ সুন্দরভাবে আসার জন্য ভাঙার আগে অল্প বিরতি */
           DUR=1700,        /* ভেঙে ছড়ানো + জোড়া লাগা */
           SHOWN_AT=0,   /* টাইল → আসল ব্যাগ বদল (জোড়া লাগার পর) */
-          WRITE_AT=120,   /* পেন্সিল লেখা শুরু */
-          WD=1050,         /* লেখার সময় */
-          PO=220,          /* পেন্সিল সরে যাওয়ার সময় */
-          HOLD=380,       /* নাম লেখা শেষে থেমে থাকার সময় (~১.৪ সেকেন্ড) */
+          WRITE_AT=260,   /* লোগো আগে আসে, তারপর পেন্সিল লেখা শুরু */
+          WD=720,          /* লেখার সময় (দ্রুত) */
+          PO=140,          /* পেন্সিল সরে যাওয়ার সময় */
+          HOLD=240,       /* নাম লেখা শেষে অল্প থেমে থাকা (~১.৩ সেকেন্ডে পুরো ইন্ট্রো) */
           LAST=WRITE_AT+WD+PO, TOTAL=LAST+HOLD;
       tiles.style.setProperty('--dd-sp-img','url("'+bag.src+'")');
       var frag=document.createDocumentFragment(), tl=[];
@@ -3951,7 +4000,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <div class="dd-card overflow-hidden ord-c" x-data="{open:false,tl:false}">
         <div @click="open=!open" class="flex items-center justify-between px-3 py-2" style="background:var(--bg2);border-bottom:1px solid var(--border);cursor:pointer">
           <div><p class="font-mono text-xs font-bold" style="color:var(--fg)">#<span x-text="o.id"></span></p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="o.date"></p></div>
-          <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status==='ডেলিভার্ড'?'কমপ্লিট ✓':o.status"></span>
+          <span class="text-xs font-bold px-3 py-1 rounded-full" :class="{'chip-pending':o.status==='পেন্ডিং'||o.status==='রিসেলার অ্যাপ্রুভাল','chip-processing':o.status==='প্রসেসিং','chip-outfordelivery':o.status==='পাঠানো হচ্ছে','chip-delivered':o.status==='ডেলিভার্ড','chip-cancelled':o.status==='বাতিল'}" x-text="o.status==='ডেলিভার্ড'?'কমপ্লিট ✓':o.status"></span>
           <button type="button" x-show="o.status==='বাতিল'" x-cloak @click.stop="delMyOrder(o)" class="ord-x" title="ডিলিট করুন"><i class="fa-solid fa-trash"></i></button><i class="fa-solid fa-chevron-down ord-chev" :style="open?'transform:rotate(180deg)':''"></i>
         </div>
         <template x-for="it in (o.items||[]).slice(0,2)" :key="it.id">
@@ -5914,11 +5963,25 @@ function App(){return{
   },
   _attachKeys(){this._keyL=this._keyL||{};(this.myOrders||[]).forEach(o=>{if(o.fbKey&&!this._keyL[o.fbKey]&&!this._hid.includes(String(o.id))){this._keyL[o.fbKey]=1;try{window.$db.listenOrderKey(o.fbKey,fo=>{if(fo)this._syncOrders([fo])})}catch(e){delete this._keyL[o.fbKey]}}})},
   // অ্যাডমিনের আপডেট নিশ্চিত পেতে: সরাসরি সার্ভার থেকে একবার পড়ে (ট্যাব খুললে / ফিরে এলে / ম্যানুয়াল / প্রতি ৪৫ সেকেন্ডে)
+  // নিজের অর্ডার একটা-একটা করে আনা: আগে REST (লগইন টোকেনসহ, দ্রুত), না পেলে SDK
+  async _ordFetch(key){
+    try{
+      const t=await this._wt(window.$auth.idToken(),4000,null);
+      if(t){
+        const ctl=new AbortController(),to=setTimeout(()=>ctl.abort(),8000);
+        try{
+          const r=await fetch('https://daily-deal-online-shopping-default-rtdb.firebaseio.com/orders/'+encodeURIComponent(key)+'.json?auth='+encodeURIComponent(t),{cache:'no-store',signal:ctl.signal});
+          if(r.ok){const v=await r.json();return v||null}   // REST সফল: null মানে অর্ডারটি আর নেই — SDK-র জন্য অপেক্ষা নয়
+        }finally{clearTimeout(to)}
+      }
+    }catch(e){}
+    return window.$db.getOrderOnce(key);   // REST ব্যর্থ হলেই কেবল SDK
+  },
   async refreshOrders(manual){
     if(this._rfBusy)return;this._rfBusy=true;this.ordRefreshing=true;let upd=0,fail=0;
     try{
       const list=(this.myOrders||[]).filter(o=>o.fbKey&&!this._hid.includes(String(o.id))&&(manual||!['ডেলিভার্ড','বাতিল'].includes(o.status))).slice(0,30);
-      const res=await Promise.all(list.map(o=>this._wt(window.$db.getOrderOnce(o.fbKey),9000,undefined)));
+      const res=await Promise.all(list.map(o=>this._wt(this._ordFetch(o.fbKey),10000,undefined)));
       const fresh=[];
       res.forEach((v,i)=>{if(v)fresh.push({fbKey:list[i].fbKey,...v});else fail++});
       const before=JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]));
@@ -5926,6 +5989,7 @@ function App(){return{
         const mr=await Promise.all(miss.map(o=>this._wt(this._trackOne(o),9000,null)));mr.forEach(v=>{if(v&&v.fbKey)fresh.push(v)})}catch(e){}
       if(fresh.length)this._syncOrders(fresh);
       upd=before!==JSON.stringify(this.myOrders.map(o=>[o.id,o.status,o.trackingLink,(o.trackLog||[]).length]))?1:0;
+      if(upd&&!this._ordSdkAt){try{localStorage.setItem('dd_lp','1')}catch(e){}}   // লাইভ লিসেনার চুপ ছিল, রিফ্রেশে আপডেট মিলল → পরের লোডে লং-পোলিং
       try{this._attachKeys()}catch(e){}
     }catch(e){fail++}
     this.ordRefreshing=false;this._rfBusy=false;
@@ -6215,7 +6279,7 @@ function App(){return{
         let myUid=localStorage.getItem('dd_uid')||'';
         try{const _m=await window.$db.getUidMap();if(_m)myUid=String(_m)}catch(e){}
         window.$db.listenUserNotifs(myUid,l=>{this._userNotifs=l;this._mergeNotifs()});
-        const _ordCb=orders=>{this.fbMyOrders=orders;this._syncOrders(orders)};
+        const _ordCb=orders=>{this._ordSdkAt=Date.now();this.fbMyOrders=orders;this._syncOrders(orders)};
         this._unOrd=window.$db.listenMyOrders(myUid,_ordCb);
         /* লগইন/লগআউট/অথ বদলালে আগের অর্ডারের লিসেনার নতুন করে বসে — নইলে permission-denied হয়ে আগের অর্ডার আর আসত না */
         let _lastAu=window.$auth.currentUid();
@@ -7642,7 +7706,7 @@ function App(){return{
       this._lkP=newMap;this.activeLinkRec=nrec;this._linkTick();
       try{localStorage.setItem('dd_lastlink_'+ph,JSON.stringify(nrec))}catch(e){}
       // লিংক সঙ্গে সঙ্গে দেখানো হয় (অপটিমিস্টিক) — সার্ভারে সেভ ও লাইভ যাচাই ব্যাকগ্রাউন্ডে চলে
-      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id),price:s,p,busy:false,exp,saving:true,saveErr:'',verified:false,ready:false,linkId:id};
+      this.sellLinkModal={open:true,url:this._siteBase()+'?l='+encodeURIComponent(id)+'&k='+encodeURIComponent(rec.productKey),price:s,p,busy:false,exp,saving:true,saveErr:'',verified:false,ready:false,linkId:id};
       this._pendLink={id,rec,prevRec,nrec,ph};
       this._saveLinkBg(id,rec,prevRec,nrec,ph);
     }catch(e){this.sellLinkModal.busy=false;console.error('genSellLink',e);this.showToast('লিংক তৈরি ব্যর্থ: '+((e&&e.message)||'আবার চেষ্টা করুন').slice(0,80),'error')}
