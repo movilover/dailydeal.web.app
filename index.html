@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="bn" x-data="App()" x-init="boot()" :class="'theme-'+activeTheme">
 <head>
+<script>window._rsk={};</script>
+<script>window._ddMemo=function(n,d,f){var c=_ddMemo.c||(_ddMemo.c={}),e=c[n];if(e&&e.d.length===d.length){var ok=true;for(var i=0;i<d.length;i++)if(e.d[i]!==d[i]){ok=false;break}if(ok)return e.v}var v=f();c[n]={d:d,v:v};return v};</script>
 <meta charset="UTF-8"/>
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net; worker-src 'self' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
@@ -2376,6 +2378,21 @@ html.dd-lkp #dd-lkpre{position:fixed;inset:0;z-index:2147483001;display:flex;ali
 .tm-prof a,.tm-prof .tm-chip{color:#F5D27A}
 .tm-chip{display:inline-block;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:99px;background:rgba(245,210,122,.16);border:1px solid rgba(245,210,122,.35)}
 .tm-bar{height:8px;border-radius:99px;background:var(--bg2);overflow:hidden}.tm-bar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#16A34A,#4ADE80)}
+/* === team member UI + instant taps === */
+.nav-btn,.cat-circle-wrap,.cat-all-btn,.tm-card,.tm-tab,.tm-view,.v5-chip,.sub-chip,.pill-scroll button{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.fb-post{content-visibility:auto;contain-intrinsic-size:auto 560px}
+.tm-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--bg2);padding:4px;border-radius:16px}
+.tm-tab{border:none;background:transparent;border-radius:12px;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:pointer;font-size:10.5px;font-weight:700;color:var(--fg3)}
+.tm-tab b{font-size:15px;font-weight:800;color:var(--fg)}
+.tm-tab.on{background:var(--accent);color:#fff;box-shadow:0 4px 10px color-mix(in srgb,var(--accent) 35%,transparent)}.tm-tab.on b{color:#fff}
+.tm-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 2px 10px var(--shadow);cursor:pointer}
+.tm-card:active{transform:scale(.985)}
+.tm-card-top{display:flex;align-items:center;gap:10px}
+.tm-gtag{font-size:10.5px;font-weight:800;padding:4px 10px;border-radius:99px;background:var(--accentL);color:var(--accent);flex-shrink:0}
+.tm-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.tm-card-stats>div{background:var(--bg2);border-radius:12px;padding:7px 2px;text-align:center}
+.tm-card-stats p{font-size:10px;color:var(--fg3)}.tm-card-stats b{display:block;font-size:14px;font-weight:800;margin-top:1px}
+.tm-view{width:100%;margin-top:10px;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,#000));cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .tm-st6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tm-st6>div{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 4px;text-align:center}
 .tm-st6 p{font-size:10px;color:var(--fg3)}.tm-st6 b{display:block;font-size:16px;font-weight:800;margin-top:1px}
@@ -4649,8 +4666,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           </div>
         </template>
 
-        <template x-if="resellSubTab==='post'">
-          <div class="space-y-5">
+        <template x-if="((resellSubTab==='post'&&(_rsk.post=1)),!!_rsk.post)">
+          <div class="space-y-5" x-show="resellSubTab==='post'">
 
 <div x-show="!sellView" class="space-y-5">
             <!-- BACK + SEARCH -->
@@ -4683,22 +4700,15 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               </div>
               <div x-show="resellFeedMode!=='all'&&!resellSearchQuery" x-cloak class="flex items-center justify-between rounded-xl px-3 py-2" style="background:var(--accentL)"><p class="text-xs font-bold" style="color:var(--accent)" x-text="resellFeedTitle"></p><button @click="resellFeedMode='all'" class="text-xs font-bold" style="background:none;border:none;color:var(--accent);cursor:pointer">সব প্রোডাক্ট দেখুন</button></div>
             </div>
-            <!-- SECTION CHIPS (অ্যাডমিনের তৈরি সব সেকশন; নতুন সেকশন নিজে নিজে যোগ হয়) -->
-            <div x-show="allSections.length>0&&!resellSearchQuery" x-cloak class="flex gap-2 overflow-x-auto pb-2 mb-1" style="scrollbar-width:none">
-              <button type="button" class="sub-chip" :class="!resellActiveSec?'on':''" @click="resellActiveSec='';resellActiveCat='সব'">সব সেকশন</button>
-              <template x-for="s in allSections" :key="'rsc'+(s.fbKey||s.id)">
-                <button type="button" class="sub-chip" :class="resellActiveSec===(s.fbKey||s.id)?'on':''" @click="resellActiveSec=(s.fbKey||s.id);resellActiveCat='সব'"><img x-show="s.img" :src="s.img" alt=""/><span x-text="(s.img?'':(s.icon&&!/^fa-/.test(s.icon)?s.icon+' ':''))+s.name"></span></button>
-              </template>
-            </div>
             <!-- CATEGORY BUTTONS -->
             <div x-show="resellFeedCats.length>0" x-cloak>
               <div class="cat-scroll-wrap">
-                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellActiveCat='সব'">
+                <div class="cat-all-btn" :class="resellActiveCat==='সব'?'active':''" @click="resellPickCat('সব')">
                   <div class="cat-all-circle"><i class="fa-solid fa-bag-shopping"></i></div>
                   <span class="cat-label">সব পণ্য</span>
                 </div>
                 <template x-for="c in resellFeedCats" :key="c.fbKey||c.name">
-                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellActiveCat=c.name">
+                  <div class="cat-circle-wrap" :class="resellActiveCat===c.name?'active':''" @click="resellPickCat(c.name)">
                     <div class="cat-circle">
                       <img x-show="c.img" :src="c.img" :alt="c.name" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
                       <div class="cat-circle-emoji" :style="c.img?'display:none':''"><i :class="emoFa(c.emoji,'fa-box-open')"></i></div>
@@ -4934,12 +4944,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                       <div><p>আজকের নিজের প্রফিট</p><b x-text="'৳'+rsToday.profit.toLocaleString()"></b></div>
                       <div><p>আজকের মোট ইনকাম</p><b x-text="'৳'+rsToday.total.toLocaleString()"></b></div>
                     </div>
-                    <div class="grid grid-cols-3 gap-2">
-                      <template x-for="g in [1,2,3]" :key="g">
-                        <button type="button" @click="rsTeamGen=g" class="tm-gen" :class="rsTeamGen===g?'on':''">
-                          <p x-text="['১ম','২য়','৩য়'][g-1]+' জেনারেশন'"></p>
-                          <b x-text="rsTeam.gens[g-1].length+' জন'"></b>
-                          <span x-text="'৳'+((rsIncome.gens[g-1]&&rsIncome.gens[g-1].amount)||0).toLocaleString()"></span>
+                    <div class="tm-tabs">
+                      <template x-for="g in [0,1,2,3]" :key="g">
+                        <button type="button" @click="rsTeamGen=g" class="tm-tab" :class="rsTeamGen===g?'on':''">
+                          <span x-text="g===0?'সকল':['১ম','২য়','৩য়'][g-1]+' জেনা.'"></span>
+                          <b x-text="g===0?rsTeamAll.length:rsTeam.gens[g-1].length"></b>
                         </button>
                       </template>
                     </div>
@@ -4951,24 +4960,23 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                     <div x-show="rsTeam.err==='perm'" x-cloak class="p-3 rounded-2xl text-xs" style="background:#FEF3C7;border:1px solid #FDE68A;color:#92400E"><b>টিমের তথ্য পড়ার অনুমতি নেই।</b> অ্যাডমিন নতুন Firebase Rules (teamIndex) পাবলিশ করলে এখানে দেখাবে।</div>
                     <div x-show="rsTeam.err==='net'" x-cloak class="p-3 rounded-2xl text-xs" style="background:#FEE2E2;border:1px solid #FECACA;color:#991B1B">তথ্য আনা যায়নি — ইন্টারনেট দেখে রিফ্রেশ চাপুন।</div>
                     <div x-show="!rsTeam.loading&&!rsTeam.err&&!rsTeam.has" x-cloak class="p-3 rounded-2xl text-xs" style="background:var(--accentL);color:var(--accent)">এখনো টিমের তথ্য সিঙ্ক হয়নি। নতুন সদস্য যোগ হলে অ্যাডমিন প্যানেল থেকে কিছুক্ষণের মধ্যে এখানে চলে আসে।</div>
-                    <div x-show="!rsTeam.loading&&!rsTeam.err&&rsTeam.has&&rsTeamList.length===0" class="text-center py-12" style="color:var(--fg3)"><i class="fa-solid fa-users text-4xl mb-3 opacity-25"></i><p class="text-sm font-semibold">এই জেনারেশনে কেউ নেই</p><p class="text-xs mt-1">আপনার রেফার কোড শেয়ার করে টিম বাড়ান</p></div>
+                    <div x-show="!rsTeam.loading&&!rsTeam.err&&rsTeam.has&&rsTeamList.length===0" class="text-center py-12" style="color:var(--fg3)"><i class="fa-solid fa-users text-4xl mb-3 opacity-25"></i><p class="text-sm font-semibold">কোনো সদস্য পাওয়া যায়নি</p><p class="text-xs mt-1">আপনার রেফার কোড শেয়ার করে টিম বাড়ান</p></div>
                     <template x-for="m in rsTeamList" :key="m.key">
-                      <div class="dd-card p-3 tm-row" @click="rsTeamSel=m.key" style="display:block">
-                        <div class="flex items-center gap-2.5">
+                      <div class="tm-card" @click="rsTeamSel=m.key">
+                        <div class="tm-card-top">
                           <span class="tm-av" x-text="String(m.name||m.phone||'র').trim().charAt(0).toUpperCase()"></span>
                           <div class="flex-1 min-w-0">
                             <p class="text-sm font-bold truncate" style="color:var(--fg)" x-text="m.name||m.phone"></p>
-                            <p class="text-xs font-mono" style="color:var(--fg3)"><i class="fa-solid fa-phone mr-1"></i><span x-text="m.phone"></span></p>
+                            <p class="text-xs font-mono truncate" style="color:var(--fg3)"><i class="fa-solid fa-phone mr-1"></i><span x-text="m.phone"></span></p>
                           </div>
-                          <span class="text-xs font-bold px-2.5 py-1 rounded-full" :style="m.status==='approved'?'background:#DCFCE7;color:#15803D':'background:#FEF3C7;color:#B45309'" x-text="m.status==='approved'?'অ্যাক্টিভ':'পেন্ডিং'"></span>
-                          <i class="fa-solid fa-chevron-right text-xs" style="color:var(--fg3)"></i>
+                          <span class="tm-gtag" x-text="['১ম','২য়','৩য়'][m.gen-1]+' জেনা.'"></span>
                         </div>
-                        <div class="tm-st">
-                          <div><p>মোট অর্ডার</p><b style="color:var(--fg)" x-text="m.o.total"></b></div>
-                          <div><p>ডেলিভার্ড</p><b style="color:#16A34A" x-text="m.o.done"></b></div>
-                          <div><p>রিজেক্ট</p><b style="color:#DC2626" x-text="m.o.bad"></b></div>
+                        <div class="tm-card-stats">
                           <div><p>আজকের অর্ডার</p><b style="color:var(--accent)" x-text="rsTodayOf(m).orders"></b></div>
+                          <div><p>আজকের ইনকাম</p><b style="color:#16A34A" x-text="'৳'+rsTodayOf(m).profit.toLocaleString()"></b></div>
+                          <div><p>মোট অর্ডার</p><b style="color:var(--fg)" x-text="m.o.total"></b></div>
                         </div>
+                        <button type="button" class="tm-view" @click.stop="rsTeamSel=m.key"><i class="fa-solid fa-eye"></i> টিম মেম্বার ভিউ <i class="fa-solid fa-chevron-right" style="font-size:10px"></i></button>
                       </div>
                     </template>
                     <p class="text-xs text-center" style="color:var(--fg3)" x-show="rsTeam.upd" x-text="'সর্বশেষ আপডেট: '+new Date(rsTeam.upd).toLocaleString('bn-BD')"></p>
@@ -4987,7 +4995,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                           <p class="text-xs truncate" style="opacity:.75" x-show="rsTeamMember.shop" x-text="rsTeamMember.shop"></p>
                           <div class="mt-1.5 flex flex-wrap gap-1.5">
                             <span class="tm-chip" x-text="['১ম','২য়','৩য়'][rsTeamMember.gen-1]+' জেনারেশন'"></span>
-                            <span class="tm-chip" x-text="rsTeamMember.status==='approved'?'অ্যাক্টিভ':'পেন্ডিং'"></span>
+                            
                           </div>
                         </div>
                       </div>
@@ -5000,21 +5008,12 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                       </div>
                     </div>
                     <div class="tm-st6">
-                      <div><p>মোট অর্ডার</p><b style="color:var(--fg)" x-text="rsTeamMember.o.total"></b></div>
-                      <div><p>ডেলিভার্ড</p><b style="color:#16A34A" x-text="rsTeamMember.o.done"></b></div>
-                      <div><p>রিজেক্ট/বাতিল</p><b style="color:#DC2626" x-text="rsTeamMember.o.bad"></b></div>
-                      <div><p>চলমান</p><b style="color:#B45309" x-text="rsTeamMember.o.act"></b></div>
                       <div><p>আজকের অর্ডার</p><b style="color:var(--accent)" x-text="rsTodayOf(rsTeamMember).orders"></b></div>
                       <div><p>আজকের ইনকাম</p><b style="color:#16A34A" x-text="'৳'+rsTodayOf(rsTeamMember).profit.toLocaleString()"></b></div>
-                    </div>
-                    <div class="dd-card p-3">
-                      <div class="flex items-center justify-between text-xs mb-1.5"><span style="color:var(--fg3)">ডেলিভারি সফলতা</span><b style="color:#16A34A" x-text="(rsTeamMember.o.total?Math.round(rsTeamMember.o.done/rsTeamMember.o.total*100):0)+'%'"></b></div>
-                      <div class="tm-bar"><i :style="'width:'+(rsTeamMember.o.total?Math.round(rsTeamMember.o.done/rsTeamMember.o.total*100):0)+'%'"></i></div>
-                      <div class="grid grid-cols-3 gap-2 mt-3 text-center">
-                        <div><p class="text-xs" style="color:var(--fg3)">তার মোট প্রফিট</p><b class="font-mono text-sm" style="color:#16A34A" x-text="'৳'+rsTeamMember.profit.toLocaleString()"></b></div>
-                        <div><p class="text-xs" style="color:var(--fg3)">আপনার কমিশন</p><b class="font-mono text-sm" style="color:var(--accent)" x-text="'৳'+rsEarnFrom(rsTeamMember.phone).toLocaleString()"></b></div>
-                        <div><p class="text-xs" style="color:var(--fg3)">আজকের কমিশন</p><b class="font-mono text-sm" style="color:#B45309" x-text="'৳'+rsEarnToday(rsTeamMember.phone).toLocaleString()"></b></div>
-                      </div>
+                      <div><p>মোট অর্ডার</p><b style="color:var(--fg)" x-text="rsTeamMember.o.total"></b></div>
+                      <div><p>তার মোট প্রফিট</p><b style="color:#16A34A" x-text="'৳'+rsTeamMember.profit.toLocaleString()"></b></div>
+                      <div><p>আপনার কমিশন</p><b style="color:var(--accent)" x-text="'৳'+rsEarnFrom(rsTeamMember.phone).toLocaleString()"></b></div>
+                      <div><p>আজকের কমিশন</p><b style="color:#B45309" x-text="'৳'+rsEarnToday(rsTeamMember.phone).toLocaleString()"></b></div>
                     </div>
                     <div class="dd-card p-3">
                       <p class="font-bold text-sm mb-2" style="color:var(--fg)"><i class="fa-solid fa-users mr-1.5" style="color:var(--accent)"></i><span x-text="(rsTeamMember.name||rsTeamMember.phone)+'-এর টিম ('+rsTeamKids(rsTeamMember.key).length+' জন)'"></span></p>
@@ -5029,7 +5028,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                           </div>
                           <div class="text-right text-xs flex-shrink-0" style="color:var(--fg3)">
                             <p>অর্ডার <b style="color:var(--fg)" x-text="k.o.total"></b></p>
-                            <p><b style="color:#16A34A" x-text="k.o.done"></b> ডেলি · <b style="color:#DC2626" x-text="k.o.bad"></b> রিজেক্ট</p>
+                            <p>আজ <b style="color:var(--accent)" x-text="rsTodayOf(k).orders"></b></p>
                           </div>
                         </div>
                       </template>
@@ -5298,8 +5297,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         </template>
 
         <!-- ══ PRODUCTS (category overview with counts, matches shopbasebd) ══ -->
-        <template x-if="resellSubTab==='products'">
-          <div>
+        <template x-if="((resellSubTab==='products'&&(_rsk.products=1)),!!_rsk.products)">
+          <div x-show="resellSubTab==='products'">
 <div x-show="resellCategoryCounts.length===0" class="text-center py-16" style="color:var(--fg3)"><i class="fa-solid fa-folder-open text-5xl mb-4 opacity-25"></i><p class="text-sm font-semibold">এখনো কোনো ক্যাটাগরি নেই</p></div>
             <template x-for="section in allSections" :key="section.fbKey||section.id">
               <div class="rs-sec">
@@ -5698,7 +5697,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <nav class="bottom-nav" x-show="activeTab==='resell'&&resellStatus==='approved'" x-cloak>
   <template x-if="activeTab==='resell'&&resellStatus==='approved'">
     <template x-for="n in resellNavItems" :key="n.id">
-      <button @click="resellSubTab=n.id" class="nav-btn" :class="resellSubTab===n.id?'active':''">
+      <button @pointerdown="resellSubTab=n.id" @click="resellSubTab=n.id" class="nav-btn" :class="resellSubTab===n.id?'active':''">
         <div class="nav-icon-wrap relative"><i :class="n.icon"></i><span x-show="n.id==='inbox'&&fbResellerMessages.filter(m=>m.resellerPhone===resellSession).length>0" class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full" style="background:var(--accent)"></span></div>
         <span x-text="n.label"></span>
       </button>
@@ -5832,7 +5831,7 @@ function App(){return{
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
   resellSidebarOpen:false,
-  resellOrdersSubTab:'list',rsTeam:{loading:false,err:'',gens:[[],[],[]],at:0,upd:0,has:false},rsTeamGen:1,rsTeamSel:'',rsTeamQ:'',resellOrderStatusF:'সব',resellOrderSearch:'',
+  resellOrdersSubTab:'list',rsTeam:{loading:false,err:'',gens:[[],[],[]],at:0,upd:0,has:false},rsTeamGen:0,rsTeamSel:'',rsTeamQ:'',resellOrderStatusF:'সব',resellOrderSearch:'',
   supportForm:{orderId:'',message:''},fbSupportTickets:[],
   depositForm:{amount:'',method:'bkash',trxId:''},fbDeposits:[],withdrawTab:'withdraw',
   fbWalletTx:[],rsIncLoading:false,refCopied:false,walletHistOpen:false,lastSeenTxCount:0,
@@ -6067,10 +6066,10 @@ function App(){return{
   },
 
   // ── COMPUTED ──
-  get allCategories(){return this.fbCategories.filter(c=>c&&c.name&&this._cn(c.name)).map(c=>({...c,name:this._cn(c.name),parent:c.parent?this._cn(c.parent):c.parent})).sort((a,b)=>(a.order??99)-(b.order??99))},
+  get allCategories(){return _ddMemo('ac',[this.fbCategories],()=>this.fbCategories.filter(c=>c&&c.name&&this._cn(c.name)).map(c=>({...c,name:this._cn(c.name),parent:c.parent?this._cn(c.parent):c.parent})).sort((a,b)=>(a.order??99)-(b.order??99)))},
   get menCategories(){return this.allCategories.filter(c=>c.gender==='men')},
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
-  get allProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl)},
+  get allProducts(){return _ddMemo('ap',[this.fbProducts],()=>this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl))},
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
   get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
   // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
@@ -6351,7 +6350,7 @@ function App(){return{
 
   // ══ AUTH / RESELLER COMPUTED (NEW) ══
   get resellStatus(){return this.reseller?this.reseller.status||'none':'none'},
-  get resellableProducts(){return this.allProducts.filter(p=>p.resellEnabled&&p.resellerPrice>0)},
+  get resellableProducts(){return _ddMemo('rp',[this.allProducts],()=>this.allProducts.filter(p=>p.resellEnabled&&p.resellerPrice>0))},
   get resellCategories(){return this.allCategories},
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
@@ -6365,7 +6364,7 @@ function App(){return{
   },
   _cfgKeys(s){return String(s||'').split(/[,\s]+/).map(x=>x.trim()).filter(Boolean)},
   get resellFeedBase(){
-    const m=this.resellFeedMode;let L=this.resellFilteredProducts;
+    const m=this.resellFeedMode;let L=m==='all'?_ddMemo('rfb',[this.resellableProducts,this.allCategories,this.fbSections,this.resellActiveCat,this.resellActiveSec],()=>this.resellFilteredProducts):this.resellFilteredProducts;
     if(m==='boost'){const ks=this._cfgKeys(this.rcfg.boostKeys),pin=this.pinnedProductKeys||[];L=this.resellableProducts.filter(p=>ks.includes(String(p.productId))||ks.includes(p.fbKey)||(!ks.length&&pin.includes(p.fbKey||p.id)))}
     else if(m==='top'){const ks=this._cfgKeys(this.rcfg.topKeys);L=ks.length?ks.map(k=>this.resellableProducts.find(p=>String(p.productId)===k||p.fbKey===k)).filter(Boolean):[...this.resellableProducts].sort((a,b)=>this.ratingOf(b).n-this.ratingOf(a).n).slice(0,30)}
     else if(m==='new'){L=this.resellableProducts.slice(0,30)}
@@ -6468,7 +6467,8 @@ function App(){return{
     }).finally(()=>{this.locBusy=false;this.locStep=0});
   },
   get resellHeadColor(){const w=this._realSecs.find(s=>this._secGender(s)==='women')||this._realSecs.find(s=>/মেয়ে|মহিলা|লেডিস|women|girl|ladies/i.test(s.name||''));return (w&&w.color)||'#6B7280'},
-  get resellFeedCats(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecCats(sec)}return this.resellCategories},
+  get resellFeedCats(){return _ddMemo('rfc',[this.resellableProducts,this.allCategories,this.fbSections,this.resellActiveSec],()=>this._rfc0())},
+  _rfc0(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecCats(sec)}return this.resellCategories},
   resellSecProds(section){const ids=new Set(this.getSectionProducts(section).map(p=>p.fbKey||p.id));return this.resellableProducts.filter(p=>ids.has(p.fbKey||p.id))},
   resellSecCats(section){/* ক্যাটাগরি রেকর্ড (fbKey) ধরে মিল — নাম নয়; গণনা শুধু এই সেকশনের পণ্যে */const ids=new Set(this.getSectionCategories(section).map(c=>c.fbKey||c.name));const sp=this.resellSecProds(section);return this.resellCategories.filter(c=>ids.has(c.fbKey||c.name)).map(c=>{const t=this._catTree(c.name);return {...c,count:sp.filter(p=>t.has(p.cat)).length}})},
   resellOtherCats(){const u=new Set();this.allSections.forEach(s=>this.getSectionCategories(s).forEach(c=>u.add(c.fbKey||c.name)));return this.resellCategoryCounts.filter(c=>!u.has(c.fbKey||c.name))},
@@ -6761,7 +6761,8 @@ function App(){return{
   async _fetchResellable(){if(this.prodsComplete)return;try{await this._ensureFull()}catch(e){}},
   async _fetchEid(){if(this.prodsComplete)return;try{await this._ensureFull()}catch(e){}},
   _isEid(p){const v=p&&p.isEidCollection;return v===true||v==='true'||v===1||v==='1'||(p&&(p.isEid===true||p.eidCollection===true||p.eid===true))},
-  _catTree(a){const st=new Set([a]);let ch=true,n=0;while(ch&&n++<5){ch=false;this.allCategories.forEach(c=>{if(c.parent&&st.has(c.parent)&&!st.has(c.name)){st.add(c.name);ch=true}})}return st},
+  _catTree(a){return _ddMemo('ct:'+a,[this.allCategories],()=>this._catTree0(a))},
+  _catTree0(a){const st=new Set([a]);let ch=true,n=0;while(ch&&n++<5){ch=false;this.allCategories.forEach(c=>{if(c.parent&&st.has(c.parent)&&!st.has(c.name)){st.add(c.name);ch=true}})}return st},
   catOk(p){const a=this.activeCat;if(a==='সব')return true;if(!(this._catTree(a).has(p.cat)&&(!this.activeSub||p.cat===this.activeSub)))return false;const sc=this.catScope;if(sc&&sc.name===(this.activeSub||a))return this._inSec(p,sc.sec);return true},
   _inSec(p,sid){const ps=p.section||p.sectionId;if(ps===sid)return true;if(ps&&this._realSecs.some(x=>(x.fbKey||x.id)===ps))return false;const sec=this._realSecs.find(x=>(x.fbKey||x.id)===sid);if(!sec)return true;const n=this._cn(p.cat);return this.getSectionCategories(sec).some(c=>this._cn(c.name)===n)},
   get dpImgs(){const p=this.detailSheet.prod;return p?((p.images&&p.images.length)?p.images:[p.img||'']):[]},
@@ -7869,7 +7870,7 @@ function App(){return{
   get rsTeamMember(){return this.rsTeamAll.find(m=>m.key===this.rsTeamSel)||null},
   rsTeamKids(k){return this.rsTeamAll.filter(m=>m.parent===k)},
   rsTeamName(k){const m=this.rsTeamAll.find(x=>x.key===k);return m?(m.name||m.phone):'আপনি'},
-  get rsTeamList(){const q=(this.rsTeamQ||'').trim().toLowerCase(),L=this.rsTeam.gens[this.rsTeamGen-1]||[];return q?L.filter(m=>String(m.name||'').toLowerCase().includes(q)||String(m.shop||'').toLowerCase().includes(q)||String(m.phone||'').includes(q)||String(m.code||'').toLowerCase().includes(q)):L},
+  get rsTeamList(){const q=(this.rsTeamQ||'').trim().toLowerCase(),L=this.rsTeamGen?(this.rsTeam.gens[this.rsTeamGen-1]||[]):this.rsTeamAll;return q?L.filter(m=>String(m.name||'').toLowerCase().includes(q)||String(m.shop||'').toLowerCase().includes(q)||String(m.phone||'').includes(q)||String(m.code||'').toLowerCase().includes(q)):L},
   rsJoin(ts){try{const d=new Date(Number(ts)||0);return d.getTime()?d.toLocaleDateString('bn-BD',{day:'numeric',month:'short',year:'numeric'}):'—'}catch(e){return'—'}},
   // ৩ জেনারেশনের টিম: অ্যাডমিন প্যানেল থেকে সিঙ্ক করা teamIndex/<আমার ফোন> থেকে একবারে পড়া (শুধু নিজের নোড পড়ার অনুমতি লাগে)
   async _rsLoadTeam(force){
@@ -7965,6 +7966,7 @@ function App(){return{
     else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(url).then(()=>this.showToast('প্রোডাক্ট লিংক কপি হয়েছে! 🔗','success')).catch(()=>this.showToast(url,'success'));}
     else this.showToast(url,'success');
   },
+  resellPickCat(n){if(this.resellActiveCat===n)return;this.resellShow=6;this.resellActiveCat=n},
   resellMenuClick(m){
     this.resellSidebarOpen=false;
     if(m.type&&m.type!=='builtin')return this._btnTarget(m);
