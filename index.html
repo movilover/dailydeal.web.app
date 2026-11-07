@@ -2092,6 +2092,7 @@ a.ord-live .ord-live-road i{font-size:12px}
 html,body{overscroll-behavior-x:none}
 html.dd-lock,html.dd-lock body{overflow:hidden!important;height:100%!important;overscroll-behavior:none}
 </style>
+<style>.rl-in.rl-lock{box-shadow:0 0 0 1.5px var(--accent) inset}.rl-in.rl-lock input{font-weight:700;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;color:var(--accent);cursor:not-allowed}</style>
 </head>
 <style id="dd-v5">
 /* footer: সাদা গ্যাপ বন্ধ + কম ফাঁকা */
@@ -4477,11 +4478,14 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <div class="rl-field" x-data="{sh:false}"><label for="rs-pin">পিন (কমপক্ষে ৬ ডিজিট, শুধু সংখ্যা) *</label><div class="rl-in"><i class="fa-solid fa-lock"></i><input id="rs-pin" :type="sh?'text':'password'" inputmode="numeric" x-model="resellSignupForm.pin" placeholder="৬ ডিজিটের পিন" autocomplete="new-password"/><button type="button" class="rl-eye" @click="sh=!sh" :aria-label="sh?'পিন লুকান':'পিন দেখুন'"><i class="fa-solid" :class="sh?'fa-eye-slash':'fa-eye'"></i></button></div></div>
           <div class="rl-field"><label for="rs-pin2">পিন আবার লিখুন *</label><div class="rl-in"><i class="fa-solid fa-lock"></i><input id="rs-pin2" type="password" inputmode="numeric" x-model="resellSignupForm.confirmPin" placeholder="পিন আবার লিখুন" autocomplete="new-password"/></div>
             <p class="rl-hint" x-show="resellSignupForm.confirmPin" :class="resellSignupForm.confirmPin===resellSignupForm.pin?'rl-okc':'rl-bad'" x-text="resellSignupForm.confirmPin===resellSignupForm.pin?'✓ পিন মিলেছে':'পিন মিলছে না'"></p></div>
-          <div class="rl-sec">৩. ঐচ্ছিক</div>
-          <div class="rl-field"><label for="rs-ref">রেফারেল / প্রমো কোড</label><div class="rl-in"><i class="fa-solid fa-ticket"></i><input id="rs-ref" x-model="resellSignupForm.referralCode" placeholder="যেমন: RS12345AB"/></div></div>
+          <div class="rl-sec">৩. রেফারেল কোড</div>
+          <div class="rl-field"><label for="rs-ref">রেফারেল কোড *</label><div class="rl-in" :class="refLocked?'rl-lock':''"><i class="fa-solid" :class="refLocked?'fa-lock':'fa-ticket'"></i><input id="rs-ref" x-model="resellSignupForm.referralCode" :readonly="refLocked" :tabindex="refLocked?-1:0" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="যেমন: RS12345AB"/></div>
+            <p class="rl-hint" x-show="refLocked&&refState!=='bad'">🔒 রেফার লিংক থেকে কোডটি অটো বসেছে — পরিবর্তন করা যাবে না<span x-show="refState==='ok'"> · ✓ কোড সঠিক</span></p>
+            <p class="rl-bad" x-show="refLocked&&refState==='bad'">এই লিংকের রেফার কোডটি সঠিক নয় বা সক্রিয় নেই। যিনি পাঠিয়েছেন তাঁর কাছ থেকে নতুন লিংক নিন।</p>
+            <p class="rl-hint" x-show="!refLocked">রেফারেল কোড ছাড়া রেজিস্ট্রেশন করা যাবে না — যাঁর কাছ থেকে জেনেছেন তাঁর কোড দিন</p></div>
           <label class="rl-agree"><input type="checkbox" x-model="resellSignupForm.agree"/><span>আমি রিসেলিং শর্তাবলীর সাথে সম্মত</span></label>
           <div x-show="resellAuthError" x-cloak class="rl-err" role="alert"><i class="fa-solid fa-circle-exclamation"></i><span x-text="resellAuthError"></span></div>
-          <button type="submit" class="rl-btn" :disabled="resellBusy"><span x-text="resellBusy?'অপেক্ষা করুন...':'রিসেলার হিসেবে রেজিস্ট্রেশন করুন'"></span></button>
+          <button type="submit" class="rl-btn" :disabled="resellBusy||(refLocked&&refState==='bad')"><span x-text="resellBusy?'অপেক্ষা করুন...':'রিসেলার হিসেবে রেজিস্ট্রেশন করুন'"></span></button>
           <p class="rl-switch">আগে থেকে অ্যাকাউন্ট আছে? <button type="button" @click="resellAuthMode='login';resellAuthError=''">লগইন করুন</button></p>
         </form>
       </div>
@@ -4608,7 +4612,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
             <div class="rh-ref" :class="refCopied?'done':''" x-show="reseller&&reseller.myReferralCode" x-cloak @click="copyRefHome()" role="button">
               <i class="rh-lite" aria-hidden="true"></i><i class="rh-sp s1"></i><i class="rh-sp s2"></i><i class="rh-sp s3"></i>
               <span class="ic"><i class="fa-solid fa-coins"></i></span>
-              <div class="tx"><p class="l">প্যাসিভ ইনকাম · আপনার রেফার কোড</p><p class="c" x-text="reseller&&reseller.myReferralCode"></p><p class="h" x-text="refCopied?'কপি হয়েছে ✓':'ট্যাপ করে কপি · ৩ জেনারেশন পর্যন্ত কমিশন'"></p></div>
+              <div class="tx"><p class="l">প্যাসিভ ইনকাম · আপনার রেফার কোড</p><p class="c" x-text="reseller&&reseller.myReferralCode"></p><p class="h" x-text="refCopied?'কপি হয়েছে ✓':'ট্যাপ করে রেফার লিংক কপি · ৩ জেনারেশন পর্যন্ত কমিশন'"></p></div>
               <div class="cp">
                 <button class="b1" @click.stop="copyRefHome()" title="কোড কপি করুন" aria-label="কোড কপি করুন"><i class="fa-solid" :class="refCopied?'fa-check':'fa-copy'"></i></button>
                 <button class="b2" @click.stop="shareRefHome()" title="শেয়ার করুন" aria-label="শেয়ার করুন"><i class="fa-solid fa-share-nodes"></i></button>
@@ -5834,6 +5838,7 @@ function App(){return{
   resellWeakPin:(()=>{try{return localStorage.getItem('dd_weak_pin')==='1'}catch(e){return false}})(),
   resellPinForm:{old:'',nw:'',cf:'',busy:false,err:''},
   resellSignupForm:{name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false},
+  refLocked:false,refLockCode:'',refState:'',
   // ══ RESELLER / MLM (NEW) ══
   reseller:null,fbMyOrders:[],fbMyResellOrders:[],rsRefreshing:false,fbWithdrawals:[],custReportData:null,
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
@@ -6624,7 +6629,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       /* অথ ইউজার বদলে গেলে (সেশন শেষ/অন্য কারণে লগআউট) — আবেদন-ফর্ম নয়, সোজা লগইন সেকশন */
       try{window.$auth.onUser(u=>{if(!u||!this.resellSession||this.resellBusy)return;const want=this.resellSession+window.$auth.RESELLER_DOMAIN;if(u.email===want)return;setTimeout(()=>{const cu=window.$auth.auth.currentUser;if(this.resellSession&&!this.resellBusy&&cu&&cu.email!==want)this._resellForcedOut(this.resellSession)},800)})}catch(e){}
       (async()=>{let uidW=localStorage.getItem('dd_uid')||'';try{const _m=await window.$db.getUidMap();if(_m)uidW=String(_m)}catch(e){}if(uidW){window.$db.listenMyWallet(uidW,w=>{this.myWallet={balance:Number(w.balance)||0}});window.$db.listenMyWalletTx(uidW,l=>{this.walletTx=l})}})();
-      this._captureReferral();
+      this._captureReferral();this._refLanding();
       window.$db.listenResellerConfig(c=>{this.rcfg=c||{};try{localStorage.setItem('dd_c_rcfg',JSON.stringify(c||{}))}catch(e){}this._checkRPop()});
       window.$db.listenServices(s=>{this.fbServices=s.sort((a,b)=>(a.order||0)-(b.order||0))});
       window.$db.listenCategories(cats=>{this._stage('cat',()=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}})});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
@@ -7463,6 +7468,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     f.pin=this._bnToEn(f.pin).trim();f.confirmPin=this._bnToEn(f.confirmPin).trim();
     const pinErr=this._pinProblem(f.pin);if(pinErr)return this.resellAuthError=pinErr;
     if(f.pin!==f.confirmPin)return this.resellAuthError='পিন দুটো মিলছে না!';
+    if(this.refLocked&&this.refLockCode)f.referralCode=this.refLockCode;   // লক থাকলে ফর্মের মান যা-ই হোক, লিংকের কোডই ব্যবহার হবে
+    if(!(f.referralCode||'').trim())return this.resellAuthError='রেফারেল কোড ছাড়া অ্যাকাউন্ট খোলা যাবে না। রেফারেল কোড দিন।';
     if(!f.agree)return this.resellAuthError='শর্তাবলীতে সম্মতি দিন!';
     if(this.resellBusy)return;this.resellBusy=true;
     try{
@@ -7477,7 +7484,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       if(_blk){this.resellAuthError='এই নম্বরে রেজিস্ট্রেশন বন্ধ আছে। সাপোর্টে যোগাযোগ করুন।';return;}
       if(existing){this.resellAuthError='এই নম্বরে আগে থেকে রিসেলার অ্যাকাউন্ট আছে, লগইন করুন।';return;}
       if(code){
-        if(!owner){this.resellAuthError='সঠিক রেফারেল/প্রমো কোড দিন, অথবা খালি রেখে দিন।';return;}
+        if(!owner){this.resellAuthError='রেফারেল কোডটি সঠিক নয়। সঠিক কোড দিন — কোড ছাড়া বা ভুল কোডে অ্যাকাউন্ট খোলা যাবে না।';return;}
+        if(String(owner.fbKey)===String(f.phone)){this.resellAuthError='নিজের কোড দিয়ে অ্যাকাউন্ট খোলা যাবে না।';return;}
         referredBy=owner.fbKey;codeValid=true;
       }
       const pinHash=await this._hash(f.pin);
@@ -7503,6 +7511,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       }
       this._resellLoginSuccess(f.phone);
       this.resellSignupForm={name:'',shopName:'',phone:'',pin:'',confirmPin:'',referralCode:'',agree:false};
+      try{localStorage.removeItem('dd_regRef')}catch(e){}this.refLocked=false;this.refLockCode='';this.refState='';
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
     }catch(e){console.warn('signup',e);this.resellAuthError=this._authMsg(e)}
     finally{this.resellBusy=false}
@@ -7827,7 +7836,15 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.showToast('ডিপোজিট রিকোয়েস্ট জমা হয়েছে, যাচাই সাপেক্ষে ব্যালেন্স যোগ হবে ✅','success');
     }catch{this.showToast('ব্যর্থ!','error')}
   },
-  copyReferralCode(){navigator.clipboard?.writeText(this.reseller?.myReferralCode||'');this.showToast('কোড কপি হয়েছে! 📋','success')},
+  async copyReferralCode(){
+    const c=this.reseller&&this.reseller.myReferralCode;if(!c)return;
+    const ok=await this._copyText(this.refLink(c));
+    if(ok)this.showToast('রেফার লিংক কপি হয়েছে! 🔗','success');
+    else this.showToast('কপি করা যায়নি — লিংকটি চেপে ধরে কপি করুন: '+this.refLink(c),'error');
+  },
+  /* রেফার লিংক = সাইটের ডোমেইন + ?ref=কোড (ডোমেইন বদলাতে শুধু নিচের লাইনটি এডিট করুন) */
+  _refSite(){return 'https://dailydeal.world/'},
+  refLink(code){return this._refSite()+'?ref='+encodeURIComponent(String(code||'').trim().toUpperCase())},
   // ══════ রিসেলিং: রেফার কার্ড, ড্যাশবোর্ড, টিম ইনকাম ══════
   async _copyText(t){
     try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(t);return true}}catch(e){}
@@ -7835,13 +7852,14 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   },
   async copyRefHome(){
     const c=this.reseller&&this.reseller.myReferralCode;if(!c)return;
-    const ok=await this._copyText(c);
-    if(ok){this.refCopied=true;clearTimeout(this._rcT);this._rcT=setTimeout(()=>{this.refCopied=false},2200);this.showToast('রেফার কোড কপি হয়েছে! 📋','success');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
-    else this.showToast('কপি করা যায়নি — কোডটি চেপে ধরে কপি করুন: '+c,'error');
+    const link=this.refLink(c);
+    const ok=await this._copyText(link);
+    if(ok){this.refCopied=true;clearTimeout(this._rcT);this._rcT=setTimeout(()=>{this.refCopied=false},2200);this.showToast('রেফার লিংক কপি হয়েছে! 🔗','success');try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}}
+    else this.showToast('কপি করা যায়নি — লিংকটি চেপে ধরে কপি করুন: '+link,'error');
   },
   shareRefHome(){
     const c=this.reseller&&this.reseller.myReferralCode;if(!c)return;
-    const url=location.origin+location.pathname+'?ref='+encodeURIComponent(c);
+    const url=this.refLink(c);
     const text='আমার রেফার কোড '+c+' ব্যবহার করে Daily Deal-এ রিসেলার হোন ও আয় শুরু করুন! '+url;
     if(navigator.share){navigator.share({title:'Daily Deal রেফার',text,url}).catch(()=>{})}
     else{try{window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener')}catch(e){}}
@@ -7970,6 +7988,37 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       const ref=sp.get('ref');
       if(ref)localStorage.setItem('dd_refAttr',JSON.stringify({ref:ref.trim().toUpperCase(),pid:sp.get('pid')||'',expiresAt:Date.now()+30*86400000}));
     }catch(e){}
+  },
+  /* ══ রেফার লিংকে ক্লিক → সরাসরি রেজিস্ট্রেশন, কোড লক ══ */
+  _refLanding(){
+    try{
+      const sp=new URLSearchParams(location.search);
+      const raw=(sp.get('ref')||'').trim().toUpperCase();
+      const fromUrl=!!raw&&!sp.get('pid')&&!sp.get('l')&&!sp.get('p')&&!sp.get('order');   // প্রোডাক্ট-শেয়ার লিংক (ref+pid) এখানে ধরা হয় না
+      const okFmt=c=>/^[A-Z0-9_-]{3,24}$/.test(c);
+      let code='';
+      if(fromUrl){
+        code=raw;
+        if(okFmt(code))localStorage.setItem('dd_regRef',JSON.stringify({code,expiresAt:Date.now()+30*86400000}));
+      }else{
+        try{const r=JSON.parse(localStorage.getItem('dd_regRef')||'null');if(r&&r.expiresAt>Date.now()&&okFmt(String(r.code||'')))code=r.code}catch(e){}
+      }
+      if(!code)return;
+      this.refLocked=true;this.refLockCode=code;this.resellSignupForm.referralCode=code;
+      const go=()=>{if(this.resellSession)return;this.resellAuthMode='signup';this.resellAuthError='';this.activeTab='resell'};
+      if(fromUrl){go();setTimeout(()=>{if(this.activeTab==='home')go()},1200)}
+      if(!okFmt(code)){this.refState='bad';return}
+      this._refVerify(code);
+    }catch(e){}
+  },
+  async _refVerify(code){
+    this.refState='checking';
+    try{
+      for(let i=0;i<100&&!(window.$db&&window.$db.lookupReferralOwner);i++)await new Promise(r=>setTimeout(r,100));
+      const o=await this._wt(window.$db.lookupReferralOwner(code),8000,'__t').catch(()=>'__t');
+      if(this.refLockCode!==code)return;
+      this.refState=o==='__t'?'':(o?'ok':'bad');
+    }catch(e){this.refState=''}
   },
   get activeReferral(){
     try{const r=JSON.parse(localStorage.getItem('dd_refAttr')||'null');if(r&&r.expiresAt>Date.now())return r;}catch(e){}
