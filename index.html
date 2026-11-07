@@ -7439,7 +7439,27 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   async _ensureResellerRecord(f,pinHash,extra){
     const r=(extra&&extra.skipLookup)?null:await this._getResellerOnce(f.phone);if(r)return r;
     const rec={name:(f.name||f.phone).trim(),shopName:(f.shopName||f.name||f.phone).trim(),phone:f.phone,authMigrated:true,referredBy:(extra&&extra.referredBy)||null,referralCodeUsed:!!(extra&&extra.codeValid),status:'pending',walletBalance:0,createdAt:Date.now()};
-    await window.$db.saveResellerApp(f.phone,rec);return rec;
+    await this._saveResellerFast(f.phone,rec);return rec;
+  },
+  /* রিসেলার রেকর্ড সেভ: SDK ও REST (auth টোকেনসহ) একসাথে — যেটা আগে সফল হয় সেটাই; ধীর/আটকে থাকা SDK কানেকশনেও সাইনআপ ১-২ সেকেন্ডে শেষ হয় */
+  _saveResellerFast(phone,rec){
+    const DB='https://daily-deal-online-shopping-default-rtdb.firebaseio.com';
+    const sdk=Promise.resolve().then(()=>window.$db.saveResellerApp(phone,rec));sdk.catch(()=>{});
+    const rest=(async()=>{
+      const t=await this._wt(window.$auth.idToken(),4000,null);
+      if(!t)throw Object.assign(new Error('no-token'),{code:'rest-unavailable'});
+      const res=await fetch(DB+'/resellers/'+encodeURIComponent(phone)+'.json?auth='+encodeURIComponent(t),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(rec)});
+      if(res.ok)return true;
+      const denied=res.status===401||res.status===403;
+      throw Object.assign(new Error(denied?'permission_denied':'http'+res.status),{code:denied?'PERMISSION_DENIED':'http'+res.status,denied});
+    })();rest.catch(()=>{});
+    return new Promise((resolve,reject)=>{
+      let done=false,restErr=null,sdkErr=null;
+      const ok=()=>{if(!done){done=true;resolve()}},no=e=>{if(!done){done=true;reject(e)}};
+      rest.then(ok,e=>{restErr=e;if(e&&e.denied)no(e);else if(sdkErr)no(sdkErr)});
+      sdk.then(ok,e=>{sdkErr=e;if(restErr)no(e)});
+      setTimeout(()=>no(Object.assign(new Error('timeout'),{code:'auth/network-request-failed'})),30000);
+    });
   },
   _listenMyReseller(){
     if(!this.resellSession)return;
@@ -7472,6 +7492,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!(f.referralCode||'').trim())return this.resellAuthError='রেফারেল কোড ছাড়া অ্যাকাউন্ট খোলা যাবে না। রেফারেল কোড দিন।';
     if(!f.agree)return this.resellAuthError='শর্তাবলীতে সম্মতি দিন!';
     if(this.resellBusy)return;this.resellBusy=true;
+    const _wdS=setTimeout(()=>{if(this.resellBusy){this.resellBusy=false;this.resellAuthError='ইন্টারনেট ধীর — আবার চেষ্টা করুন।'}},40000);
     try{
       let referredBy=null,codeValid=false;
       const code=(f.referralCode||'').trim().toUpperCase();
@@ -7515,7 +7536,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       try{localStorage.removeItem('dd_regRef')}catch(e){}this.refLocked=false;this.refLockCode='';this.refState='';
       this.showToast('রিসেলার আবেদন জমা হয়েছে! এডমিনের অনুমোদনের অপেক্ষায় ⏳','success');
     }catch(e){console.warn('signup',e);this.resellAuthError=this._authMsg(e)}
-    finally{this.resellBusy=false}
+    finally{clearTimeout(_wdS);this.resellBusy=false}
   },
   _authMsg(e){
     const c=String((e&&e.code)||''),m=String((e&&e.message)||''),k=c.replace('auth/','');
