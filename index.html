@@ -1873,6 +1873,94 @@ img{max-width:100%}
 @media(min-width:768px){.hs-row{--cols:5!important}}
 @media(min-width:1100px){.hs-row{--cols:6!important}}
 </style>
+<style id="dd-home-v3">
+/* quick row above categories */
+.dd-cq{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 14px 4px}
+.dd-cq-b{position:relative;display:flex;align-items:center;gap:10px;height:54px;padding:0 12px 0 8px;border:0;border-radius:16px;cursor:pointer;color:#fff;text-align:left;overflow:hidden;box-shadow:0 8px 18px rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.12);transition:transform .15s,box-shadow .15s;animation:cqIn .5s cubic-bezier(.22,1,.36,1) both}
+.dd-cq-b.gold{animation-delay:.08s}
+.dd-cq-b:active{transform:scale(.96);box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.dd-cq-b.dark{background:linear-gradient(135deg,var(--header) 0%,color-mix(in srgb,var(--header) 65%,var(--accent)) 100%)}
+.dd-cq-b.gold{background:linear-gradient(135deg,#B8860B,#DAA520);box-shadow:0 8px 18px rgba(184,134,11,.32)}
+.dd-cq-b::after{content:"";position:absolute;right:-18px;top:-22px;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.1);pointer-events:none}
+.dd-cq-ic{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:16px;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+.dd-cq-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.dd-cq-t b{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-cq-t small{font-size:10px;font-weight:500;opacity:.8;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-cq-go{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:9px;background:rgba(255,255,255,.22);position:relative;z-index:1}
+@keyframes cqIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.dd-cq-b{animation:none}}
+
+/* hub: slim reseller bar + delivery strip */
+.dd-hub.dd-hub{margin:12px 14px 4px;padding:10px;gap:8px;border-radius:22px}
+.dd-hub.dd-hub .dd-hub-links>button{grid-column:1/-1;height:46px;padding:0 12px!important;border-radius:15px!important}
+.dd-hub.dd-hub .dd-hub-links>button>i:first-child{width:30px;height:30px;border-radius:10px;font-size:14px!important}
+.dd-hub .dd-hub-links>button .hl-t{flex-direction:row;align-items:baseline;gap:8px}
+.dd-hub .dd-hub-links>button .hl-t b{font-size:13.5px;flex:none}
+.dd-hub .dd-hub-links>button .hl-t small{font-size:10.5px;margin:0}
+.dd-hub.dd-hub>div.dd-hub-promo.mx-4{padding:9px 11px!important}
+.dd-hub-promo .w-10{width:34px!important;height:34px!important;border-radius:11px!important}
+</style>
+<style id="dd-home-v4">
+/* hub = just the reseller bar, no heavy card */
+.dd-hub.dd-hub{background:transparent;border:0;box-shadow:none;padding:4px;margin:14px 14px 4px;overflow:visible}
+.dd-hub.dd-hub::after{display:none}
+
+/* reseller bar: clear text + rotating colour lights around it */
+.dd-hub.dd-hub .dd-hub-links>button.dd-rs{position:relative;overflow:hidden;isolation:isolate;height:56px;padding:0 14px!important;border:0!important;border-radius:18px!important;background:transparent!important;box-shadow:none!important;animation:rsGlow 4s linear infinite}
+.dd-rs::before{content:"";position:absolute;z-index:-2;left:-25%;top:50%;width:150%;aspect-ratio:1;margin-top:-75%;background:conic-gradient(from 0deg,#ff0080,#ff8c00,#ffe600,#38ef7d,#00d4ff,#7b61ff,#ff0080);animation:rsSpin 2.6s linear infinite}
+.dd-rs::after{content:"";position:absolute;z-index:-1;inset:3px;border-radius:15px;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.dd-hub .dd-hub-links>button.dd-rs>i:first-child{width:36px;height:36px;border-radius:12px;font-size:16px!important;background:rgba(255,255,255,.22);position:relative;z-index:1}
+.dd-hub .dd-hub-links>button.dd-rs .hl-t{flex-direction:column;align-items:flex-start;gap:0;position:relative;z-index:1;line-height:1.25}
+.dd-hub .dd-hub-links>button.dd-rs .hl-t b{font-size:15.5px;font-weight:800;letter-spacing:.2px;text-shadow:0 1px 3px rgba(0,0,0,.28);overflow:visible}
+.dd-hub .dd-hub-links>button.dd-rs .hl-t small{font-size:12px;font-weight:600;color:#fff;opacity:.95;margin-top:1px;text-shadow:0 1px 2px rgba(0,0,0,.3);overflow:visible;white-space:normal}
+.dd-hub .dd-hub-links>button.dd-rs .hl-go{position:relative;z-index:1;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:10px;opacity:1;background:rgba(255,255,255,.24)}
+@keyframes rsSpin{to{transform:rotate(360deg)}}
+@keyframes rsGlow{0%,100%{filter:drop-shadow(0 0 7px rgba(255,0,128,.65))}20%{filter:drop-shadow(0 0 7px rgba(255,200,0,.65))}40%{filter:drop-shadow(0 0 7px rgba(56,239,125,.65))}60%{filter:drop-shadow(0 0 7px rgba(0,212,255,.65))}80%{filter:drop-shadow(0 0 7px rgba(123,97,255,.65))}}
+@media(prefers-reduced-motion:reduce){.dd-rs,.dd-rs::before{animation:none!important}}
+</style>
+
+
+<style id="dd-resell-v2">
+/* exit-to-site button (red, far right) */
+.rexit-red{flex:none;width:40px;height:40px;border-radius:14px;border:0;cursor:pointer;display:grid;place-items:center;color:#fff;font-size:16px;background:linear-gradient(135deg,#EF4444,#B91C1C);box-shadow:0 6px 16px rgba(220,38,38,.38),inset 0 1px 0 rgba(255,255,255,.3);position:relative;transition:transform .15s,box-shadow .15s}
+.rexit-red::after{content:"";position:absolute;inset:-4px;border-radius:17px;border:1.5px solid rgba(239,68,68,.45);animation:rxPulse 2.2s ease-out infinite;pointer-events:none}
+.rexit-red:active{transform:scale(.92);box-shadow:0 2px 6px rgba(220,38,38,.35)}
+@keyframes rxPulse{0%{transform:scale(.92);opacity:.9}100%{transform:scale(1.18);opacity:0}}
+
+/* animated reseller banners */
+.rb-wrap{position:relative;height:132px;overflow:hidden;border-radius:18px}
+.rb-s{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px;color:#fff;opacity:0;transform:translateX(36px) scale(.98);transition:opacity .45s ease,transform .45s cubic-bezier(.22,1,.36,1);pointer-events:none;overflow:hidden}
+.rb-s.on{opacity:1;transform:none;pointer-events:auto}
+.rb-1{background:linear-gradient(120deg,#0B6B5B,#0F8F7A 55%,#22B8A0)}
+.rb-2{background:linear-gradient(120deg,#8A5A00,#D4920B 55%,#F5B93A)}
+.rb-3{background:linear-gradient(120deg,#4C1D95,#7C3AED 55%,#A78BFA)}
+.rb-txt{position:relative;z-index:2;min-width:0}
+.rb-t{font-size:19px;font-weight:800;line-height:1.25}
+.rb-s2{font-size:12px;opacity:.92;margin-top:6px;line-height:1.5}
+.rb-s.on .rb-t{animation:rbUp .5s .05s both}
+.rb-s.on .rb-s2{animation:rbUp .5s .18s both}
+.rb-ic{position:relative;z-index:2;flex:none;width:60px;height:60px;border-radius:19px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:26px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25)}
+.rb-s.on .rb-bounce{animation:rbBounce 1.2s ease-in-out infinite}
+.rb-s.on .rb-float{animation:rbFloat 1.4s ease-in-out infinite}
+.rb-s.on .rb-pulse{animation:rbPulse 1s ease-in-out infinite}
+.rb-c{position:absolute;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
+.rb-c.c1{width:130px;height:130px;right:-30px;top:-50px}
+.rb-c.c2{width:80px;height:80px;left:38%;bottom:-40px;background:rgba(255,255,255,.08)}
+.rb-s.on .rb-c.c1{animation:rbDrift 3s ease-in-out infinite alternate}
+.rb-shine{position:absolute;top:0;bottom:0;width:60px;left:-80px;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-18deg);pointer-events:none}
+.rb-s.on .rb-shine{animation:rbShine 1.1s .25s ease-out both}
+.rb-dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:6px;z-index:3}
+.rb-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.5);transition:all .25s}
+.rb-dots i.on{width:20px;background:#fff}
+@keyframes rbUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rbBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px) rotate(-5deg)}}
+@keyframes rbFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(8deg)}}
+@keyframes rbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+@keyframes rbDrift{from{transform:translate(0,0)}to{transform:translate(-14px,10px)}}
+@keyframes rbShine{from{left:-80px}to{left:115%}}
+@media(prefers-reduced-motion:reduce){.rb-s,.rb-s *{animation:none!important}.rexit-red::after{animation:none}}
+</style>
+
 
 <style id="dd-final-v1">
 /* ═══ হোমপেজ: ৪টি সেকশন — হালকা, স্ট্যাটিক গ্রিড ═══ */
@@ -3242,7 +3330,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <p class="text-[10px] tracking-widest uppercase mt-1" style="color:rgba(255,255,255,.4)" x-text="settings.tagline||'অনলাইন শপিং'"></p>
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2" x-show="activeTab!=='resell'">
       <button @click="notifOpen=true;unreadNotifs=0" class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);border:none;cursor:pointer">
         <i class="fa-regular fa-bell text-lg"></i>
         <span x-show="unreadNotifs>0" class="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse" style="background:#EF4444"></span>
@@ -3295,21 +3383,6 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
 <!-- ─── HOME ─── -->
 <section x-show="activeTab==='home'" x-cloak>
-
-  <!-- ═══ HERO BANNER — PREMIUM AUTO-SLIDER ═══ -->
-  <div class="hero3d" x-data="{a:0,tx:0}" x-init="let _h=setInterval(()=>{const n=heroSlides.length;a=n>1?(a+1)%n:0},3600);$cleanup(()=>clearInterval(_h))">
-    <div class="hero3d-stage" @touchstart.passive="tx=$event.changedTouches[0].clientX" @touchend.passive="const d=$event.changedTouches[0].clientX-tx;if(Math.abs(d)>40&&heroSlides.length>1){const n=heroSlides.length;a=(a+(d<0?1:-1)+n)%n}">
-      <template x-for="(b,i) in heroSlides" :key="i">
-        <div class="hero3d-card" :style="h3(i,a,heroSlides.length)+';background:'+(b.img?'url('+b.img+') center/cover':b.bg)">
-          <div class="hero3d-ov"></div>
-          <i x-show="b.img" class="hero3d-ic fa-solid" :class="b.fa||''"></i>
-          <div x-show="!b.img" x-html="heroSvg(b.svgKey||'deal')" style="position:absolute;right:-6px;bottom:0;width:48%;height:92%;pointer-events:none"></div>
-          <div class="hero3d-txt"><span class="hero-badge" x-text="b.badge||'হট ডিল'"></span><h3 x-text="b.title"></h3><p x-text="b.sub"></p></div>
-        </div>
-      </template>
-    </div>
-    <div class="hero3d-dots"><template x-for="(b,i) in heroSlides" :key="i"><button @click="a=i" class="banner-dot" :class="a===i?'active':''"></button></template></div>
-  </div>
 
   <!-- ═══ SOCIAL FOLLOW BANNERS (Facebook / TikTok) ═══ -->
   <style id="dd-social-css">
@@ -3384,18 +3457,6 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   </section>
 
   <div class="dd-hub">
-  <!-- ═══ TWO BIG ACTION BUTTONS ═══ -->
-  <div class="px-4 pt-4 grid grid-cols-2 gap-3 dd-hub-main">
-    <button @click="openAllProducts()" class="big-action-btn" style="background:linear-gradient(135deg,var(--header) 0%,color-mix(in srgb,var(--header) 70%,var(--accent)) 100%);box-shadow:0 8px 24px rgba(0,0,0,.28)">
-      <span class="btn-icon"><i class="fa-solid fa-border-all"></i></span>
-      <div class="btn-inner"><p class="btn-label">সকল পণ্য</p><p class="btn-sub">সম্পূর্ণ কালেকশন</p><span class="btn-arrow"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i></span></div>
-    </button>
-    <button @click="activeTab='eid'" class="big-action-btn" style="background:linear-gradient(135deg,#B8860B 0%,#DAA520 100%);box-shadow:0 8px 24px rgba(184,134,11,.4)">
-      <span class="btn-icon" style="font-size:34px"><i class="fa-solid fa-moon"></i></span>
-      <div class="btn-inner"><p class="btn-label">ঈদ কালেকশন</p><p class="btn-sub">স্পেশাল অফার</p><span class="btn-arrow"><i class="fa-solid fa-arrow-right" style="font-size:10px"></i></span></div>
-    </button>
-  </div>
-
   <!-- ═══ CUSTOM BUTTONS ═══ -->
   <template x-if="customButtons.length>0">
     <div class="px-4 pt-3 dd-hub-custom">
@@ -3412,17 +3473,25 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
   <!-- ═══ QUICK LINKS ═══ -->
   <div class="px-4 pt-3 grid grid-cols-2 gap-3 dd-hub-links">
-    <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="background:#1877F2;border:1.5px solid rgba(255,255,255,.15)" rel="noopener noreferrer"><i class="fa-brands fa-facebook text-sm"></i> Facebook পেজ</a>
-    <button @click="activeTab='resell'" class="flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="border:1.5px solid rgba(255,255,255,.15);cursor:pointer;background:var(--accent)"><i class="fa-solid fa-store text-sm"></i> রিসেলার হন</button>
+    
+    <button @click="activeTab='resell'" class="dd-rs flex items-center justify-center gap-1.5 py-2.5 text-xs font-bold text-white rounded-2xl" style="border:1.5px solid rgba(255,255,255,.15);cursor:pointer;background:var(--accent)"><i class="fa-solid fa-store text-sm"></i><span class="hl-t"><b>রিসেলার হন</b><small>রিসেলিং করে আয় করুন</small></span><i class="fa-solid fa-chevron-right hl-go"></i></button>
   </div>
 
-  <!-- PROMO STRIP -->
-  <div class="mx-4 mt-3 rounded-2xl p-3 flex items-center gap-3 dd-hub-promo" style="background:var(--accentL);border:1.5px dashed var(--accent)">
-    <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--accent)"><i class="fa-solid fa-truck-fast text-white text-sm"></i></div>
-    <div><p class="text-xs font-bold" style="color:var(--accent)">দ্রুত ডেলিভারি নিশ্চিত</p><p class="text-xs mt-0.5" style="color:var(--fg2)">ঢাকা মাত্র ৳৮০ · সারাদেশে ৳১৫০</p></div>
-    <div class="ml-auto text-right"><p class="text-xs font-bold" style="color:var(--fg3)">৭ দিনে</p><p class="text-xs font-bold" style="color:var(--accent)">রিটার্ন</p></div>
+
   </div>
 
+  <!-- ═══ QUICK ROW: সকল পণ্য / ঈদ কালেকশন (ক্যাটাগরির উপরে) ═══ -->
+  <div class="dd-cq">
+    <button type="button" @click="openAllProducts()" class="dd-cq-b dark">
+      <span class="dd-cq-ic"><i class="fa-solid fa-border-all"></i></span>
+      <span class="dd-cq-t"><b>সকল পণ্য</b><small>সম্পূর্ণ কালেকশন</small></span>
+      <i class="fa-solid fa-arrow-right dd-cq-go"></i>
+    </button>
+    <button type="button" @click="activeTab='eid'" class="dd-cq-b gold">
+      <span class="dd-cq-ic"><i class="fa-solid fa-moon"></i></span>
+      <span class="dd-cq-t"><b>ঈদ কালেকশন</b><small>স্পেশাল অফার</small></span>
+      <i class="fa-solid fa-arrow-right dd-cq-go"></i>
+    </button>
   </div>
 
   <!-- ═══ CATEGORY GRID (ক্যাটাগরি অনুযায়ী কিনুন) ═══ -->
@@ -4253,6 +4322,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     <label class="fx-cam"><i class="fa-solid fa-camera"></i><input type="file" accept="image/*" @change="uploadPic" class="hidden"/></label></div>
 </div>
 <!-- My Orders / My Wishlist strips (Noon-style) -->
+<p class="pf-sec"><i class="fa-solid fa-bag-shopping"></i>আমার কেনাকাটা</p>
   <div class="mx-4 grid grid-cols-2 gap-3 mb-4">
     <button @click="activeTab='orders'" class="dd-card p-3 text-left" style="border:none;cursor:pointer">
       <p class="font-bold text-sm mb-2" style="color:var(--fg)" x-text="t('myOrders')"></p>
@@ -4270,46 +4340,15 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     </button>
   </div>
 
+<p class="pf-sec"><i class="fa-solid fa-chart-simple"></i>এক নজরে</p>
   <div class="mx-4 grid grid-cols-3 gap-3 mb-4">
     <div class="dd-card p-3 text-center" style="border-top:2.5px solid var(--accent)"><i class="fa-solid fa-bag-shopping" style="color:var(--accent);font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--fg)" x-text="myOrders.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">অর্ডার</p></div>
     <div class="dd-card p-3 text-center" style="border-top:2.5px solid #16A34A"><i class="fa-solid fa-truck-fast" style="color:#16A34A;font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--fg)" x-text="myOrders.filter(o=>o.status==='ডেলিভার্ড').length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">ডেলিভার্ড</p></div>
     <div class="dd-card p-3 text-center" style="border-top:2.5px solid var(--accent2)"><i class="fa-solid fa-cart-shopping" style="color:var(--accent2);font-size:12px"></i><p class="font-display text-2xl mt-1" style="color:var(--accent)" x-text="cart.length"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">কার্টে</p></div>
   </div>
 
-  <!-- ওয়ালেট -->
-  <div class="mx-4 mb-4 rounded-3xl p-4 text-white relative overflow-hidden" style="background:linear-gradient(135deg,var(--header),color-mix(in srgb,var(--header) 68%,var(--accent) 32%));box-shadow:0 10px 26px var(--shadow)">
-    <div class="absolute -bottom-10 -right-6 w-36 h-36 rounded-full opacity-20" style="background:var(--accent)"></div>
-    <div class="relative flex items-center justify-between"><p class="text-[11px] opacity-75 flex items-center gap-1.5"><i class="fa-solid fa-wallet"></i>আমার ওয়ালেট</p><button type="button" @click="openWallet('history')" class="text-[10px] font-bold underline opacity-80" style="background:none;border:none;color:#fff;cursor:pointer">লেনদেন দেখুন</button></div>
-    <p class="relative font-display text-3xl mt-1" x-text="'৳'+(myWallet.balance||0).toLocaleString()"></p>
-    <div class="relative grid grid-cols-1 gap-2 mt-3">
-      <button type="button" @click="openWallet('deposit')" class="py-2.5 rounded-xl text-xs font-bold" style="background:rgba(255,255,255,.16);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-plus mr-1.5"></i>টাকা যোগ</button>
-    </div>
-  </div>
-
-<!-- রেফারেল কার্ড -->
-<div class="mx-4 mb-4">
-<button type="button" @click="refOpen('home')" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-white text-left" style="background:linear-gradient(135deg,#0F766E,#14B8A6);border:none;cursor:pointer;box-shadow:0 8px 22px rgba(15,118,110,.30)">
-<i class="fa-solid fa-user-plus text-lg"></i>
-<span class="flex-1"><b class="block text-sm">রেফার করে ইনকাম করুন</b><small class="opacity-85" style="font-size:11px" >বন্ধুদের জয়েন করালে ৩ লেভেলে কমিশন পান</small></span>
-<i class="fa-solid fa-chevron-right opacity-70"></i>
-</button>
-</div>
   <div class="px-4 space-y-3">
-    <button @click="activeTab='resell'" x-show="resellSession&&resellStatus==='approved'" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-white" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer;box-shadow:0 8px 22px rgba(184,134,11,.35);transition:transform .15s" onmousedown="this.style.transform='scale(.98)'" onmouseup="this.style.transform='scale(1)'">
-      <i class="fa-solid fa-store text-lg"></i>
-      <span class="flex-1 text-left"><p class="text-sm font-bold">রিসেলার প্যানেল</p><p class="text-xs opacity-80" x-text="'ওয়ালেট: ৳'+(reseller?.walletBalance||0).toLocaleString()"></p></span>
-      <i class="fa-solid fa-chevron-right text-xs"></i>
-    </button>
-    <a x-show="settings.appLink" :href="safeUrl(settings.appLink)||'#'" target="_blank" class="app-download-btn" rel="noopener noreferrer">
-      <div class="w-11 h-11 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(255,255,255,.15)"><i class="fa-brands fa-android text-2xl" style="color:#3DDC84"></i></div>
-      <div class="flex-1">
-        <p class="text-xs opacity-60 mb-0.5">ডাউনলোড করুন</p>
-        <p class="text-sm font-bold">আমাদের অ্যাপ পান</p>
-      </div>
-      <i class="fa-solid fa-download text-lg opacity-60"></i>
-    </a>
-
-
+<p class="pf-sec"><i class="fa-solid fa-user-gear"></i>আমার অ্যাকাউন্ট</p>
     <!-- Addresses / Manage cards / Returns / Warranty (Noon-style account rows) -->
     <div class="dd-card overflow-hidden">
       <div class="acct-row" @click="profile.address?confirmEditAddress():activeTab='orders'">
@@ -4337,6 +4376,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </div>
     </div>
 
+<p class="pf-sec"><i class="fa-solid fa-sliders"></i>পছন্দ ও সেটিংস</p>
     <!-- Language + Country (Noon-style) -->
     <div class="dd-card overflow-hidden">
       <div class="acct-row" style="cursor:default">
@@ -4362,6 +4402,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </div>
     </div>
 
+<p class="pf-sec"><i class="fa-solid fa-headset"></i>যোগাযোগ ও সাপোর্ট</p>
     <div class="dd-card overflow-hidden">
       <a :href="safeUrl(settings.fbLink)||'https://facebook.com'" target="_blank" class="flex items-center gap-3 px-4 py-3.5 transition-colors active:opacity-70" style="border-bottom:1px solid var(--border);text-decoration:none" rel="noopener noreferrer">
         <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#E7F0FF"><i class="fa-brands fa-facebook" style="color:#1877F2;font-size:16px"></i></div>
@@ -4554,16 +4595,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
             <button @click="resellSidebarOpen=true" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-bars text-xs" style="color:var(--fg2)"></i></button>
             <div class="min-w-0"><p class="font-display text-lg truncate" style="color:var(--fg)" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs" style="color:var(--fg3)">রিসেলার প্যানেল</p></div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button @click="resellMenuClick({action:'exitToSite'})" class="rexit-btn" style="background:var(--accentL);color:var(--accent);border:1px solid var(--accent)" title="ইউজার সাইটে ফিরে যান">
-              <i class="fa-solid fa-arrow-right-from-bracket"></i><span class="hidden sm:inline">সাইটে ফিরুন</span>
-            </button>
-            <button @click="openWalletHistory()" class="relative w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer">
-              <i class="fa-solid fa-bell text-xs" style="color:var(--fg2)"></i>
-              <span x-show="unseenTxCount>0" class="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white flex items-center justify-center font-bold" style="background:#DC2626;font-size:8px" x-text="unseenTxCount"></span>
-            </button>
+          <div class="flex items-center gap-2">
             <button @click="resellSubTab='withdraw'" class="text-xs font-bold px-3 py-2 rounded-full text-white flex items-center gap-1 flex-shrink-0" style="background:linear-gradient(135deg,#B8860B,#DAA520);border:none;cursor:pointer">৳ <span x-text="(reseller?.walletBalance||0).toLocaleString()"></span></button>
-            <button @click="resellLogout()" class="btn-ghost !text-xs flex-shrink-0"><i class="fa-solid fa-right-from-bracket"></i></button>
+            <button @click="resellMenuClick({action:'exitToSite'})" class="rexit-red" title="ইউজার সাইটে ফিরে যান" aria-label="ইউজার সাইটে ফিরে যান">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
           </div>
         </div>
 
@@ -4582,9 +4618,23 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                 </div>
               </template>
               <template x-if="(banners||[]).filter(b=>b&&b.img).length===0">
-                <div class="rh-ban-def">
-                  <div><p class="rh-ban-t" x-text="(settings.siteName||'Daily Deal')+' রিসেলিং'"></p><p class="rh-ban-s">কম দামে পণ্য নিন · নিজের দামে বিক্রি করুন · লাভ সরাসরি ওয়ালেটে</p></div>
-                  <span><i class="fa-solid fa-bag-shopping"></i></span>
+                <div class="rb-wrap" x-data="{a:0}" x-init="const _t=setInterval(()=>{if(!$el.isConnected){clearInterval(_t);return}a=(a+1)%3},1500)">
+                  <div class="rb-s rb-1" :class="a===0?'on':''">
+                    <div class="rb-txt"><p class="rb-t" x-text="(settings.siteName||'Daily Deal')+' রিসেলিং'"></p><p class="rb-s2">কম দামে পণ্য নিন · নিজের দামে বিক্রি করুন · লাভ সরাসরি ওয়ালেটে</p></div>
+                    <span class="rb-ic rb-bounce"><i class="fa-solid fa-bag-shopping"></i></span>
+                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
+                  </div>
+                  <div class="rb-s rb-2" :class="a===1?'on':''">
+                    <div class="rb-txt"><p class="rb-t">নিজের দামে বিক্রি করুন</p><p class="rb-s2">পণ্যের দাম নিজে ঠিক করুন, লাভ জমুক আপনার ওয়ালেটে</p></div>
+                    <span class="rb-ic rb-float"><i class="fa-solid fa-coins"></i></span>
+                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
+                  </div>
+                  <div class="rb-s rb-3" :class="a===2?'on':''">
+                    <div class="rb-txt"><p class="rb-t">রেফার করে বাড়তি আয়</p><p class="rb-s2">বন্ধুদের জয়েন করালে ৩ লেভেলে কমিশন পান</p></div>
+                    <span class="rb-ic rb-pulse"><i class="fa-solid fa-user-plus"></i></span>
+                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
+                  </div>
+                  <div class="rb-dots"><i :class="a===0?'on':''"></i><i :class="a===1?'on':''"></i><i :class="a===2?'on':''"></i></div>
                 </div>
               </template>
             </div>
@@ -9865,6 +9915,100 @@ main.dd-nopad{padding-bottom:0!important}
 .bf-img .pc-l.dd-ok:first-child,.fb-photos img.dd-ok{animation:ddImgIn .6s cubic-bezier(.2,.8,.2,1) both}
 @media (prefers-reduced-motion:reduce){.bf-img .pc-l.dd-ok,.fb-photos img.dd-ok{animation:none}}
 </style>
+<style id="dd-prof-v3">
+/* ═══ Profile page polish (visual only) ═══ */
+section[x-show*="'profile'"]{padding-bottom:96px}
+.pf-sec{display:flex;align-items:center;gap:8px;margin:18px 20px 9px!important;font-size:12px;font-weight:800;letter-spacing:.3px;color:var(--fg3);text-transform:none}
+.pf-sec i{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:10px;color:var(--accent);background:var(--accentL)}
+.pf-sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.px-4.space-y-3>.pf-sec{margin:20px 4px 8px!important}
+.px-4.space-y-3>*+*{margin-top:0}
+.px-4.space-y-3>.dd-card{margin-top:0!important}
+
+/* hero */
+section[x-show*="'profile'"] .ddc-wrap.ddc-hero{border-radius:26px;border:1px solid color-mix(in srgb,var(--accent) 28%,var(--border));background:linear-gradient(160deg,color-mix(in srgb,var(--card) 92%,transparent),color-mix(in srgb,var(--accentL) 85%,var(--card)));box-shadow:0 14px 34px var(--shadow),inset 0 1px 0 rgba(255,255,255,.6)}
+.fx-hero-name{font-size:18px!important;letter-spacing:.2px}
+.fx-greet{font-size:12px!important}
+.fx-lvl{box-shadow:0 4px 12px color-mix(in srgb,var(--accent) 35%,transparent)}
+
+/* cards */
+section[x-show*="'profile'"] .dd-card{border-radius:20px!important;border:1px solid var(--border)!important;box-shadow:0 6px 20px var(--shadow)!important;background:var(--card)}
+section[x-show*="'profile'"] button.dd-card,section[x-show*="'profile'"] .mx-4.grid>button{box-shadow:0 6px 20px var(--shadow)!important;border-radius:20px!important;transition:transform .15s,box-shadow .15s}
+section[x-show*="'profile'"] .mx-4.grid>button:active{transform:scale(.97)!important;box-shadow:0 2px 8px var(--shadow)!important}
+section[x-show*="'profile'"] .mx-4.grid-cols-2>button{padding:14px 14px!important;position:relative;min-height:74px;display:flex;flex-direction:column;justify-content:center}
+section[x-show*="'profile'"] .mx-4.grid-cols-2>button::after{content:"\f054";font-family:"Font Awesome 6 Free";font-weight:900;position:absolute;right:14px;top:14px;font-size:10px;color:var(--fg3)}
+section[x-show*="'profile'"] .grid-cols-2>button .font-bold.text-sm{font-size:13.5px!important;margin-bottom:6px!important}
+section[x-show*="'profile'"] .acct-thumb{width:36px!important;height:36px!important;border-radius:10px!important}
+
+/* stats strip: one clean card with dividers */
+section[x-show*="'profile'"] .mx-4.grid-cols-3{gap:0!important;background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:0 6px 20px var(--shadow);overflow:hidden;margin-bottom:6px!important}
+section[x-show*="'profile'"] .mx-4.grid-cols-3>.dd-card{border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;padding:14px 4px!important}
+section[x-show*="'profile'"] .mx-4.grid-cols-3>.dd-card+.dd-card{border-left:1px solid var(--border)!important}
+section[x-show*="'profile'"] .mx-4.grid-cols-3>.dd-card>i{width:30px;height:30px;border-radius:10px;display:inline-grid;place-items:center;font-size:13px!important;background:color-mix(in srgb,currentColor 12%,transparent)}
+section[x-show*="'profile'"] .grid-cols-3 .font-display{font-size:22px!important;margin-top:6px!important}
+section[x-show*="'profile'"] .grid-cols-3 p.text-xs{font-size:11px!important;font-weight:600}
+
+/* account rows */
+section[x-show*="'profile'"] .acct-row{padding:14px 16px;gap:14px}
+section[x-show*="'profile'"] .acct-ico{width:40px;height:40px;border-radius:13px;font-size:15px}
+section[x-show*="'profile'"] .acct-row b{font-weight:700}
+section[x-show*="'profile'"] .px-4.space-y-3 a.flex{padding:14px 16px!important}
+section[x-show*="'profile'"] .px-4.space-y-3 a.flex .w-9{width:40px!important;height:40px!important;border-radius:13px!important}
+
+/* logout */
+section[x-show*="'profile'"] .dd-logout{margin-top:18px!important;border-radius:18px!important;box-shadow:none!important;border:1.5px solid color-mix(in srgb,#DC2626 35%,transparent)!important;background:color-mix(in srgb,#DC2626 7%,var(--card))!important;color:#DC2626!important;font-weight:800;padding:14px!important;display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+section[x-show*="'profile'"] .dd-logout:active{transform:scale(.98)!important}
+@media(prefers-reduced-motion:no-preference){section[x-show*="'profile'"] .pf-sec,section[x-show*="'profile'"] .mx-4.grid,section[x-show*="'profile'"] .px-4.space-y-3>.dd-card{animation:pfUp .45s cubic-bezier(.22,1,.36,1) both}}
+@keyframes pfUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+</style>
+<style id="dd-home-v2">
+/* ═══ Home: social section + quick-access hub polish (visual only) ═══ */
+.dd-so{margin:16px 14px 0}
+.dd-so-h{font-size:21px;letter-spacing:.2px;color:var(--fg)}
+.dd-so-h b{background:linear-gradient(90deg,#E8380D,#FF7A45);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dd-so-s{color:var(--fg3);margin:6px 0 14px}
+.dd-so-card{border-radius:24px;padding:18px 18px 16px;box-shadow:0 14px 32px rgba(0,0,0,.24)}
+.dd-so-tabs{gap:0;padding:4px;background:var(--bg2);border-radius:18px;margin-top:12px}
+.dd-so-tab{background:transparent;border:0;box-shadow:none;border-radius:14px;color:var(--fg2);transition:background .2s,box-shadow .2s,color .2s}
+.dd-so-tab.on{background:var(--card);color:var(--fg);box-shadow:0 4px 12px var(--shadow);border:0}
+
+.dd-hub.dd-hub{margin:18px 14px 6px;padding:14px;border:1px solid var(--border);border-radius:26px;background:var(--card);box-shadow:0 12px 32px var(--shadow);gap:10px}
+.dd-hub.dd-hub::after{display:none}
+.dd-hub-h{grid-column:1/-1;order:-1;display:flex;align-items:center;gap:8px;margin:0 2px 2px;font-size:14px;font-weight:800;color:var(--fg)}
+.dd-hub-h i{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:11px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.dd-hub-h::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* main two buttons */
+.dd-hub.dd-hub .big-action-btn{height:92px!important;min-height:0!important;border-radius:20px;box-shadow:0 8px 20px rgba(0,0,0,.2)!important;border:1px solid rgba(255,255,255,.12)}
+.dd-hub.dd-hub .big-action-btn .btn-inner{justify-content:center;align-items:flex-start;height:100%;padding:0 14px!important}
+.dd-hub.dd-hub .big-action-btn .btn-label{font-size:15px!important}
+.dd-hub.dd-hub .big-action-btn .btn-sub{font-size:11px!important;margin:2px 0 0!important;color:rgba(255,255,255,.8)}
+.dd-hub.dd-hub .big-action-btn .btn-icon{top:12px!important;right:12px!important;bottom:auto!important;transform:none!important;width:38px;height:38px;border-radius:12px;display:grid!important;place-items:center;font-size:17px!important;opacity:1!important;background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.dd-hub.dd-hub .big-action-btn .btn-arrow{position:absolute;right:12px!important;top:auto!important;bottom:12px;margin:0!important;width:26px!important;height:26px!important;background:rgba(255,255,255,.22);transform:none!important}
+
+/* custom admin buttons */
+.dd-hub.dd-hub .custom-btn-item{border-radius:16px;padding:11px 13px;font-size:12.5px}
+
+/* quick links: Facebook + Reseller */
+.dd-hub.dd-hub .dd-hub-links>a,.dd-hub.dd-hub .dd-hub-links>button{height:60px;padding:0 12px!important;border-radius:18px!important;display:flex!important;align-items:center;justify-content:flex-start!important;gap:10px!important;text-align:left;box-shadow:0 8px 18px rgba(0,0,0,.16)!important;border:1px solid rgba(255,255,255,.18)!important;transition:transform .15s}
+.dd-hub.dd-hub .dd-hub-links>a:active,.dd-hub.dd-hub .dd-hub-links>button:active{transform:scale(.97)}
+.dd-hub.dd-hub .dd-hub-links>a{background:linear-gradient(135deg,#1877F2,#0F56C7)!important}
+.dd-hub.dd-hub .dd-hub-links>button{background:linear-gradient(135deg,var(--accent),var(--accent2))!important}
+.dd-hub .dd-hub-links>a>i:first-child,.dd-hub .dd-hub-links>button>i:first-child{flex:none;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-size:17px!important;background:rgba(255,255,255,.18)}
+.dd-hub .hl-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
+.dd-hub .hl-t b{font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-hub .hl-t small{font-size:10px;font-weight:500;color:rgba(255,255,255,.82);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-hub .hl-go{flex:none;font-size:10px;opacity:.8}
+
+/* delivery strip */
+.dd-hub.dd-hub>div.dd-hub-promo.mx-4{padding:11px 12px!important;border-radius:18px!important;gap:12px!important;background:linear-gradient(135deg,var(--accentL),color-mix(in srgb,var(--accentL) 70%,var(--card)))!important;border:1px solid color-mix(in srgb,var(--accent) 30%,transparent)!important}
+.dd-hub-promo .w-10{width:40px!important;height:40px!important;border-radius:13px!important;box-shadow:0 6px 14px color-mix(in srgb,var(--accent) 35%,transparent)}
+.dd-hub-promo .text-xs{font-size:12px!important}
+.dd-hub-promo .ml-auto{padding:6px 10px;border-radius:12px;background:var(--card);border:1px solid var(--border);text-align:center!important;line-height:1.25}
+.dd-hub-promo .ml-auto p{font-size:11px!important}
+</style>
+
+
 <!-- ═══ রেফারেল ড্যাশবোর্ড ═══ -->
 <div x-show="refUi.open" x-cloak class="sheet-overlay" @click.self="refUi.open=false" style="z-index:276">
 <div class="sheet-body" style="max-height:92vh;overflow-y:auto">
