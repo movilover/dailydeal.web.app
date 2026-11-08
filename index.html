@@ -10028,7 +10028,7 @@ section[x-show*="'profile'"] .dd-logout:active{transform:scale(.98)!important}
 <div x-show="!refUi.loading&&!refUi.err&&!refUi.joined">
 <div class="rounded-3xl p-5 text-white mb-4 relative overflow-hidden" style="background:linear-gradient(135deg,#0F766E,#14B8A6)">
 <p class="font-display text-xl mb-1">বন্ধুদের রেফার করুন, ইনকাম করুন</p>
-<p class="text-xs opacity-90 leading-relaxed">প্রতিটি সফল জয়েনে ৩ লেভেল পর্যন্ত কমিশন পাবেন — সরাসরি রেফারে <b x-text="'৳'+refUi.cfg.gen1"></b>, তাদের রেফারে <b x-text="'৳'+refUi.cfg.gen2"></b>, আর তার পরের লেভেলে <b x-text="'৳'+refUi.cfg.gen3"></b>।</p>
+<p class="text-xs opacity-90 leading-relaxed">আপনার রেফার কোড দিয়ে কেউ জয়েন করলেই সাথে সাথে বোনাস পাবেন — প্রতি জয়েনে <b x-text="'৳'+refUi.cfg.gen1"></b>।</p>
 </div>
 <p class="text-xs mb-3 leading-relaxed" style="color:var(--fg3)">রেফারেল চালু করতে আপনার মোবাইল নম্বর OTP দিয়ে যাচাই করতে হবে (একটি নম্বর একবারই ব্যবহার করা যায়)।</p>
 <button @click="refActivate()" :disabled="refUi.joining" class="btn-primary" style="background:var(--accent)"><span x-show="!refUi.joining"><i class="fa-solid fa-circle-check mr-2"></i>রেফারেল চালু করুন</span><span x-show="refUi.joining"><i class="fa-solid fa-spinner fa-spin"></i></span></button>
@@ -10042,11 +10042,9 @@ section[x-show*="'profile'"] .dd-logout:active{transform:scale(.98)!important}
 <p class="relative font-display text-3xl" x-text="'৳'+(refUi.wallet.balance||0).toLocaleString()"></p>
 <p class="relative text-[11px] opacity-85 mt-1" x-text="'মোট আয় ৳'+(refUi.wallet.totalEarned||0).toLocaleString()+'  ·  মোট তোলা ৳'+(refUi.wallet.totalWithdrawn||0).toLocaleString()"></p>
 </div>
-<div class="grid grid-cols-4 gap-2 mb-4">
+<div class="grid grid-cols-2 gap-2 mb-4">
 <div class="rounded-2xl py-2.5 text-center" style="background:var(--bg2)"><b class="block text-base" style="color:var(--fg)" x-text="refUi.counts.total"></b><small style="color:var(--fg3);font-size:10px">মোট</small></div>
-<div class="rounded-2xl py-2.5 text-center" style="background:var(--bg2)"><b class="block text-base" style="color:var(--fg)" x-text="refUi.counts.g1"></b><small style="color:var(--fg3);font-size:10px">লেভেল ১</small></div>
-<div class="rounded-2xl py-2.5 text-center" style="background:var(--bg2)"><b class="block text-base" style="color:var(--fg)" x-text="refUi.counts.g2"></b><small style="color:var(--fg3);font-size:10px">লেভেল ২</small></div>
-<div class="rounded-2xl py-2.5 text-center" style="background:var(--bg2)"><b class="block text-base" style="color:var(--fg)" x-text="refUi.counts.g3"></b><small style="color:var(--fg3);font-size:10px">লেভেল ৩</small></div>
+<div class="rounded-2xl py-2.5 text-center" style="background:var(--bg2)"><b class="block text-base" style="color:var(--fg)" x-text="refUi.counts.g1"></b><small style="color:var(--fg3);font-size:10px">সরাসরি রেফার</small></div>
 </div>
 <div class="grid grid-cols-3 gap-2 mb-4">
 <template x-for="tb in [['home','রেফারেল'],['team','আমার টিম'],['wd','উইথড্র']]" :key="tb[0]">
@@ -10063,26 +10061,19 @@ section[x-show*="'profile'"] .dd-logout:active{transform:scale(.98)!important}
 <button type="button" @click="refShare()" class="btn-primary mb-4" style="background:var(--accent)"><i class="fa-solid fa-share-nodes mr-2"></i>শেয়ার করুন</button>
 <div class="rounded-2xl p-3 mb-4 text-xs leading-relaxed" style="background:var(--bg2);color:var(--fg2)">
 <b style="color:var(--fg)">কীভাবে কাজ করে</b><br>
-লেভেল ১ — আপনার লিংকে যে জয়েন করবে: <b x-text="'৳'+refUi.cfg.gen1"></b><br>
-লেভেল ২ — তারা যাকে আনবে: <b x-text="'৳'+refUi.cfg.gen2"></b><br>
-লেভেল ৩ — তার পরের জন: <b x-text="'৳'+refUi.cfg.gen3"></b><br>
+আপনার কোড/লিংকে কেউ জয়েন করলেই প্রতিজনে: <b x-text="'৳'+refUi.cfg.gen1"></b><br>
 <span style="color:var(--fg3)">নতুন সদস্য মোবাইল OTP যাচাই করলেই কমিশন যোগ হয়।</span>
 </div>
 <p class="font-bold text-sm mb-2" style="color:var(--fg)">সাম্প্রতিক আয়</p>
 <div x-show="!refUi.tx.filter(t=>t.type==='commission').length" class="text-xs py-3 text-center" style="color:var(--fg3)">এখনো কোনো কমিশন নেই — লিংক শেয়ার করা শুরু করুন!</div>
 <template x-for="t in refUi.tx.filter(t=>t.type==='commission')" :key="t.id">
-<div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)"><span class="text-xs" style="color:var(--fg2)"><b x-text="'লেভেল '+t.gen"></b> · <span x-text="t.label||'নতুন সদস্য'"></span><br><small style="color:var(--fg3)" x-text="new Date(t.at).toLocaleDateString('bn-BD')"></small></span><b class="text-sm" style="color:#059669" x-text="'+৳'+t.amount"></b></div>
+<div class="flex items-center justify-between py-2" style="border-bottom:1px solid var(--border)"><span class="text-xs" style="color:var(--fg2)"><b>রেফার বোনাস</b> · <span x-text="t.label||'নতুন সদস্য'"></span><br><small style="color:var(--fg3)" x-text="new Date(t.at).toLocaleDateString('bn-BD')"></small></span><b class="text-sm" style="color:#059669" x-text="'+৳'+t.amount"></b></div>
 </template>
 </div>
 
 <!-- টিম -->
 <div x-show="refUi.tab==='team'">
-<div class="grid grid-cols-3 gap-2 mb-3">
-<template x-for="g in [1,2,3]" :key="g">
-<button type="button" @click="refUi.gen=g" class="py-2 rounded-xl text-[11px] font-bold" :style="refUi.gen===g?'background:#0F766E;color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:none'" style="cursor:pointer"><span x-text="'লেভেল '+g"></span><br><span x-text="'৳'+refUi.cfg['gen'+g]+' · '+refUi.counts['g'+g]+' জন'"></span></button>
-</template>
-</div>
-<div x-show="!(refUi.team['g'+refUi.gen]||[]).length" class="text-xs py-6 text-center" style="color:var(--fg3)">এই লেভেলে এখনো কেউ নেই</div>
+<div x-show="!(refUi.team['g'+refUi.gen]||[]).length" class="text-xs py-6 text-center" style="color:var(--fg3)">এখনো কেউ আপনার কোডে জয়েন করেনি</div>
 <template x-for="m in (refUi.team['g'+refUi.gen]||[])" :key="m.id">
 <div class="flex items-center gap-3 py-2.5" style="border-bottom:1px solid var(--border)"><div class="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold" style="background:#14B8A6" x-text="(m.name||'?').charAt(0)"></div><span class="flex-1 text-sm" style="color:var(--fg)"><b x-text="m.name"></b><br><small style="color:var(--fg3)" x-text="m.phone"></small></span><small style="color:var(--fg3)" x-text="new Date(m.at).toLocaleDateString('bn-BD')"></small></div>
 </template>
