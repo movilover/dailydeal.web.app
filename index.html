@@ -4862,7 +4862,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               </div>
             </div>
 
-<div>
+<div id="dd-rs-anchor">
               <p class="section-title mb-2" x-text="resellSearchQuery?'সার্চ ফলাফল':(resellActiveCat==='সব'?(resellActiveSec?((allSections.find(s=>(s.fbKey||s.id)===resellActiveSec)||{}).name||'সেকশন'):'সকল রিসেলিং পোস্ট'):resellActiveCat)"></p>
               <div x-show="feedList.length===0" class="text-center py-10" style="color:var(--fg3)"><i class="fa-solid fa-box-open text-3xl mb-2 opacity-30"></i><p class="text-sm">এখানে কোনো পোস্ট নেই</p></div>
               <div class="space-y-3.5">
@@ -6712,7 +6712,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.$watch('activeSub',v=>{this.catN=6;if(v)this._fetchCat(v)});
       this.$watch('activeTab',()=>{try{window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('activeCat',v=>{if(v&&v!=='সব'&&this.activeTab==='home')this._goCatProds()});
       this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
-      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});
+      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});this.$watch('resellSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellOrdersSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellActiveCat',()=>{try{if(Date.now()-(window.__rsTabAt||0)>400&&this.activeTab==='resell'&&this.resellSubTab==='post')window.__ddGoAnchor('#dd-rs-anchor')}catch(e){}});
     }catch(e){}
     try{this.$watch('activeTab',v=>{if(v==='allproducts')this.allSeen=true});if(this.activeTab==='allproducts')this.allSeen=true}catch(e){}
     /* SAFETY NET: the full-page skeleton (fixed, inset:0) only hides once
@@ -6843,7 +6843,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   },
 
   setSize(p,s){const key=p.fbKey||p.id;this.selectedSizes={...this.selectedSizes,[key]:s}},
-  _goCatProds(){try{let last=-1;const go=()=>{const el=document.getElementById('dd-prod-anchor');if(!el||el.offsetParent===null)return;const h=document.querySelector('header,.dd-header,.app-header');const hh=h&&getComputedStyle(h).position!=='static'?h.getBoundingClientRect().height:0;const y=Math.max(0,Math.round(el.getBoundingClientRect().top+window.scrollY-hh-8));if(last>=0&&Math.abs(y-last)<40)return;last=y;window.scrollTo({top:y,behavior:'smooth'})};this.$nextTick(()=>{requestAnimationFrame(go);setTimeout(go,300)})}catch(e){}},
+  _goCatProds(){try{window.__ddGoAnchor('#dd-prod-anchor')}catch(e){}},
   openDetailSheet(p){try{this._preDp(p)}catch(e){}this.detailSheet={open:true,prod:p}},
   _preDp(p){const a=(p&&p.images&&p.images.length)?p.images:[(p&&p.img)||''];const c=this._dpPre=this._dpPre||{};if(Object.keys(c).length>60){this._dpPre={}}a.slice(0,3).forEach((u,i)=>{if(!u)return;const sx=this.optImg(u,800);if(this._dpPre[sx])return;const im=new Image();im.decoding='async';try{if(i===0)im.fetchPriority='high'}catch(e){}im.src=sx;this._dpPre[sx]=im})},
   dpThumb(u){try{return (window.__ddThumb&&window.__ddThumb[u])||this.optImg(u,300)||''}catch(e){return u||''}},
@@ -7610,9 +7610,12 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!this.resellSession)return;
     const ph=this.resellSession;
     this.resellRecLoaded=false;clearTimeout(this._rrT);this._rrT=setTimeout(()=>{this.resellRecLoaded=true},5000);
+    /* দ্রুত শুরু: এই ডিভাইসে আগের বার সেভ করা রেকর্ড থাকলে সঙ্গে সঙ্গে ড্যাশবোর্ড দেখানো; আসল ডাটা এলে নিজেই আপডেট হবে */
+    try{const c0=localStorage.getItem('dd_rsrec_'+ph);if(c0&&!this.reseller){const r0=JSON.parse(c0);if(r0&&r0.status){this.reseller=r0;this.resellRecLoaded=true;clearTimeout(this._rrT)}}}catch(e){}
     const apply=r=>{
       this.resellRecLoaded=true;clearTimeout(this._rrT);
       this.reseller=r;
+      try{if(r&&r.status){const c={};Object.keys(r).forEach(k=>{if(/pin|pass|secret|token|hash/i.test(k))return;const v=r[k];if(typeof v==='function')return;try{if(JSON.stringify(v).length<2000)c[k]=v}catch(e){}});localStorage.setItem('dd_rsrec_'+ph,JSON.stringify(c))}else if(!r){localStorage.removeItem('dd_rsrec_'+ph)}}catch(e){}
       if(r){
         if(r.status==='approved'&&r.myReferralCode&&!this._rcHealed){this._rcHealed=true;window.$auth.authReady.then(()=>window.$db.healReferralIndex(r.myReferralCode,this.resellSession))}
         this.resellShopNameInput=r.shopName||r.name||'';
@@ -9645,6 +9648,20 @@ main.dd-nopad{padding-bottom:0!important}
     var go=function(){try{window.scrollTo({top:0,left:0,behavior:'instant'})}catch(e){window.scrollTo(0,0)}document.documentElement.scrollTop=0;document.body.scrollTop=0};
     go();requestAnimationFrame(go);setTimeout(go,60);
   };
+  /* ক্যাটাগরি ক্লিকে সেই ক্যাটাগরির পণ্য-তালিকার শুরুতে নেওয়া (হেডারের নিচে); কনটেন্ট লোড হয়ে উচ্চতা বদলালেও কয়েকবার ঠিক করে নেয়, ইউজার স্ক্রল করলে থেমে যায় */
+  (function(){var tok=0;['touchstart','wheel','mousedown','keydown'].forEach(function(e){addEventListener(e,function(){tok++},{passive:true,capture:true})});
+    window.__ddGoAnchor=function(sel){
+      var my=tok;
+      [0,120,300,600,1000,1600].forEach(function(ms){setTimeout(function(){
+        if(tok!==my)return;
+        var el=document.querySelector(sel);if(!el||!(el.offsetParent||el.getClientRects().length))return;
+        var h=document.querySelector('header,.dd-header,.app-header'),hh=0;
+        try{if(h&&getComputedStyle(h).position!=='static')hh=h.getBoundingClientRect().height}catch(e){}
+        var y=Math.max(0,Math.round(el.getBoundingClientRect().top+window.scrollY-hh-8));
+        if(Math.abs(window.scrollY-y)>3){try{window.scrollTo({top:y,left:0,behavior:'instant'})}catch(e){window.scrollTo(0,y)}}
+      },ms)});
+    };
+  })();
   if(RM) return;
 
   /* গ্লোবালের দেশের চিপ — নিজে নিজে ধীরে স্ক্রল (টাচ করলে থামে) */
@@ -9840,8 +9857,7 @@ main.dd-nopad{padding-bottom:0!important}
 (function(){
   if(window.__ddOwnerIntro)return;window.__ddOwnerIntro=1;
   var KEY='ddOwnerIntro',el=document.getElementById('ddOI');if(!el)return;
-  /* এক সেশনে একবারই দেখাবে — ক্রস দিয়ে কেটে দিলে ওই ভিজিটে আর আসবে না */
-  try{if(sessionStorage.getItem(KEY))return}catch(e){}
+  /* এক লগইন-সেশনে একবারই দেখাবে — ক্রস দিয়ে কেটে দিলে আর আসবে না; লগআউট করে আবার লগইন করলে আবার আসবে */
   try{var f=document.createElement('link');f.rel='stylesheet';f.href='https://fonts.googleapis.com/css2?family=Atma:wght@600&display=swap';document.head.appendChild(f)}catch(e){}
   var opened=false,lastFocus=null;
   function close(){
@@ -9865,12 +9881,24 @@ main.dd-nopad{padding-bottom:0!important}
   document.getElementById('ddOIx').addEventListener('click',close);
   document.getElementById('ddOIok').addEventListener('click',close);
   el.addEventListener('click',function(e){if(e.target===el)close()});
-  /* অ্যাপ লোড শেষ হলে (loading=false) একটু পরে ব্যানার আসবে */
-  var t0=Date.now(),poll=setInterval(function(){
-    var ready=false;
-    try{var D=window.Alpine&&Alpine.$data&&Alpine.$data(document.documentElement);ready=!!D&&D.loading===false}catch(e){}
-    if(!window.__ddSplashActive&&(ready||Date.now()-t0>6000)){clearInterval(poll);setTimeout(open,900)}   /* স্প্ল্যাশ থাকলে অপেক্ষা: নইলে অ্যানিমেশন স্প্ল্যাশের নিচে শেষ হয়ে যেত */
-  },250);
+  /* রিসেলার লগইন করে রিসেলিং হোমে পৌঁছালে (অ্যাকাউন্ট লোড শেষে) ব্যানার আসবে; লগইন/লোডিং স্ক্রিনে আসবে না। পাবলিক হোমে আগের মতোই */
+  var wasIn=false,pend=false;
+  function okNow(D){
+    if(!D||D.loading!==false||window.__ddSplashActive)return false;
+    if(D.activeTab==='home')return !D.resellSession;
+    if(D.activeTab!=='resell')return false;
+    return !!(D.resellSession&&D.resellRecLoaded&&D.resellStatus==='approved'&&D.resellSubTab==='home'&&!D.resellSidebarOpen);
+  }
+  setInterval(function(){
+    var D=null;try{D=window.Alpine&&Alpine.$data&&Alpine.$data(document.documentElement)}catch(e){}
+    if(!D)return;
+    var inRes=!!D.resellSession;
+    if(wasIn&&!inRes){try{sessionStorage.removeItem(KEY)}catch(e){}}
+    wasIn=inRes;
+    if(opened||pend)return;
+    try{if(sessionStorage.getItem(KEY))return}catch(e){}
+    if(okNow(D)){pend=true;setTimeout(function(){pend=false;var D2=null;try{D2=Alpine.$data(document.documentElement)}catch(e){}if(!opened&&okNow(D2))open()},800)}
+  },400);
 })();
 </script>
 
@@ -10427,6 +10455,7 @@ async function doBack(){
   var u=document.getElementById('ddApUpd');
   if(u){if(!(upd&&upd.force)){u.remove()}return true}
   var g=document.getElementById('ddApGuide');if(g){g.remove();return true}
+  var oi=document.getElementById('ddOI');if(oi&&oi.classList.contains('show')){var ox=document.getElementById('ddOIx');if(ox)ox.click();return true}
   if(d.confirmDlg&&d.confirmDlg.open&&typeof d.confirmClose==='function'){d.confirmClose(false);return true}
   if(d.resellSidebarOpen){d.resellSidebarOpen=false;return true}
   if(d.detailSheet&&d.detailSheet.open){d.detailSheet.open=false;return true}
@@ -10458,7 +10487,7 @@ function setupApp(){
     if(!last)last=cur;
     else if(key(cur)!==key(last)){stack.push(last);if(stack.length>60)stack.shift();last=cur}
     /* স্প্ল্যাশ সরানো */
-    if(!signaled&&(d.loading===false||Date.now()-t0>3500)){signaled=true;try{DDApp.pageReady()}catch(e){}}
+    if(!signaled&&((d.loading===false&&(!d.resellSession||d.resellRecLoaded))||Date.now()-t0>6500)){signaled=true;try{DDApp.pageReady()}catch(e){}}
     /* স্ট্যাটাস বার = হেডারের রং */
     try{var h=document.querySelector('header'),c=h&&getComputedStyle(h).backgroundColor,mm=c&&c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
       if(mm&&(mm[4]===undefined||parseFloat(mm[4])>.5)){var hex='#'+[1,2,3].map(function(k){return ('0'+parseInt(mm[k],10).toString(16)).slice(-2)}).join('');
