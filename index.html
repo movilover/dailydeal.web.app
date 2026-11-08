@@ -251,6 +251,18 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   getResellerOnce:(phone,cb)=>onValue(ref(db,'resellers/'+phone),s=>cb(s.val()),()=>cb(null),{onlyOnce:true}),
   listenReseller:(phone,cb)=>onValue(ref(db,'resellers/'+phone),s=>cb(s.val()),{onlyOnce:false}),
   listenAllResellers:(cb)=>onValue(ref(db,'resellers'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  // ══ রেফারেল ওয়ালেট → মূল ওয়ালেট ট্রান্সফার: একটাই মাল্টি-পাথ আপডেট (হয় সব হবে, নয়তো কিছুই না) ══
+  transferReferral:async(phone,amt)=>{
+    const rd2=x=>Math.round(x*100)/100;
+    for(let i=0;i<2;i++){
+      const sn=await get(ref(db,'resellers/'+phone));const r=sn.val()||{};
+      const rb=Number(r.referralBalance)||0,wb=Number(r.walletBalance)||0;
+      if(amt>rb)throw new Error('insufficient');
+      const k=push(ref(db,'resellers/'+phone+'/refTransfers')).key;
+      try{await update(ref(db,'resellers/'+phone),{referralBalance:rd2(rb-amt),walletBalance:rd2(wb+amt),['refTransfers/'+k]:{amount:amt,at:Date.now()}});return rd2(rb-amt)}
+      catch(e){if(i===1)throw e}
+    }
+  },
   // ══ Withdrawals (NEW) ══
   pushWithdrawal:async(data,key)=>{const r=key?ref(db,'withdrawals/'+key):push(ref(db,'withdrawals'));await set(r,data);return r.key},
   listenAllWithdrawals:(cb)=>onValue(ref(db,'withdrawals'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
@@ -3125,17 +3137,79 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </div>
     </div>
     <div class="px-4 pb-4 space-y-2" style="max-height:50vh;overflow-y:auto">
-      <div x-show="myWalletTx.length===0" class="text-center py-8" style="color:var(--fg3)"><p class="text-xs">কোনো লেনদেন নেই</p></div>
-      <template x-for="t in myWalletTx" :key="t.fbKey">
+      <div x-show="mainStmtTx.length===0" class="text-center py-8" style="color:var(--fg3)"><p class="text-xs">কোনো লেনদেন নেই</p></div>
+      <template x-for="t in mainStmtTx" :key="t.fbKey">
         <div class="dd-card p-3 flex items-center justify-between">
           <div class="flex-1 min-w-0">
-            <p class="text-xs font-semibold" style="color:var(--fg)" x-text="t.type==='bonus'?'সাইনআপ বোনাস':t.type==='commission'?'রেফারেল কমিশন':t.type==='profit'?'বিক্রয় প্রফিট':t.type==='deposit'?'ডিপোজিট':'উইথড্র'"></p>
+            <p class="text-xs font-semibold" style="color:var(--fg)" x-text="t.type==='bonus'?'সাইনআপ বোনাস':t.type==='reftransfer_in'?'রেফারেল ট্রান্সফার':t.type==='commission'?'রেফারেল কমিশন':t.type==='profit'?'বিক্রয় প্রফিট':t.type==='deposit'?'ডিপোজিট':'উইথড্র'"></p>
             <p class="text-xs mt-0.5 truncate" style="color:var(--fg3)" x-text="t.note||''"></p>
             <p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="new Date(t.timestamp).toLocaleString('bn-BD')"></p>
           </div>
           <p class="font-mono font-bold text-sm flex-shrink-0 ml-2" :style="t.amount>=0?'color:#16A34A':'color:#DC2626'" x-text="(t.amount>=0?'+':'')+'৳'+Math.abs(t.amount).toLocaleString()"></p>
         </div>
       </template>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ REFERRAL WALLET SHEET ═══ -->
+<div x-show="refWalletOpen" x-cloak class="sheet-overlay" @click.self="refWalletOpen=false" style="z-index:310">
+  <div class="sheet-body" style="max-width:480px">
+    <div class="sheet-handle"></div>
+    <div class="flex items-center justify-between px-4 pt-4 pb-2">
+      <p class="font-display text-lg" style="color:var(--fg)">রেফারেল ওয়ালেট</p>
+      <button @click="refWalletOpen=false" class="w-8 h-8 rounded-xl flex items-center justify-center" style="background:var(--bg2);border:none;cursor:pointer"><i class="fa-solid fa-xmark text-xs" style="color:var(--fg2)"></i></button>
+    </div>
+    <div class="px-4 pb-5" style="max-height:80vh;overflow-y:auto">
+      <div class="rounded-3xl p-5 mb-3 relative overflow-hidden" style="background:linear-gradient(135deg,#5B21B6,#7C3AED 55%,#A78BFA);color:#fff;box-shadow:0 10px 28px -10px rgba(124,58,237,.6)">
+        <div style="position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.12)"></div>
+        <div style="position:absolute;right:30px;bottom:-40px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.08)"></div>
+        <p class="relative text-xs opacity-80"><i class="fa-solid fa-user-group mr-1"></i>রেফারেল ব্যালেন্স</p>
+        <p class="relative font-display text-4xl mt-1" x-text="'৳'+refBalance.toLocaleString()"></p>
+        <div class="relative grid grid-cols-3 gap-2 mt-4 text-center">
+          <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="font-bold text-sm" x-text="refBonusTx.length"></p><p style="font-size:10px;opacity:.85">টিম সদস্য</p></div>
+          <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="font-bold text-sm" x-text="'৳'+refTotalEarned.toLocaleString()"></p><p style="font-size:10px;opacity:.85">মোট আয়</p></div>
+          <div class="rounded-xl py-2" style="background:rgba(255,255,255,.16)"><p class="font-bold text-sm" x-text="'৳'+refTotalMoved.toLocaleString()"></p><p style="font-size:10px;opacity:.85">মূল ওয়ালেটে নেওয়া</p></div>
+        </div>
+      </div>
+
+      <div class="dd-card p-4 mb-4">
+        <div class="flex justify-between items-center text-xs mb-2" style="color:var(--fg2)"><span><i class="fa-solid fa-arrow-right-arrow-left mr-1" style="color:#7C3AED"></i>মূল ওয়ালেটে ট্রান্সফার</span><b x-text="'ন্যূনতম ৳'+refMinWd"></b></div>
+        <div class="w-full h-2.5 rounded-full overflow-hidden mb-1.5" style="background:var(--bg2)"><div class="h-full rounded-full" :style="'width:'+Math.min(100,Math.round(refBalance/refMinWd*100))+'%;background:linear-gradient(90deg,#7C3AED,#A78BFA);transition:width .5s'"></div></div>
+        <p class="text-xs mb-3" style="color:var(--fg3)" x-text="refBalance>=refMinWd?'✅ ব্যালেন্স ৳'+refMinWd+' পার হয়েছে — এখন মূল ওয়ালেটে নিতে পারবেন':'আরও ৳'+(refMinWd-refBalance)+' হলে মূল ওয়ালেটে নিতে পারবেন'"></p>
+        <div x-show="refBalance>=refMinWd">
+          <div class="flex gap-2 mb-2"><input type="number" inputmode="numeric" class="dd-input" x-model.number="refWalletAmt" :placeholder="'পরিমাণ (খালি = সব ৳'+refBalance+')'"/><button type="button" @click="refWalletAmt=refBalance" class="btn-primary" style="width:auto;padding:0 14px;background:var(--bg2);color:var(--fg2)">সব</button></div>
+        </div>
+        <button @click="submitRefTransfer()" :disabled="refWalletBusy||refBalance<refMinWd" class="btn-primary" style="background:#7C3AED"><span x-show="!refWalletBusy"><i class="fa-solid fa-wallet mr-2"></i>মূল ওয়ালেটে নিন</span><span x-show="refWalletBusy"><i class="fa-solid fa-spinner fa-spin"></i></span></button>
+        <p class="text-xs mt-2 text-center" style="color:var(--fg3)">মূল ওয়ালেটে আসার পর সেখান থেকে bKash / Nagad-এ উইথড্র দিতে পারবেন</p>
+      </div>
+
+      <p class="text-xs font-bold uppercase tracking-widest mb-2 px-1" style="color:var(--fg3)">আমার টিম · কার থেকে কত</p>
+      <div x-show="refBonusTx.length===0" class="text-center py-7 dd-card mb-3" style="color:var(--fg3)"><i class="fa-solid fa-user-plus text-2xl mb-2 opacity-40"></i><p class="text-xs px-4">এখনও কেউ আপনার রেফার কোডে জয়েন করেনি — কোড শেয়ার করুন, অ্যাকাউন্ট অ্যাক্টিভ হলেই বোনাস পাবেন</p></div>
+      <div class="space-y-2 mb-4">
+        <template x-for="t in refBonusTx" :key="t.fbKey">
+          <div class="dd-card p-3 flex items-center gap-3">
+            <span class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm" style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE);color:#5B21B6" x-text="(t.fromName||'ন').trim().charAt(0).toUpperCase()"></span>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold truncate" style="color:var(--fg)" x-text="t.fromName||'নতুন সদস্য'"></p>
+              <p class="text-xs mt-0.5 truncate" style="color:var(--fg3)" x-text="(t.fromPhone?t.fromPhone+' · ':'')+new Date(t.timestamp).toLocaleDateString('bn-BD')"></p>
+            </div>
+            <div class="text-right flex-shrink-0"><p class="font-mono font-bold text-sm" style="color:#16A34A" x-text="'+৳'+(Number(t.amount)||0).toLocaleString()"></p><span class="text-xs px-1.5 py-0.5 rounded-full" style="background:#F0FDF4;color:#15803D;font-size:10px">অ্যাক্টিভ ✓</span></div>
+          </div>
+        </template>
+      </div>
+
+      <div x-show="refTransferTx.length>0">
+        <p class="text-xs font-bold uppercase tracking-widest mb-2 px-1" style="color:var(--fg3)">মূল ওয়ালেটে ট্রান্সফার হিস্টোরি</p>
+        <div class="space-y-2">
+          <template x-for="t in refTransferTx" :key="t.fbKey">
+            <div class="dd-card p-3 flex items-center justify-between">
+              <p class="text-xs" style="color:var(--fg3)" x-text="new Date(t.timestamp).toLocaleString('bn-BD')"></p>
+              <p class="font-mono font-bold text-sm" style="color:#7C3AED" x-text="'৳'+Math.abs(Number(t.amount)||0).toLocaleString()+' →'"></p>
+            </div>
+          </template>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -4668,6 +4742,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                 <button class="b2" @click.stop="shareRefHome()" title="শেয়ার করুন" aria-label="শেয়ার করুন"><i class="fa-solid fa-share-nodes"></i></button>
               </div>
             </div>
+            <button type="button" x-show="reseller&&reseller.myReferralCode" x-cloak @click="refWalletOpen=true" class="dd-card p-3 w-full flex items-center gap-3 text-left mb-3" style="cursor:pointer;border:1px solid #DDD6FE;background:linear-gradient(135deg,#F5F3FF,#EDE9FE)">
+              <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#7C3AED;color:#fff"><i class="fa-solid fa-wallet text-sm"></i></span>
+              <span class="flex-1 min-w-0"><span class="block text-xs" style="color:#6D28D9">রেফারেল ওয়ালেট · টিম থেকে আয়</span><span class="block font-display text-base" style="color:#5B21B6" x-text="'৳'+refBalance.toLocaleString()"></span></span>
+              <i class="fa-solid fa-chevron-right text-xs" style="color:#6D28D9"></i>
+            </button>
             <div class="rh-ref0" x-show="reseller&&!reseller.myReferralCode" x-cloak>
               <span class="ic"><i class="fa-solid fa-coins"></i></span>
               <div><b>প্যাসিভ ইনকাম</b><p>অ্যাকাউন্ট অ্যাপ্রুভ হলে আপনার রেফার কোড এখানে চলে আসবে — কপি করে শেয়ার করুন, ৩ জেনারেশন পর্যন্ত কমিশন পান।</p></div>
@@ -5215,6 +5294,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <p class="text-xs" style="color:var(--fg3)">বর্তমান ব্যালেন্স</p>
               <p class="font-display text-2xl" style="color:var(--accent)" x-text="'৳'+(reseller?.walletBalance||0).toLocaleString()"></p>
             </div>
+            <button type="button" @click="refWalletOpen=true" class="dd-card p-3 w-full flex items-center gap-3 text-left" style="cursor:pointer;border:1px solid #DDD6FE;background:linear-gradient(135deg,#F5F3FF,#EDE9FE)">
+              <span class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#7C3AED;color:#fff"><i class="fa-solid fa-user-group"></i></span>
+              <span class="flex-1 min-w-0"><span class="block text-xs" style="color:#6D28D9">রেফারেল ওয়ালেট</span><span class="block font-display text-lg" style="color:#5B21B6" x-text="'৳'+refBalance.toLocaleString()"></span></span>
+              <span class="text-xs font-bold" style="color:#6D28D9">দেখুন <i class="fa-solid fa-chevron-right"></i></span>
+            </button>
             <div class="flex gap-2 p-1 rounded-2xl" style="background:var(--bg2)">
               <button x-show="featOn('withdraw')" @click="withdrawTab='withdraw'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all" :style="(withdrawTab||'withdraw')==='withdraw'?'background:var(--accent);color:#fff':'color:var(--fg3)'">টাকা উত্তোলন</button>
               <button x-show="featOn('deposit')" @click="withdrawTab='deposit'" class="flex-1 py-2 rounded-xl text-xs font-bold transition-all" :style="withdrawTab==='deposit'?'background:var(--accent);color:#fff':'color:var(--fg3)'">ডিপোজিট করুন</button>
@@ -5930,6 +6014,7 @@ function App(){return{
   sellCart:[],sellPlacing:false,
   sellForm:{customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''},
   withdrawForm:{amount:'',method:'bkash',number:''},
+  refWalletOpen:false,refWalletAmt:'',refWalletBusy:false,
 refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,verified:false,code:'',link:'',wallet:{balance:0,totalEarned:0,totalWithdrawn:0},counts:{g1:0,g2:0,g3:0,total:0},team:{g1:[],g2:[],g3:[]},gen:1,tx:[],payouts:[],cfg:{enabled:true,gen1:50,gen2:30,gen3:15,minWithdraw:500},wd:{amount:'',method:'bkash',number:'',busy:false}},
 
   detailSheet:{open:false,prod:null},
@@ -6071,7 +6156,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
   },
   get rhMarquee(){return (this.rcfg.announce||{}).marquee||this.settings.marqueeText||''},
   // উইথড্র/ডিপোজিট নীতি (B8)
-  get wdPol(){const w=this.rcfg.withdraw||{};return{min:Number(w.min)||Number(this.settings.minWithdrawAmount)||0,max:Number(w.max)||0,fee:Number(w.feePct)||0,notice:w.notice||''}},
+  get wdPol(){const w=this.rcfg.withdraw||{};return{min:Number(w.min)||Number(this.settings.minWithdrawAmount)||50,max:Number(w.max)||0,fee:Number(w.feePct)||0,notice:w.notice||''}},
   async _refCall(method,path,body,force){const api=this._otpApi();if(!api)return{ok:false,message:'সার্ভার প্রস্তুত নয়'};try{await window.$auth.authReady}catch(e){}const tok=await window.$auth.idToken(!!force);if(!tok)return{ok:false,message:'সংযোগ ব্যর্থ, আবার চেষ্টা করুন'};const h={Authorization:'Bearer '+tok};if(body)h['Content-Type']='application/json';try{const ac=window.$acGet?await window.$acGet():'';if(ac)h['X-Firebase-AppCheck']=ac}catch(e){}const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),15000);try{const r=await fetch(api+path,{method,headers:h,body:body?JSON.stringify(body):undefined,signal:ctl.signal});const j=await r.json().catch(()=>({}));return{...j,ok:!!j.ok&&r.ok}}catch(e){return{ok:false,message:'ইন্টারনেট/সার্ভার সমস্যা, আবার চেষ্টা করুন'}}finally{clearTimeout(tm)}},
 refOpen(tab){const u=this.refUi;u.open=true;u.tab=tab||'home';this.refLoad()},
 async refLoad(){const u=this.refUi;u.loading=true;u.err='';const r=await this._refCall('GET','/api/referral/dashboard');u.loading=false;if(!r.ok){u.err=r.message||'লোড করা যায়নি';return}u.cfg=r.config||u.cfg;u.verified=!!r.phoneVerified;u.joined=!!r.joined;if(r.joined){u.code=r.code;u.link=r.link;u.wallet=r.wallet;u.counts=r.counts;u.team=r.team;u.tx=r.tx||[];u.payouts=r.payouts||[]}},
@@ -6448,7 +6533,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get resellCategoryCounts(){const rp=this.resellableProducts;return this.resellCategories.map(c=>{const t=this._catTree(c.name);return {...c,count:rp.filter(p=>t.has(p.cat)).length}})},
   get myResellerMessages(){return this.fbResellerMessages.filter(m=>m.resellerPhone===this.resellSession).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
   get myWalletTx(){return this.fbWalletTx.filter(t=>t.resellerPhone===this.resellSession).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
-  get unseenTxCount(){return Math.max(0,this.myWalletTx.filter(t=>t.type!=='withdrawal').length-this.lastSeenTxCount)},
+  get unseenTxCount(){return Math.max(0,this.myWalletTx.filter(t=>t.type!=='withdrawal'&&t.wallet!=='referral').length-this.lastSeenTxCount)},
   get resellOrdersFiltered(){
     const q=(this.resellOrderSearch||'').trim().toLowerCase();
     return this.myResellOrders.filter(o=>{
@@ -6472,6 +6557,14 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get sellCartProfit(){return this.sellCartTotal-this.sellCartCost},
   get myResellOrders(){return (this.fbMyResellOrders||[]).slice().sort((a,b)=>new Date(b.timestamp||0)-new Date(a.timestamp||0))},
   get myWithdrawals(){return this.fbWithdrawals.filter(w=>w.resellerPhone===this.resellSession).sort((a,b)=>(b.requestedAt||0)-(a.requestedAt||0))},
+  // ══ রেফারেল ওয়ালেট (আলাদা) ══
+  get refBalance(){return Number(this.reseller&&this.reseller.referralBalance)||0},
+  get refMinWd(){return 500},
+  get refBonusTx(){return (this.myWalletTx||[]).filter(t=>t.type==='refbonus'&&Number(t.amount)>0)},
+  get refTotalEarned(){return this.refBonusTx.reduce((s,t)=>s+(Number(t.amount)||0),0)},
+  get refTransferTx(){const o=(this.reseller&&this.reseller.refTransfers)||{};return Object.entries(o).map(([k,v])=>({fbKey:k,amount:-(Number(v&&v.amount)||0),timestamp:Number(v&&v.at)||0,type:'reftransfer'})).sort((a,b)=>b.timestamp-a.timestamp)},
+  get refTotalMoved(){return this.refTransferTx.reduce((s,t)=>s+Math.abs(Number(t.amount)||0),0)},
+  get mainStmtTx(){const base=(this.myWalletTx||[]).filter(t=>t.wallet!=='referral');const inc=this.refTransferTx.map(t=>({fbKey:'rt'+t.fbKey,amount:Math.abs(t.amount),timestamp:t.timestamp,type:'reftransfer_in',note:'রেফারেল ওয়ালেট থেকে ট্রান্সফার'}));return base.concat(inc).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))},
   get myWalletTxLabel(){return{bonus:'সাইনআপ বোনাস',commission:'রেফারেল কমিশন',profit:'বিক্রয় প্রফিট',withdrawal:'উইথড্র',admin_adjust:'অ্যাডমিন সমন্বয়'}},
   get invBrandName(){return(this.inv.order&&this.inv.order.orderType==='reseller')?(this.inv.order.resellerShopName||this.settings.siteName||'Daily Deal'):(this.settings.siteName||'Daily Deal')},
 
@@ -7862,6 +7955,21 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.showToast('উইথড্র রিকোয়েস্ট পাঠানো হয়েছে ✅','success');
     }catch(e){this.showToast('ব্যর্থ!','error')}
   },
+  async submitRefTransfer(){
+    if(this.refWalletBusy)return;
+    const min=this.refMinWd,bal=this.refBalance,amt=Math.floor(Number(this.refWalletAmt)||bal);
+    if(bal<min)return this.showToast('রেফারেল ব্যালেন্স ন্যূনতম ৳'+min+' হলে মূল ওয়ালেটে আনা যাবে','error');
+    if(amt<min)return this.showToast('সর্বনিম্ন ৳'+min+' ট্রান্সফার করা যাবে','error');
+    if(amt>bal)return this.showToast('রেফারেল ওয়ালেটে এত ব্যালেন্স নেই','error');
+    if(!confirm('৳'+amt+' রেফারেল ওয়ালেট থেকে মূল ওয়ালেটে নেবেন?'))return;
+    this.refWalletBusy=true;
+    try{
+      await window.$db.transferReferral(this.resellSession,amt);
+      this.refWalletAmt='';
+      this.showToast('৳'+amt+' মূল ওয়ালেটে যোগ হয়েছে ✅ — এখন bKash/Nagad-এ উইথড্র দিন','success');
+    }catch(e){this.showToast(e&&e.message==='insufficient'?'ব্যালেন্স যথেষ্ট নয়':'ট্রান্সফার ব্যর্থ — আবার চেষ্টা করুন','error')}
+    finally{this.refWalletBusy=false}
+  },
   async saveShopName(){
     if(!this.resellShopNameInput.trim())return this.showToast('শপের নাম লিখুন!','error');
     try{await window.$db.saveResellerApp(this.resellSession,{shopName:this.resellShopNameInput.trim()});this.showToast('শপের নাম সেভ হয়েছে! ✅','success')}
@@ -7883,7 +7991,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     }catch{this.showToast('ব্যর্থ!','error')}
   },
   openComingSoon(label){this.comingSoon={open:true,label}},
-  openWalletHistory(){this.walletHistOpen=true;this.lastSeenTxCount=this.myWalletTx.filter(t=>t.type!=='withdrawal').length;localStorage.setItem('dd_last_seen_tx',this.lastSeenTxCount)},
+  openWalletHistory(){this.walletHistOpen=true;this.lastSeenTxCount=this.myWalletTx.filter(t=>t.type!=='withdrawal'&&t.wallet!=='referral').length;localStorage.setItem('dd_last_seen_tx',this.lastSeenTxCount)},
   async submitSupportTicket(){
     if(!this.supportForm.orderId)return this.showToast('অর্ডার আইডি বেছে নিন!','error');
     if(!this.supportForm.message.trim())return this.showToast('মেসেজ লিখুন!','error');
