@@ -6900,6 +6900,16 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     this.notifOpen=false;this.unreadNotifs=0;this.detailSheet={open:true,prod:p};
   },
   _mergeProds(list){if(!list||!list.length)return;const m=new Map((this.fbProducts||[]).map(p=>[p.fbKey,p]));list.forEach(p=>m.set(p.fbKey,p));this.fbProducts=[...m.values()].sort((a,b)=>this._ts(b)-this._ts(a))},
+  /* লগইন/রেজিস্ট্রেশনের আগে ফায়ারবেস তৈরি হওয়া পর্যন্ত ধৈর্য ধরে অপেক্ষা (ধীর নেটওয়ার্কে সরাসরি এরর না দেখিয়ে) */
+  async _needFb(ms){
+    const ready=()=>!!(window.$auth&&window.$db&&window.$db.checkMigrationProof);
+    if(ready())return true;
+    this.resellAuthError='সংযোগ প্রস্তুত হচ্ছে… একটু অপেক্ষা করুন';
+    const t0=Date.now();
+    while(!ready()&&Date.now()-t0<(ms||30000)){await new Promise(r=>setTimeout(r,300))}
+    if(ready()){if(String(this.resellAuthError).indexOf('সংযোগ প্রস্তুত হচ্ছে')===0)this.resellAuthError='';return true}
+    return false;
+  },
   _dbReady(){return (window.$db&&window.$db.getProductsByChild)?Promise.resolve():new Promise(r=>window.addEventListener('firebase-ready',()=>r(),{once:true}))},
   async _fetchBy(child,vals){window.__ddF=window.__ddF||{};const todo=[...new Set(vals)].filter(v=>!window.__ddF[child+':'+v]);if(!todo.length)return;todo.forEach(v=>window.__ddF[child+':'+v]=1);
     const res=await Promise.all(todo.map(v=>window.$db.getProductsByChild(child,v)));res.forEach((r,i)=>{if(!r||!r.length)delete window.__ddF[child+':'+todo[i]]});   /* ফাঁকা/ব্যর্থ হলে পরের ক্লিকে আবার চেষ্টা */
@@ -7640,8 +7650,9 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!(f.referralCode||'').trim())return this.resellAuthError='রেফারেল কোড ছাড়া অ্যাকাউন্ট খোলা যাবে না। রেফারেল কোড দিন।';
     if(!f.agree)return this.resellAuthError='শর্তাবলীতে সম্মতি দিন!';
     if(this.resellBusy)return;this.resellBusy=true;
-    const _wdS=setTimeout(()=>{if(this.resellBusy){this.resellBusy=false;this.resellAuthError='ইন্টারনেট ধীর — আবার চেষ্টা করুন।'}},40000);
+    const _wdS=setTimeout(()=>{if(this.resellBusy){this.resellBusy=false;this.resellAuthError='ইন্টারনেট ধীর — আবার চেষ্টা করুন।'}},70000);
     try{
+      if(!(await this._needFb(30000))){this.resellAuthError='ইন্টারনেট সংযোগ দুর্বল — কিছুক্ষণ পর আবার চেষ্টা করুন।';return}
       let referredBy=null,codeValid=false;
       const code=(f.referralCode||'').trim().toUpperCase();
       // ব্লক-লিস্ট, আগের অ্যাকাউন্ট ও রেফারেল কোড — তিনটা একসাথে (আগে একটার পর একটা হতো)
@@ -7703,10 +7714,9 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!f.pin)return this.resellAuthError='পিন দিন!';
     const _lk=this._thrCheck('rl_'+f.phone);if(_lk)return this.resellAuthError='অনেকবার ভুল হয়েছে। '+_lk+' মিনিট পরে আবার চেষ্টা করুন।';
     this.resellBusy=true;
-    const _wd=setTimeout(()=>{if(this.resellBusy){this.resellBusy=false;this.resellAuthError='ইন্টারনেট ধীর — আবার চেষ্টা করুন।'}},25000);   // বাটন কখনো আটকে থাকবে না
+    const _wd=setTimeout(()=>{if(this.resellBusy){this.resellBusy=false;this.resellAuthError='ইন্টারনেট ধীর — আবার চেষ্টা করুন।'}},55000);   // বাটন কখনো আটকে থাকবে না
     try{
-      if(!(window.$auth&&window.$db&&window.$db.checkMigrationProof)){await Promise.race([this._dbReady(),new Promise(r=>setTimeout(r,8000))])}
-      if(!window.$auth){this.resellAuthError='সংযোগ প্রস্তুত হয়নি, কয়েক সেকেন্ড পর আবার চেষ্টা করুন।';return}
+      if(!(await this._needFb(30000))){this.resellAuthError='ইন্টারনেট সংযোগ দুর্বল — কিছুক্ষণ পর আবার চেষ্টা করুন।';return}
       const pinHash=await this._hash(f.pin);
       let _fast=false;
       try{
@@ -9885,7 +9895,7 @@ main.dd-nopad{padding-bottom:0!important}
   var wasIn=false,pend=false;
   function okNow(D){
     if(!D||D.loading!==false||window.__ddSplashActive)return false;
-    if(D.activeTab==='home')return !D.resellSession;
+    if(D.activeTab==='home')return !D.resellSession&&!document.documentElement.hasAttribute('data-dd-app');
     if(D.activeTab!=='resell')return false;
     return !!(D.resellSession&&D.resellRecLoaded&&D.resellStatus==='approved'&&D.resellSubTab==='home'&&!D.resellSidebarOpen);
   }
@@ -10487,7 +10497,9 @@ function setupApp(){
     if(!last)last=cur;
     else if(key(cur)!==key(last)){stack.push(last);if(stack.length>60)stack.shift();last=cur}
     /* স্প্ল্যাশ সরানো */
-    if(!signaled&&((d.loading===false&&(!d.resellSession||d.resellRecLoaded))||Date.now()-t0>6500)){signaled=true;try{DDApp.pageReady()}catch(e){}}
+    if(!signaled&&((d.loading===false&&window.$auth&&(!d.resellSession||d.resellRecLoaded))||Date.now()-t0>9000)){signaled=true;try{DDApp.pageReady()}catch(e){}}
+    /* ফায়ারবেস ২০ সেকেন্ডেও লোড না হলে একবার পেজ রিলোড (ধীর/ব্যর্থ লোড থেকে নিজে ঠিক হওয়া) */
+    if(!window.$auth&&Date.now()-t0>20000){try{if(!sessionStorage.getItem('dd_fbretry')){sessionStorage.setItem('dd_fbretry','1');location.reload()}}catch(e){}}
     /* স্ট্যাটাস বার = হেডারের রং */
     try{var h=document.querySelector('header'),c=h&&getComputedStyle(h).backgroundColor,mm=c&&c.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
       if(mm&&(mm[4]===undefined||parseFloat(mm[4])>.5)){var hex='#'+[1,2,3].map(function(k){return ('0'+parseInt(mm[k],10).toString(16)).slice(-2)}).join('');
