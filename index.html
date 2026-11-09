@@ -6910,6 +6910,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(ready()){if(String(this.resellAuthError).indexOf('সংযোগ প্রস্তুত হচ্ছে')===0)this.resellAuthError='';return true}
     return false;
   },
+  /* এক আইপি/এক ডিভাইসে একটি অ্যাকাউন্ট — নিয়ম অ্যাডমিন থেকে বদলানো যায়; যাচাই ব্যর্থ হলে (নেটওয়ার্ক/রুলস) রেজিস্ট্রেশন আটকায় না */
+  async _signupGuard(phone){try{return window.__ddGuard?await window.__ddGuard.signup(phone):true}catch(e){return true}},
   _dbReady(){return (window.$db&&window.$db.getProductsByChild)?Promise.resolve():new Promise(r=>window.addEventListener('firebase-ready',()=>r(),{once:true}))},
   async _fetchBy(child,vals){window.__ddF=window.__ddF||{};const todo=[...new Set(vals)].filter(v=>!window.__ddF[child+':'+v]);if(!todo.length)return;todo.forEach(v=>window.__ddF[child+':'+v]=1);
     const res=await Promise.all(todo.map(v=>window.$db.getProductsByChild(child,v)));res.forEach((r,i)=>{if(!r||!r.length)delete window.__ddF[child+':'+todo[i]]});   /* ফাঁকা/ব্যর্থ হলে পরের ক্লিকে আবার চেষ্টা */
@@ -7669,6 +7671,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
         if(String(owner.fbKey)===String(f.phone)){this.resellAuthError='নিজের কোড দিয়ে অ্যাকাউন্ট খোলা যাবে না।';return;}
         referredBy=owner.fbKey;codeValid=true;
       }
+      const _gd=await this._signupGuard(f.phone);if(_gd!==true){this.resellAuthError=_gd;return}
       const pinHash=await this._hash(f.pin);
       let created=false;
       try{await window.$auth.resellerCreate(f.phone,pinHash);created=true}
@@ -10353,6 +10356,18 @@ html[data-dd-app] #ddApk{display:none!important}
 @keyframes ddApkIn{from{opacity:0;transform:translateX(40px) scale(.9)}to{opacity:1;transform:none}}
 @keyframes ddApkFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 
+/* ── লগইনের পর প্রবেশ-স্ক্রিন (অ্যাপ) ── */
+#ddEnter{position:fixed;inset:0;z-index:2147482500;background:#000;display:flex;align-items:center;justify-content:center;animation:ddApFade .25s ease both;transition:opacity .35s ease}
+#ddEnter.out{opacity:0;pointer-events:none}
+#ddEnter .ddEn-in{display:flex;flex-direction:column;align-items:center;gap:8px;color:#fff;font-family:inherit;text-align:center}
+#ddEnter .ddEn-lg{width:92px;height:92px;border-radius:26px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px rgba(244,96,30,.18),0 14px 40px rgba(244,96,30,.35);margin-bottom:10px;animation:ddEnPop .6s cubic-bezier(.22,1.3,.36,1) both}
+#ddEnter .ddEn-lg img{width:70px;height:70px;object-fit:contain}
+#ddEnter b{font-size:20px;font-weight:800}
+#ddEnter span{font-size:13px;color:#bdbdbd}
+#ddEnter .ddEn-sp{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:#F4601E;margin-top:14px;animation:ddEnSpin .8s linear infinite}
+@keyframes ddEnSpin{to{transform:rotate(360deg)}}
+@keyframes ddEnPop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+
 /* ── সাধারণ শিট/পপআপ (ইনস্টল গাইড + আপডেট) ── */
 .ddAp-back{position:fixed;inset:0;z-index:2147483000;background:rgba(10,8,5,.58);display:flex;align-items:flex-end;justify-content:center;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);animation:ddApFade .2s ease both;font-family:inherit}
@@ -10395,6 +10410,78 @@ function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 async function token(){try{await Promise.race([window.$auth.authReady,new Promise(function(r){setTimeout(r,12000)})]);return await window.$auth.idToken()}catch(e){return null}}
 async function patch(path,body){var t=await token();if(!t)return false;try{var r=await fetch(DB+'/'+path+'.json?auth='+encodeURIComponent(t),{method:'PATCH',body:JSON.stringify(body)});return r.ok}catch(e){return false}}
 async function loadCfg(){try{var r=await fetch(DB+'/appConfig.json',{cache:'no-store'});if(!r.ok)return;cfg=await r.json()||null}catch(e){}}
+
+/* ═════════ ০) এক আইপি / এক ডিভাইসে একটি অ্যাকাউন্ট ═════════ */
+var MSG_IP='এই ইন্টারনেট সংযোগ (আইপি) থেকে ইতোমধ্যে একটি অ্যাকাউন্ট খোলা হয়েছে। নিরাপত্তার জন্য একই আইপি থেকে একাধিক অ্যাকাউন্ট খোলা যায় না। আপনার আগের অ্যাকাউন্টে লগইন করুন।';
+var MSG_DEV='এই ডিভাইস থেকে ইতোমধ্যে একটি অ্যাকাউন্ট খোলা হয়েছে। একটি ডিভাইসে একটির বেশি অ্যাকাউন্ট খোলা যায় না। আপনার আগের অ্যাকাউন্টে লগইন করুন।';
+var gIp;
+function gDev(){
+  try{if(window.DDApp){if(typeof DDApp.getHardwareId==='function'){var h=DDApp.getHardwareId();if(h)return String(h)}var d0=DDApp.getDeviceId();if(d0)return String(d0)}}catch(e){}
+  var id=ls('dd_gdev');
+  if(!id){try{var m=document.cookie.match(/(?:^|;\s*)dd_gdev=([^;]+)/);if(m)id=m[1]}catch(e){}}
+  if(!id)id=rid('w');
+  ls('dd_gdev',id);try{document.cookie='dd_gdev='+id+'; max-age=63072000; path=/; SameSite=Lax'}catch(e){}
+  return id;
+}
+async function gGetIp(){
+  if(gIp!==undefined)return gIp;
+  var urls=['https://api64.ipify.org?format=json','https://api.ipify.org?format=json','https://www.cloudflare.com/cdn-cgi/trace'];
+  for(var i=0;i<urls.length;i++){
+    try{
+      var ac=window.AbortController?new AbortController():null,tm=setTimeout(function(){try{ac&&ac.abort()}catch(e){}},4500);
+      var r=await fetch(urls[i],{cache:'no-store',credentials:'omit',signal:ac?ac.signal:undefined});clearTimeout(tm);
+      if(!r.ok)continue;var t=await r.text(),ip='';
+      try{ip=JSON.parse(t).ip}catch(e){var mm=t.match(/ip=([^\s]+)/);ip=mm&&mm[1]}
+      if(ip&&/^[0-9a-fA-F:.]{3,45}$/.test(ip)){gIp=ip;return ip}
+    }catch(e){}
+  }
+  gIp='';return '';
+}
+function gKey(s){return String(s).replace(/[^0-9A-Za-z_-]/g,'_')}
+function gClamp(n){n=parseInt(n,10);return isNaN(n)?1:Math.max(1,Math.min(10,n))}
+async function gCfg(){
+  var t=await token();if(!t)return null;
+  try{var r=await fetch(DB+'/signupGuard.json?auth='+encodeURIComponent(t),{cache:'no-store'});if(!r.ok)return null;return (await r.json())||{}}catch(e){return null}
+}
+async function gClaim(path,max,meta,wantPath){
+  var t=await token();if(!t)return null;
+  for(var i=1;i<=max;i++){
+    var r;try{r=await fetch(DB+'/'+path+'/s'+i+'.json?auth='+encodeURIComponent(t),{method:'PUT',body:JSON.stringify(meta)})}catch(e){return null}
+    if(r.ok)return wantPath?{path:path+'/s'+i}:true;
+    if(r.status!==401&&r.status!==403)return null;
+  }
+  return false;
+}
+/* দ্বিতীয় যাচাইয়ে আটকে গেলে এইমাত্র নেওয়া প্রথম দাবি ফেরত (যাতে অন্য সৎ ইউজারের জায়গা নষ্ট না হয়) */
+async function gRelease(path){try{var t=await token();if(t)await fetch(DB+'/'+path+'.json?auth='+encodeURIComponent(t),{method:'DELETE'})}catch(e){}}
+window.__ddGuard={
+  async signup(phone){
+    try{
+      var c=await gCfg();if(c===null||c.enabled===false)return true;
+      var ip=await gGetIp(),dev=gDev(),meta={phone:String(phone).slice(0,20),t:Date.now(),ip:String(ip||'').slice(0,45),dev:String(dev).slice(0,60),via:NATIVE?'app':'web'};
+      var allow=ip&&c.allowIps&&c.allowIps[gKey(ip)];
+      var made=null;
+      if(ip&&!allow){made=await gClaim('ipClaims/'+gKey(ip),gClamp(c.maxPerIp),meta,true);if(made===false)return MSG_IP}
+      if(dev){if(await gClaim('devClaims/'+gKey(dev),gClamp(c.maxPerDevice),meta)===false){if(made&&made.path)await gRelease(made.path);return MSG_DEV}}
+      return true;
+    }catch(e){return true}
+  },
+  /* আগে থেকে থাকা অ্যাকাউন্ট লগইন করলে চুপচাপ তার আইপি/ডিভাইস রেকর্ডে তোলা (অ্যাডমিনে দেখার জন্য) */
+  async backfill(phone){
+    try{
+      var k='dd_gbf_'+phone,last=parseInt(ls(k)||'0',10)||0;if(Date.now()-last<6*86400000)return;
+      var c=await gCfg();if(c===null||c.enabled===false)return;
+      var ip=await gGetIp(),dev=gDev(),meta={phone:String(phone).slice(0,20),t:Date.now(),ip:String(ip||'').slice(0,45),dev:String(dev).slice(0,60),via:NATIVE?'app':'web'};
+      if(ip)await gClaim('ipClaims/'+gKey(ip),gClamp(c.maxPerIp),meta);
+      if(dev)await gClaim('devClaims/'+gKey(dev),gClamp(c.maxPerDevice),meta);
+      ls(k,String(Date.now()));
+    }catch(e){}
+  }
+};
+var gDone={};
+function guardTick(){
+  try{var d=D();if(!d||!d.resellSession||!d.resellRecLoaded)return;var ph=String(d.resellSession);if(gDone[ph])return;gDone[ph]=1;window.__ddGuard.backfill(ph)}catch(e){}
+}
 
 /* ═════════ ১) ওয়েব সাইট: ভাসমান ডাউনলোড বাটন (শুধু লগইন করা রিসেলারের রিসেলিং হোমে) ═════════ */
 function buildBtn(){
@@ -10485,11 +10572,29 @@ function setupApp(){
   };
   /* WebView-তে navigator.share নেই → নেটিভ শেয়ার শিট */
   try{navigator.share=function(o){o=o||{};try{DDApp.share(o.title||'',o.text||'',o.url||'')}catch(e){}return Promise.resolve()}}catch(e){}
-  var t0=Date.now(),signaled=false,lastBar='',lastPhone='',lastReg=0;
+  var t0=Date.now(),signaled=false,lastBar='',lastPhone='',lastReg=0,userPick=false,prevSess=null,enterAt=0,sawBusy=false;
+  document.addEventListener('click',function(e){try{if(e.target.closest&&e.target.closest('[role=tab],.rl-switch'))userPick=true}catch(x){}},true);
+  function showEnter(){
+    if(document.getElementById('ddEnter'))return;
+    var o=el('<div id="ddEnter"><div class="ddEn-in"><div class="ddEn-lg"><img alt="" src="'+LOGO+'"/></div><b>লগইন সফল!</b><span>আপনার ড্যাশবোর্ড তৈরি হচ্ছে…</span><i class="ddEn-sp"></i></div></div>');
+    document.body.appendChild(o);enterAt=Date.now();
+  }
+  function hideEnter(){var o=document.getElementById('ddEnter');if(!o)return;o.classList.add('out');setTimeout(function(){try{o.remove()}catch(e){}},380)}
   setInterval(function(){
     var d=D();if(!d||typeof d.activeTab==='undefined')return;
     /* পাবলিক হোম বন্ধ — সবসময় রিসেলিং-এ */
     if(d.activeTab==='home'){d.activeTab='resell'}
+    /* অ্যাপ খুললে প্রথমে লগইন সেকশন (ইউজার নিজে রেজিস্ট্রেশন বেছে না নিলে) */
+    if(Date.now()-t0<3000&&!userPick&&!d.resellSession&&d.resellAuthMode!=='login'){d.resellAuthMode='login'}
+    /* লগইনের পর মসৃণ প্রবেশ-স্ক্রিন */
+    var sNow=d.resellSession?String(d.resellSession):'';
+    if(prevSess===null)prevSess=sNow;
+    if(d.resellBusy)sawBusy=true;
+    if(!prevSess&&sNow&&signaled&&sawBusy){sawBusy=false;showEnter()}
+    prevSess=sNow;
+    if(enterAt){var ready=d.resellRecLoaded&&d.resellStatus!=='none'&&d.resellSubTab==='home';
+      if((ready&&Date.now()-enterAt>900)||Date.now()-enterAt>8000||!sNow){enterAt=0;hideEnter()}}
+    guardTick();
     /* সাইডবারের "ইউজার সাইটে ফিরে যান" বাদ */
     try{var m=d.resellSidebarMenuBase;if(Array.isArray(m)){for(var i=m.length-1;i>=0;i--){if(m[i]&&m[i].action==='exitToSite')m.splice(i,1)}}}catch(e){}
     /* ব্যাক-স্ট্যাক */
@@ -10556,6 +10661,7 @@ function start(){
   if(NATIVE){setupApp();return}
   if(IOS)return;
   loadCfg();
+  setInterval(guardTick,3000);
   setInterval(syncBtn,700);
   setInterval(loadCfg,300000);
 }
