@@ -7923,8 +7923,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   ago(p){const t=this._ts(p);if(!t)return '';const s=Math.max(0,Math.floor((this.now-t)/1000));if(s<60)return 'এইমাত্র';if(s<3600)return Math.floor(s/60)+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';return Math.floor(s/2592000)+' মাস আগে'},
   timeAgo(ts){if(!ts)return '';const s=Math.floor((Date.now()-ts)/1000);if(s<60)return 'এইমাত্র';if(s<3600)return Math.max(1,Math.floor(s/60))+' মিনিট আগে';if(s<86400)return Math.floor(s/3600)+' ঘণ্টা আগে';if(s<2592000)return Math.floor(s/86400)+' দিন আগে';if(s<31536000)return Math.floor(s/2592000)+' মাস আগে';return Math.floor(s/31536000)+' বছর আগে'},
   openPost(p){this.postView=p;this.pvSize='';this.pvColor='';this.pvQty=1;this.pvPrice='';this.pvPopup='';this.linkCool=this._lkLeft(p);this._linkTick()},
-  async dlImage(url,name){try{const r=await fetch(url);const b=await r.blob();const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}catch(e){window.open(url,'_blank','noopener')}},
-  async dlAll(p){const ims=p.images||[];if(!ims.length)return this.showToast('কোনো ছবি নেই','error');this.showToast('ছবি ডাউনলোড হচ্ছে...','success');for(let i=0;i<ims.length;i++){await this.dlImage(ims[i],(p.name||'product').replace(/\s+/g,'_')+'_'+(i+1)+'.jpg');await new Promise(r=>setTimeout(r,450))}},
+  async dlImage(url,name){return window.ddImgSave([{url:url,name:name}],(m,t)=>this.showToast(m,t))},
+  async dlAll(p){const ims=(p&&p.images)||[];if(!ims.length)return this.showToast('কোনো ছবি নেই','error');const base=(p.name||'product').replace(/\s+/g,'_');return window.ddImgSave(ims.map((u,i)=>({url:u,name:base+'_'+(i+1)+'.jpg'})),(m,t)=>this.showToast(m,t))},
   get pvNote(){const p=this.postView;const s=Number(this.pvPrice);if(!p||!s)return null;
     if(s<p.resellerPrice)return {c:'#DC2626',t:'সর্বনিম্ন বিক্রয়মূল্য ৳'+p.resellerPrice+' (রিসেলার প্রাইস)। এর নিচে দেওয়া যাবে না।'};
     const pr=(s-p.resellerPrice)*this.pvQty;
@@ -10794,6 +10794,152 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 <!-- ═══════════════ /DD-APP ═══════════════ -->
+
+<!--  DD-IMGSAVE: শক্তিশালী ছবি ডাউনলোড (Messenger/Facebook ইন-অ্যাপ ব্রাউজার, iOS, Android, অ্যাপ — সব জায়গায়)  -->
+<script>
+(function(){
+if(window.ddImgSave)return;
+var UA=navigator.userAgent||'';
+var NATIVE=false;try{NATIVE=!!window.DDApp&&/DailyDealApp\//.test(UA)}catch(e){}
+var IOS=/iPhone|iPad|iPod/i.test(UA)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+var ANDROID=/Android/i.test(UA);
+var INAPP=!NATIVE&&/FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\/|MicroMessenger|Snapchat|TikTok|musical_ly|; wv\)/i.test(UA);
+var MOBILE=IOS||ANDROID||/Mobile/i.test(UA);
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function safeName(n){n=String(n||'photo').replace(/[^\w\u0980-\u09FF.\-]+/g,'_').replace(/^_+|_+$/g,'');return n||'photo'}
+function bust(u){return u+(u.indexOf('?')>-1?'&':'?')+'dd='+Date.now()}
+/* Cloudinary হলে সার্ভার-সাইড "attachment" লিংক (ব্রাউজার নিজেই ডাউনলোড করে) */
+function attachUrl(u){try{if(u.indexOf('res.cloudinary.com')>-1&&u.indexOf('/upload/')>-1&&u.indexOf('fl_attachment')===-1)return u.replace('/upload/','/upload/fl_attachment/')}catch(e){}return u}
+function extOf(t){t=String(t||'').toLowerCase();return t.indexOf('png')>-1?'png':t.indexOf('webp')>-1?'webp':t.indexOf('gif')>-1?'gif':'jpg'}
+function withExt(name,type){return safeName(name).replace(/\.[a-z0-9]{2,4}$/i,'')+'.'+extOf(type)}
+
+async function timedFetch(u,opt,ms){
+  var c=window.AbortController?new AbortController():null,t=c?setTimeout(function(){c.abort()},ms):null;
+  try{if(c)opt.signal=c.signal;return await fetch(u,opt)}finally{if(t)clearTimeout(t)}
+}
+function viaCanvas(u){
+  return new Promise(function(res,rej){
+    var im=new Image();im.crossOrigin='anonymous';
+    im.onload=function(){try{var c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;c.getContext('2d').drawImage(im,0,0);
+      c.toBlob(function(b){b&&b.size>200?res(b):rej(new Error('canvas'))},/\.png(\?|$)/i.test(u)?'image/png':'image/jpeg',.95)}catch(e){rej(e)}};
+    im.onerror=function(){rej(new Error('img'))};
+    im.src=bust(u);
+  });
+}
+function okBlob(b){return b&&b.size>200&&!/text|html|json/i.test(b.type||'')}
+async function getBlob(url){
+  var tries=[{u:url,o:{mode:'cors',cache:'reload',credentials:'omit'}},{u:bust(url),o:{mode:'cors',cache:'no-store',credentials:'omit'}},{u:attachUrl(bust(url)),o:{mode:'cors',cache:'no-store',credentials:'omit'}}];
+  for(var i=0;i<tries.length;i++){
+    try{var r=await timedFetch(tries[i].u,tries[i].o,25000);
+      if(r&&r.ok){var b=await r.blob();if(okBlob(b))return /^image\//.test(b.type)?b:new Blob([b],{type:'image/jpeg'})}}catch(e){}
+  }
+  var cb=await viaCanvas(url);return cb;
+}
+function anchorSave(blob,name){
+  var u=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=u;a.download=name;a.rel='noopener';a.style.display='none';document.body.appendChild(a);a.click();
+  setTimeout(function(){try{a.remove();URL.revokeObjectURL(u)}catch(e){}},60000);
+}
+function canShareFiles(files){try{return !!(navigator.share&&navigator.canShare&&navigator.canShare({files:files}))}catch(e){return false}}
+async function shareSave(files){
+  try{await navigator.share({files:files});return 'ok'}
+  catch(e){return (e&&e.name==='AbortError')?'cancel':'fail'}
+}
+function nativeSave(it){
+  try{
+    if(typeof DDApp.saveImage==='function'){DDApp.saveImage(it.url,safeName(it.name));return true}
+    if(typeof DDApp.downloadImage==='function'){DDApp.downloadImage(it.url,safeName(it.name));return true}
+    if(typeof DDApp.openUrl==='function'){DDApp.openUrl(attachUrl(it.url));return true}
+  }catch(e){}
+  return false;
+}
+
+/* ───── ফলব্যাক শীট: ছবি দেখিয়ে লং-প্রেস করে সেভ ───── */
+function injectCss(){
+  if(document.getElementById('ddsvCss'))return;
+  var s=document.createElement('style');s.id='ddsvCss';
+  s.textContent='.ddsv-overlay{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center}'+
+  '.ddsv-card{background:#fff;color:#111;width:100%;max-width:520px;max-height:92vh;border-radius:22px 22px 0 0;display:flex;flex-direction:column;overflow:hidden}'+
+  '.ddsv-h{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #eee}'+
+  '.ddsv-h b{font-size:16px}.ddsv-x{border:0;background:#f1f1f1;width:34px;height:34px;border-radius:50%;font-size:20px;line-height:1;cursor:pointer}'+
+  '.ddsv-tip{margin:12px 16px 0;padding:10px 12px;border-radius:12px;background:#FEF3C7;color:#92400E;font-size:13px;line-height:1.5;font-weight:600}'+
+  '.ddsv-chrome{display:block;margin:10px 16px 0;padding:12px;border-radius:12px;background:#111;color:#fff;text-align:center;font-weight:700;font-size:14px;text-decoration:none}'+
+  '.ddsv-list{overflow:auto;padding:12px 16px 20px;display:grid;gap:14px;-webkit-overflow-scrolling:touch}'+
+  '.ddsv-it{border:1px solid #eee;border-radius:14px;overflow:hidden;background:#fafafa}'+
+  '.ddsv-it img{display:block;width:100%;height:auto;-webkit-touch-callout:default;-webkit-user-select:auto;user-select:auto;pointer-events:auto}'+
+  '.ddsv-it a{display:block;padding:10px;text-align:center;font-weight:700;font-size:13px;color:#2563EB;text-decoration:none;border-top:1px solid #eee}';
+  document.head.appendChild(s);
+}
+function showSheet(items,why){
+  injectCss();
+  var old=document.getElementById('ddSaveSheet');if(old)old.remove();
+  var o=document.createElement('div');o.id='ddSaveSheet';o.className='ddsv-overlay';
+  var chrome='';
+  if(INAPP&&ANDROID){chrome='<a class="ddsv-chrome" href="intent://'+esc(location.host+location.pathname+location.search)+'#Intent;scheme=https;package=com.android.chrome;end">Chrome ব্রাউজারে খুলুন</a>'}
+  var tip=IOS?'প্রতিটি ছবিতে আঙুল চেপে ধরে রাখুন → <b>“Save to Photos / ছবি সংরক্ষণ”</b> চাপুন।':'প্রতিটি ছবিতে আঙুল চেপে ধরে রাখুন → <b>“ছবি ডাউনলোড / Save image”</b> চাপুন।';
+  if(INAPP)tip+=' (Messenger/Facebook ব্রাউজারে সরাসরি ডাউনলোড বন্ধ থাকে — তাই এই পদ্ধতি।)';
+  var list=items.map(function(it,i){return '<div class="ddsv-it"><img src="'+esc(it.url)+'" alt="" loading="eager"/><a href="'+esc(attachUrl(it.url))+'" download="'+esc(safeName(it.name))+'" target="_blank" rel="noopener">ছবি '+(i+1)+' — ডাউনলোড লিংক</a></div>'}).join('');
+  o.innerHTML='<div class="ddsv-card"><div class="ddsv-h"><b>ছবি সেভ করুন ('+items.length+'টি)</b><button class="ddsv-x" type="button" aria-label="বন্ধ">×</button></div><div class="ddsv-tip">'+tip+'</div>'+chrome+'<div class="ddsv-list">'+list+'</div></div>';
+  o.querySelector('.ddsv-x').addEventListener('click',function(){o.remove()});
+  o.addEventListener('click',function(e){if(e.target===o)o.remove()});
+  document.body.appendChild(o);
+}
+
+var busy=false;
+/* items: [{url,name}] ; toast(msg,type) */
+window.ddImgSave=async function(items,toast){
+  toast=toast||function(){};
+  items=(items||[]).filter(function(i){return i&&i.url});
+  if(!items.length){toast('কোনো ছবি নেই','error');return}
+  if(busy){toast('আগের ডাউনলোড চলছে, একটু অপেক্ষা করুন','error');return}
+  busy=true;
+  try{
+    /* ১) আমাদের অ্যাপ: নেটিভ সেভ */
+    if(NATIVE){
+      var done=0;for(var n=0;n<items.length;n++){if(nativeSave(items[n]))done++;await sleep(350)}
+      if(done)toast('ডাউনলোড শুরু হয়েছে — নোটিফিকেশন/Downloads ফোল্ডারে দেখুন','success');
+      else{showSheet(items);toast('ছবিতে চেপে ধরে সেভ করুন','error')}
+      return;
+    }
+    toast(items.length>1?'ছবি প্রস্তুত হচ্ছে...':'ডাউনলোড প্রস্তুত হচ্ছে...','success');
+    /* ২) ছবি আনা (ফেইল হলে ৩ ধরনের চেষ্টা) */
+    var ok=[],fail=[];
+    for(var i=0;i<items.length;i++){
+      try{var b=await getBlob(items[i].url);ok.push({blob:b,name:withExt(items[i].name,b.type),src:items[i]})}
+      catch(e){
+        try{await sleep(500);var b2=await getBlob(items[i].url);ok.push({blob:b2,name:withExt(items[i].name,b2.type),src:items[i]})}
+        catch(e2){fail.push(items[i])}
+      }
+    }
+    var saved=0,sheet=fail.slice();
+    if(ok.length){
+      var files=[];try{files=ok.map(function(x){return new File([x.blob],x.name,{type:x.blob.type||'image/jpeg'})})}catch(e){}
+      var useShare=MOBILE&&(IOS||INAPP)&&files.length&&canShareFiles(files);
+      if(useShare){
+        var r=await shareSave(files);
+        if(r==='ok'){saved=ok.length}
+        else if(r==='cancel'){saved=-1}
+        else{ if(INAPP){ok.forEach(function(x){sheet.push(x.src)})} else {for(var k=0;k<ok.length;k++){anchorSave(ok[k].blob,ok[k].name);saved++;await sleep(700)}} }
+      }else if(INAPP){
+        ok.forEach(function(x){sheet.push(x.src)});
+      }else{
+        for(var j=0;j<ok.length;j++){anchorSave(ok[j].blob,ok[j].name);saved++;await sleep(ok.length>1?800:0)}
+      }
+    }
+    if(sheet.length){showSheet(sheet)}
+    if(saved>0&&!sheet.length)toast(saved>1?(saved+'টি ছবি ডাউনলোড শুরু হয়েছে'):'ডাউনলোড শুরু হয়েছে — Gallery/Downloads-এ দেখুন','success');
+    else if(saved>0&&sheet.length)toast(saved+'টি ডাউনলোড হয়েছে, বাকি '+sheet.length+'টি ছবি চেপে ধরে সেভ করুন','error');
+    else if(saved===-1){/* ইউজার শেয়ার বাতিল করেছে */}
+    else if(sheet.length)toast('ছবিতে আঙুল চেপে ধরে সেভ করুন','error');
+  }catch(e){
+    try{showSheet(items)}catch(x){}
+    toast('সরাসরি ডাউনলোড হয়নি — ছবিতে চেপে ধরে সেভ করুন','error');
+  }finally{busy=false}
+};
+})();
+</script>
+<!--  /DD-IMGSAVE  -->
 
 </body>
 </html>
