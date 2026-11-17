@@ -2303,6 +2303,76 @@ html,body{overscroll-behavior-x:none}
 html.dd-lock,html.dd-lock body{overflow:hidden!important;height:100%!important;overscroll-behavior:none}
 </style>
 <style>.rl-in.rl-lock{box-shadow:0 0 0 1.5px var(--accent) inset}.rl-in.rl-lock input{font-weight:700;letter-spacing:.06em;font-family:'JetBrains Mono',monospace;color:var(--accent);cursor:not-allowed}</style>
+<style id="dd-wv">
+/* ══ কাজের ভিডিও: হোম চিকন কার্ড + ভিডিও পেজ ══ */
+.rh-wv{position:relative;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 8px;margin-bottom:12px;border-radius:18px;background:var(--card);border:1.5px solid color-mix(in srgb,var(--accent) 45%,var(--border));cursor:pointer;box-shadow:0 10px 22px -14px color-mix(in srgb,var(--accent) 80%,transparent);animation:wvGl 3s ease-in-out infinite;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.rh-wv:active{transform:scale(.985)}
+.rh-wv:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wv-th{position:relative;flex:none;width:104px;height:60px;border-radius:12px;overflow:hidden;background:#1B1203;display:grid;place-items:center}
+.wv-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.wv-th::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.4));z-index:1}
+.wv-th::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);animation:wvSw 3.6s ease-in-out infinite;z-index:2;pointer-events:none}
+.wv-pb{position:relative;z-index:3;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--accent);box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.wv-pb::before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.85);animation:wvRp 2.2s ease-out infinite}
+.wv-tx{flex:1;min-width:0;line-height:1.25;display:flex;flex-direction:column}
+.wv-tx em{font-style:normal;font-size:10px;font-weight:800;color:var(--accent);letter-spacing:.2px}
+.wv-tx b{font-size:13.5px;font-weight:800;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wv-tx small{font-size:11px;color:var(--fg3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wv-go{flex:none;display:flex;align-items:center;gap:5px;font-size:11px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:99px;padding:7px 10px;white-space:nowrap}
+.wv-go i{font-size:9px;animation:wvNx 1.3s ease-in-out infinite}
+@media(max-width:350px){.wv-go{display:none}.wv-th{width:92px}}
+.wv-pc{border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:0 10px 26px -14px rgba(0,0,0,.35)}
+.wv-player{position:relative;width:100%;padding-top:56.25%;background:#000}
+.wv-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.wv-meta{padding:12px 14px 14px}.wv-meta h2{font-size:17px;font-weight:800;color:var(--fg);line-height:1.3;margin:0}.wv-meta p{font-size:12.5px;color:var(--fg3);margin:4px 0 0}
+.wv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wv-ic2{display:flex;flex-direction:column;gap:3px;padding:12px;border-radius:16px;background:var(--card);border:1px solid var(--border)}
+.wv-ic2 i{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));margin-bottom:4px}
+.wv-ic2 b{font-size:13px;color:var(--fg)}.wv-ic2 span{font-size:11.5px;color:var(--fg3);line-height:1.45}
+.wv-steps{list-style:none;margin:0;padding:0;counter-reset:wv}
+.wv-steps li{position:relative;counter-increment:wv;padding:0 0 14px 40px;display:flex;flex-direction:column;gap:2px}
+.wv-steps li:last-child{padding-bottom:0}
+.wv-steps li::before{content:counter(wv);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.wv-steps li::after{content:"";position:absolute;left:13px;top:30px;bottom:2px;width:2px;background:var(--border)}
+.wv-steps li:last-child::after{display:none}
+.wv-steps b{font-size:13px;color:var(--fg)}.wv-steps span{font-size:12px;color:var(--fg3);line-height:1.5}
+@keyframes wvGl{0%,100%{box-shadow:0 10px 22px -14px color-mix(in srgb,var(--accent) 80%,transparent),0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 10px 22px -14px color-mix(in srgb,var(--accent) 80%,transparent),0 0 16px color-mix(in srgb,var(--accent) 40%,transparent)}}
+@keyframes wvSw{0%{left:-60%}60%,100%{left:130%}}
+@keyframes wvRp{0%{transform:scale(1);opacity:.8}100%{transform:scale(1.7);opacity:0}}
+@keyframes wvNx{50%{transform:translateX(3px)}}
+@media(prefers-reduced-motion:reduce){.rh-wv,.wv-th::after,.wv-pb::before,.wv-go i{animation:none!important}}
+</style>
+<style id="dd-ld">
+/* ══ অ্যাকাউন্ট লোডিং স্ক্রিন ══ */
+.dl-ld{max-width:420px;margin:0 auto;padding:34px 14px 24px;text-align:center}
+.dl-orb{position:relative;width:96px;height:96px;margin:0 auto 14px;display:grid;place-items:center}
+.dl-arc{position:absolute;inset:0;border-radius:50%;border:3px solid color-mix(in srgb,var(--accent) 16%,transparent);border-top-color:var(--accent);animation:dlSp 1s linear infinite}
+.dl-ic{width:66px;height:66px;border-radius:20px;display:grid;place-items:center;font-size:27px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 12px 26px -10px color-mix(in srgb,var(--accent) 80%,transparent);animation:dlBob 1.8s ease-in-out infinite}
+.dl-hi{font-size:16px;font-weight:800;color:var(--fg);line-height:1.3;word-break:break-word}
+.dl-sub{font-size:12.5px;color:var(--fg3);margin-top:3px}
+.dl-bar{height:4px;width:150px;border-radius:99px;background:var(--bg2);overflow:hidden;margin:14px auto 20px}
+.dl-bar i{display:block;height:100%;width:40%;border-radius:99px;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:dlBar 1.3s ease-in-out infinite}
+.dl-sk{display:flex;flex-direction:column;gap:10px;text-align:left;opacity:.9}
+.dl-sk>div,.dl-sk .g>div{border-radius:16px;background:linear-gradient(90deg,var(--bg2) 25%,color-mix(in srgb,var(--bg2) 50%,var(--card)) 50%,var(--bg2) 75%);background-size:200% 100%;animation:dlSh 1.4s linear infinite}
+.dl-sk .h{height:62px}.dl-sk .g{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;background:none;animation:none}.dl-sk .g>div{height:68px}.dl-sk .l{height:13px;border-radius:8px}
+.dl-slow{margin-top:20px;font-size:12px;color:var(--fg3)}
+.dl-slow button{margin-top:8px;border:none;cursor:pointer;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:99px;padding:8px 16px}
+@keyframes dlSp{to{transform:rotate(360deg)}}@keyframes dlBob{50%{transform:translateY(-4px) scale(1.04)}}@keyframes dlBar{0%{transform:translateX(-110%)}100%{transform:translateX(280%)}}@keyframes dlSh{to{background-position:-200% 0}}
+/* ══ পেন্ডিং পেজের ভিডিও কার্ড ══ */
+.pv-card{max-width:440px;margin:0 auto 18px;border-radius:20px;overflow:hidden;background:var(--card);border:1px solid var(--border);box-shadow:0 14px 28px -16px rgba(0,0,0,.5);text-align:left}
+.pv-box{position:relative;padding-top:56.25%;background:#000}
+.pv-box iframe,.pv-th{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pv-th{padding:0;cursor:pointer;background:#1B1203;display:grid;place-items:center;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.pv-th img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pv-th::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.45));z-index:1}
+.pv-th::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.3),transparent);transform:skewX(-20deg);animation:wvSw 3.6s ease-in-out infinite;z-index:2;pointer-events:none}
+.pv-pb{position:relative;z-index:3;width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:#fff;color:var(--accent);box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.pv-pb::before{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.85);animation:wvRp 2.2s ease-out infinite}
+.pv-chip{position:absolute;left:10px;top:10px;z-index:3;font-size:11px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:99px;padding:4px 10px}
+.pv-chip i{color:#FF3B30;margin-right:3px}
+.pv-meta{padding:11px 14px 13px;display:flex;flex-direction:column;gap:3px}.pv-meta b{font-size:14.5px;color:var(--fg);line-height:1.35}.pv-meta span{font-size:12px;color:var(--fg3);line-height:1.5}
+@media(prefers-reduced-motion:reduce){.dl-arc,.dl-ic,.dl-bar i,.dl-sk>div,.pv-th::after,.pv-pb::before{animation:none!important}}
+</style>
 </head>
 <style id="dd-v5">
 /* footer: সাদা গ্যাপ বন্ধ + কম ফাঁকা */
@@ -4799,7 +4869,16 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   <template x-if="resellSession">
   <div>
 
-    <template x-if="resellStatus==='none'&&!resellRecLoaded&&!resellReapplying"><div class="rl-wrap"><div class="rl-loading"><div class="rl-logo"><i class="fa-solid fa-store"></i></div><p>আপনার অ্যাকাউন্ট লোড হচ্ছে...</p></div></div></template>
+    <template x-if="resellStatus==='none'&&!resellRecLoaded&&!resellReapplying">
+      <div class="dl-ld" role="status" aria-live="polite">
+        <div class="dl-orb"><span class="dl-arc"></span><div class="dl-ic"><i class="fa-solid fa-store"></i></div></div>
+        <p class="dl-hi" x-text="rlName?('স্বাগতম, '+rlName):'আপনার অ্যাকাউন্ট লোড হচ্ছে'"></p>
+        <p class="dl-sub" x-text="rlName?'আপনার ড্যাশবোর্ড প্রস্তুত করা হচ্ছে…':'অনুগ্রহ করে একটু অপেক্ষা করুন…'"></p>
+        <div class="dl-bar"><i></i></div>
+        <div class="dl-sk" aria-hidden="true"><div class="h"></div><div class="g"><div></div><div></div><div></div></div><div class="l" style="width:70%"></div><div class="l" style="width:48%"></div></div>
+        <div class="dl-slow" x-show="rlSlow" x-cloak><p>নেটওয়ার্ক একটু ধীর মনে হচ্ছে — আরেকটু অপেক্ষা করুন।</p><button type="button" @click="location.reload()"><i class="fa-solid fa-rotate-right"></i> আবার চেষ্টা করুন</button></div>
+      </div>
+    </template>
     <template x-if="(resellStatus==='none'&&resellRecLoaded)||resellReapplying">
       <div>
         <div class="text-center mb-5">
@@ -4824,7 +4903,17 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     </template>
 
     <template x-if="resellStatus==='pending'">
-      <div class="pnd-wrap" x-data="{busy:false}">
+      <div class="pnd-wrap" x-data="{busy:false,pv:false}">
+        <!-- অ্যাকাউন্ট যাচাই চলাকালীন ভিডিও (অ্যাডমিন: রিসেলার কনটেন্ট → পেন্ডিং পেজের ভিডিও) -->
+        <template x-if="pendVideo">
+          <div class="pv-card">
+            <div class="pv-box">
+              <template x-if="!pv"><button type="button" class="pv-th" @click="pv=true" aria-label="ভিডিও প্লে করুন"><img :src="pendThumb" alt="" @error="if($event.target.dataset.f!=='1'){$event.target.dataset.f='1';$event.target.src='https://img.youtube.com/vi/'+pendVideo.id+'/hqdefault.jpg'}"/><span class="pv-chip"><i class="fa-brands fa-youtube"></i> ভিডিও দেখুন</span><span class="pv-pb"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></span></button></template>
+              <template x-if="pv"><iframe :src="pendEmbed" title="ভিডিও" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></template>
+            </div>
+            <div class="pv-meta"><b x-text="pendVideo.title"></b><span x-text="pendVideo.sub"></span></div>
+          </div>
+        </template>
         <div class="pnd-hero"><span class="pnd-ring"></span><span class="pnd-ring r2"></span><div class="pnd-ic"><i class="fa-solid fa-hourglass-half"></i></div></div>
         <p class="pnd-title">আবেদন পর্যালোচনাধীন</p>
         <p class="pnd-sub">আপনার রিসেলার আবেদনটি এডমিন রিভিউ করছেন। অনুমোদন পেলে জানিয়ে দেওয়া হবে।</p>
@@ -4928,6 +5017,15 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <div class="tx"><p class="t">নতুন কালেকশন</p><p class="s">সেরা পণ্য বেছে নিন · প্রতিদিন নতুন যুক্ত হচ্ছে</p></div>
               <button @click="resellSubTab='post'">দেখুন <i class="fa-solid fa-arrow-right"></i></button>
             </div>
+
+            <!-- কাজের ভিডিও (চিকন কার্ড) — অ্যাডমিন থেকে লিংক + থাম্বনেইল দিলে দেখাবে -->
+            <template x-if="workVideo">
+              <div class="rh-wv" role="button" tabindex="0" aria-label="কাজের ভিডিও দেখুন" @click="openWorkVideo()" @keydown.enter="openWorkVideo()">
+                <span class="wv-th"><img :src="wvThumb" alt="" loading="lazy" @error="if($event.target.dataset.f!=='1'){$event.target.dataset.f='1';$event.target.src=wvYtThumb}"/><i class="wv-pb"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg></i></span>
+                <span class="wv-tx"><em>কাজের ভিডিও</em><b x-text="workVideo.title"></b><small x-text="workVideo.sub"></small></span>
+                <span class="wv-go">ভিডিও দেখুন <i class="fa-solid fa-arrow-right"></i></span>
+              </div>
+            </template>
 
             <!-- প্যাসিভ ইনকাম — আপনার রেফার কোড (ঘুরন্ত লাইটিং অ্যানিমেশন) — এক ট্যাপে কপি -->
             <div class="rh-ref" :class="refCopied?'done':''" x-show="reseller&&reseller.myReferralCode" x-cloak @click="copyRefHome()" role="button">
@@ -5806,8 +5904,50 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <div class="space-y-3">
             <div class="flex items-center gap-2">
               <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
-              <p class="section-title" style="margin:0" x-text="pageKey==='learning'?'লার্নিং ভিডিও':pageKey==='faq'?'সাধারণ জিজ্ঞাসা':pageDef.title"></p>
+              <p class="section-title" style="margin:0" x-text="pageKey==='workvideo'?'আমাদের কাজ সম্পর্কে জানুন':pageKey==='learning'?'লার্নিং ভিডিও':pageKey==='faq'?'সাধারণ জিজ্ঞাসা':pageDef.title"></p>
             </div>
+            <!-- ══ কাজের ভিডিও পেজ: প্লেয়ার + কীভাবে কাজ করবেন + ডেলিভারি/পেমেন্ট/উইথড্র + জিজ্ঞাসাবাদ ══ -->
+            <template x-if="pageKey==='workvideo'">
+              <div class="space-y-3">
+                <div x-show="!workVideo" class="text-center py-12" style="color:var(--fg3)"><i class="fa-solid fa-circle-play text-4xl mb-3 opacity-30"></i><p class="text-sm">ভিডিওটি শীঘ্রই যোগ করা হবে</p></div>
+                <template x-if="workVideo">
+                  <div class="wv-pc">
+                    <div class="wv-player"><iframe :src="wvEmbed" title="কাজের ভিডিও" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+                    <div class="wv-meta"><h2 x-text="workVideo.title"></h2><p x-text="workVideo.sub"></p></div>
+                  </div>
+                </template>
+
+                <div class="wv-grid">
+                  <div class="wv-ic2"><i class="fa-solid fa-truck-fast"></i><b>ডেলিভারি চার্জ</b><span x-text="'ঢাকা ৳'+shipRate('ঢাকা')+' · বাইরে ৳'+shipRate('অন্যান্য')"></span></div>
+                  <div class="wv-ic2"><i class="fa-solid fa-hand-holding-dollar"></i><b>পেমেন্ট</b><span>অগ্রিম ডেলিভারি চার্জ + বাকি ক্যাশ অন ডেলিভারি</span></div>
+                  <div class="wv-ic2"><i class="fa-solid fa-wallet"></i><b>উইথড্র</b><span x-text="'ন্যূনতম ৳'+wdPol.min+' · bKash/Nagad'"></span></div>
+                  <div class="wv-ic2"><i class="fa-solid fa-coins"></i><b>আপনার লাভ</b><span>ডেলিভারড হলে ওয়ালেটে জমা</span></div>
+                </div>
+
+                <div class="dd-card p-4">
+                  <p class="font-bold text-sm mb-3"><i class="fa-solid fa-list-check mr-1.5" style="color:var(--accent)"></i>কীভাবে কাজ করবেন</p>
+                  <ol class="wv-steps">
+                    <li><b>অনুমোদন পান</b><span>সঠিক নাম ও মোবাইল নম্বরে রেজিস্ট্রেশন করুন। অনুমোদনের পর রিসেলিং শুরু।</span></li>
+                    <li><b>পণ্য বেছে নিন</b><span>প্রতিটি পণ্যের রিসেলার প্রাইস নির্ধারিত — এর নিচে বিক্রি করা যাবে না।</span></li>
+                    <li><b>নিজের দামে বিক্রি করুন</b><span>লাভ = আপনার বিক্রয়মূল্য − রিসেলার প্রাইস।</span></li>
+                    <li><b>অর্ডার দিন</b><span>কাস্টমারের তথ্য দিয়ে অর্ডার করুন, ডেলিভারি চার্জ অগ্রিম নেওয়া হয়েছে কিনা জানান (অগ্রিম হলে TrxID দিন)।</span></li>
+                    <li><b>ডেলিভারি হলে লাভ পান</b><span>অর্ডার ডেলিভারড হলে লাভ ওয়ালেটে জমা হয়; সেখান থেকে bKash/Nagad-এ উইথড্র করুন।</span></li>
+                  </ol>
+                </div>
+
+                <div class="dd-card p-4">
+                  <p class="font-bold text-sm mb-2"><i class="fa-solid fa-circle-question mr-1.5" style="color:var(--accent)"></i>জিজ্ঞাসাবাদ</p>
+                  <div class="space-y-2">
+                    <template x-for="(f,i) in wvFaq" :key="'wvq'+i">
+                      <div class="v5-acc"><button type="button" @click="wvQ=wvQ===i?-1:i" class="w-full flex items-center justify-between gap-2 p-3.5 text-left" style="background:none;border:none;cursor:pointer;color:var(--fg)"><span class="text-sm font-bold" x-text="f.q"></span><i class="fa-solid text-xs flex-shrink-0" :class="wvQ===i?'fa-chevron-up':'fa-chevron-down'"></i></button><p x-show="wvQ===i" class="px-3.5 pb-3.5 text-sm leading-relaxed" style="white-space:pre-line;color:var(--fg2)" x-text="f.a"></p></div>
+                    </template>
+                  </div>
+                  <button type="button" x-show="faqList.length>0" @click="pageKey='faq';faqOpen=-1" class="w-full mt-3 text-xs font-bold py-2.5 rounded-xl" style="background:var(--bg2);color:var(--fg2);border:none;cursor:pointer">আরও প্রশ্ন-উত্তর দেখুন <i class="fa-solid fa-arrow-right ml-1"></i></button>
+                </div>
+
+                <button type="button" @click="resellSubTab='post'" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-store mr-2"></i>পণ্য দেখে কাজ শুরু করুন</button>
+              </div>
+            </template>
             <template x-if="pageKey==='learning'">
               <div class="space-y-2">
                 <div x-show="learningList.length===0" class="text-center py-12" style="color:var(--fg3)"><i class="fa-solid fa-video text-4xl mb-3 opacity-30"></i><p class="text-sm">শীঘ্রই ভিডিও যোগ করা হবে</p></div>
@@ -5821,7 +5961,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                 <template x-for="(f,i) in faqList" :key="i"><div class="v5-acc"><button type="button" @click="faqOpen=faqOpen===i?-1:i" class="w-full flex items-center justify-between gap-2 p-3.5 text-left" style="background:none;border:none;cursor:pointer;color:var(--fg)"><span class="text-sm font-bold" x-text="f.q"></span><i class="fa-solid text-xs" :class="faqOpen===i?'fa-chevron-up':'fa-chevron-down'"></i></button><p x-show="faqOpen===i" class="px-3.5 pb-3.5 text-sm leading-relaxed" style="white-space:pre-line;color:var(--fg2)" x-text="f.a"></p></div></template>
               </div>
             </template>
-            <template x-if="pageKey!=='learning'&&pageKey!=='faq'">
+            <template x-if="pageKey!=='learning'&&pageKey!=='faq'&&pageKey!=='workvideo'">
               <div class="space-y-3">
                 <div class="dd-card p-4"><p class="text-sm leading-relaxed" style="white-space:pre-line;color:var(--fg2)" x-text="pageDef.body"></p>
                   <button x-show="pageDef.btnText&&pageDef.btnLink" @click="openExt(pageDef.btnLink)" class="btn-primary w-full mt-3" style="justify-content:center" x-text="pageDef.btnText"></button></div>
@@ -6202,7 +6342,7 @@ function App(){return{
     {id:'tt',label:'টেলিটক',en:'Teletalk',types:['Pre-Paid','Post-Paid'],pre:['015']},
   ],
   svcCat:'সব',svcView:null,svcStep:'',svcQty:1,svcContact:'',svcBusy:false,svcTab:'list',
-  pageKey:'',faqOpen:-1,ecomMsg:'',
+  pageKey:'',faqOpen:-1,wvQ:-1,rlName:'',rlSlow:false,ecomMsg:'',
   lightbox:'',
   processingOrder:false,
   acctRec:{open:false,step:1,email:'',pw:'',loading:false,error:'',cool:0},
@@ -7822,6 +7962,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   _listenMyReseller(){
     if(!this.resellSession)return;
     const ph=this.resellSession;
+    if(!this._rlSlowT)this._rlStart(ph);
     this.resellRecLoaded=false;clearTimeout(this._rrT);this._rrT=setTimeout(()=>{this.resellRecLoaded=true},5000);
     /* দ্রুত শুরু: এই ডিভাইসে আগের বার সেভ করা রেকর্ড থাকলে সঙ্গে সঙ্গে ড্যাশবোর্ড দেখানো; আসল ডাটা এলে নিজেই আপডেট হবে */
     try{const c0=localStorage.getItem('dd_rsrec_'+ph);if(c0&&!this.reseller){const r0=JSON.parse(c0);if(r0&&r0.status==='approved'){this.reseller=r0;this.resellRecLoaded=true;clearTimeout(this._rrT)}}}catch(e){}
@@ -7984,8 +8125,9 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       f.err=(c==='auth/wrong-password'||c==='auth/invalid-credential'||c==='auth/invalid-login-credentials')?'বর্তমান পিন সঠিক নয়!':(c==='auth/network-request-failed')?'ইন্টারনেট সংযোগ চেক করুন।':(c==='auth/no-session')?'আবার লগআউট করে লগইন করুন, তারপর চেষ্টা করুন।':(c==='auth/too-many-requests')?'অনেকবার ভুল চেষ্টা হয়েছে, কিছুক্ষণ পরে আবার চেষ্টা করুন।':'পিন বদলানো যায়নি, আবার চেষ্টা করুন।';
     }finally{f.busy=false}
   },
+  _rlStart(ph){try{const c=JSON.parse(localStorage.getItem('dd_rsrec_'+ph)||'null');if(c)this.rlName=String(c.shopName||c.name||'').slice(0,40)}catch(e){}this.rlSlow=false;clearTimeout(this._rlSlowT);this._rlSlowT=setTimeout(()=>{this.rlSlow=true},6000)},
   async _restoreResellSession(ph){
-    this.resellRecLoaded=false;
+    this.resellRecLoaded=false;this._rlStart(ph);
     try{await this._wt(window.$auth.authReady,8000,null)}catch(e){}
     if(this.resellSession!==ph)return;
     const cu=window.$auth.auth.currentUser;
@@ -9038,6 +9180,30 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     };
     const k=this.pageKey,d=D[k]||{title:'',body:''},c=(this.rcfg.pages||{})[k]||{};
     return{title:c.title||d.title,body:c.body||d.body,btnText:c.btnText||'',btnLink:c.btnLink||''};
+  },
+  // ══ কাজের ভিডিও (অ্যাডমিন: রিসেলার কনটেন্ট → কাজের ভিডিও) ══
+  ytId(u){u=String(u||'').trim();let m;if((m=u.match(/youtu\.be\/([\w-]{11})/))||(m=u.match(/[?&]v=([\w-]{11})/))||(m=u.match(/youtube(?:-nocookie)?\.com\/(?:shorts|embed|live|v)\/([\w-]{11})/)))return m[1];return ''},
+  get workVideo(){const w=(this.rcfg&&this.rcfg.workVideo)||null;if(!w||w.active===false)return null;const id=this.ytId(w.url);if(!id)return null;return{id,title:String(w.title||'').trim()||'আমাদের কাজ সম্পর্কে জানুন',sub:String(w.sub||'').trim()||'কীভাবে কাজ করবেন — ভিডিওতে দেখুন',thumb:w.thumb||''}},
+  get wvYtThumb(){const v=this.workVideo;return v?'https://img.youtube.com/vi/'+v.id+'/hqdefault.jpg':''},
+  get wvThumb(){const v=this.workVideo;if(!v)return '';return (v.thumb&&this.safeUrl(v.thumb))||this.wvYtThumb},
+  get wvEmbed(){const v=this.workVideo;return v?'https://www.youtube-nocookie.com/embed/'+v.id+'?rel=0&modestbranding=1&playsinline=1':''},
+  get pendVideo(){const w=(this.rcfg&&this.rcfg.pendingVideo)||null;if(!w||w.active===false)return null;const id=this.ytId(w.url);if(!id)return null;return{id,title:String(w.title||'').trim()||'একটু অপেক্ষা করুন — যাচাই চলছে',sub:String(w.sub||'').trim()||'অ্যাডমিন আপনার সব তথ্য যাচাই করে অ্যাকাউন্ট চালু করে দেবেন। ভিডিওটি দেখে নিন।',thumb:w.thumb||''}},
+  get pendThumb(){const v=this.pendVideo;if(!v)return '';return (v.thumb&&this.safeUrl(v.thumb))||'https://img.youtube.com/vi/'+v.id+'/hqdefault.jpg'},
+  get pendEmbed(){const v=this.pendVideo;return v?'https://www.youtube-nocookie.com/embed/'+v.id+'?rel=0&modestbranding=1&playsinline=1&autoplay=1':''},
+  openWorkVideo(){this.wvQ=-1;this.pageKey='workvideo';this.resellSubTab='page';try{window.scrollTo({top:0})}catch(e){}},
+  get wvFaq(){
+    const sd=this.shipRate('ঢাকা'),so=this.shipRate('অন্যান্য'),w=this.wdPol;
+    return[
+      {q:'রিসেলিং কী এবং কীভাবে শুরু করব?',a:'রিসেলিং মানে Daily Deal-এর পণ্য নিজের দামে বিক্রি করে লাভ করা। সঠিক নাম ও মোবাইল নম্বরে রেজিস্ট্রেশন করুন; অনুমোদনের পর পণ্য বেছে নিয়ে অর্ডার দিলেই কাজ শুরু।'},
+      {q:'আমার লাভ কীভাবে হিসাব হয়?',a:'প্রতিটি পণ্যের একটি নির্ধারিত রিসেলার প্রাইস আছে। আপনার বিক্রয়মূল্য থেকে রিসেলার প্রাইস বাদ দিলে যা থাকে সেটাই আপনার লাভ। রিসেলার প্রাইসের নিচে বিক্রি করা যাবে না।\nউদাহরণ: রিসেলার প্রাইস ৳500, আপনি বিক্রি করলেন ৳650 → লাভ ৳150।'},
+      {q:'ডেলিভারি চার্জ কত এবং ডেলিভারিতে কত সময় লাগে?',a:'ডেলিভারি চার্জ ঢাকায় ৳'+sd+', ঢাকার বাইরে ৳'+so+'। ডেলিভারি সাধারণত ঢাকায় ১–২ দিন এবং সারাদেশে ২–৪ কর্মদিবসে হয়।'},
+      {q:'পেমেন্ট কীভাবে হয়?',a:'অর্ডারের সময় ডেলিভারি চার্জ অগ্রিম নেওয়া হয়েছে কিনা জানাতে হয়। অগ্রিম হলে আমাদের bKash/Nagad নম্বরে পাঠিয়ে TrxID দিন; না হলে ডেলিভারির সময় কাস্টমারের কাছ থেকে নেওয়া হবে। পণ্যের বাকি মূল্য কাস্টমার পণ্য হাতে পেয়ে পরিশোধ করবে (ক্যাশ অন ডেলিভারি)।'},
+      {q:'লাভের টাকা কখন ওয়ালেটে জমা হয়?',a:'অর্ডার সফলভাবে ডেলিভারড হলে লাভ আপনার ওয়ালেটে জমা হয়। বাতিল বা ফেরত অর্ডারে লাভ পাওয়া যায় না।'},
+      {q:'উইথড্র কীভাবে করব, ন্যূনতম কত?',a:'ওয়ালেট থেকে bKash/Nagad-এ উইথড্র রিকোয়েস্ট দিন; অ্যাডমিন যাচাইয়ের পর পেমেন্ট হয়। ন্যূনতম উইথড্র ৳'+w.min+(w.max?', সর্বোচ্চ ৳'+w.max:'')+(w.fee?' এবং ফি '+w.fee+'%':'')+'।'},
+      {q:'রেফারেল ইনকাম কীভাবে হয়?',a:'আপনার রেফার কোড/লিংক শেয়ার করে টিম তৈরি করলে ৩ জেনারেশন পর্যন্ত কমিশন পাওয়া যায়; কমিশন পণ্যভেদে আলাদা এবং অ্যাপে দেখানো হয়। এই টাকা আলাদা রেফারেল ওয়ালেটে জমা হয়। সেখান থেকে উইথড্র দিতে ব্যালেন্স কমপক্ষে ৳'+this.refMinWd+' এবং কমপক্ষে '+this.refMinSales+'টি প্রোডাক্ট সেল (ডেলিভারড) থাকতে হবে।'},
+      {q:'অর্ডার বাতিল বা ফেরত হলে কী হয়?',a:'বাতিল বা ফেরত অর্ডারে লাভ পাওয়া যায় না। কাস্টমারকে ডেলিভারি ম্যানের সামনেই পণ্য চেক করে নিতে বলুন; ডেলিভারি ম্যান চলে যাওয়ার পর রিটার্ন বা পরিবর্তন চাইলে অতিরিক্ত ডেলিভারি চার্জ লাগতে পারে।'},
+      {q:'কী করলে অ্যাকাউন্ট স্থগিত হতে পারে?',a:'ভুয়া অর্ডার, প্রতারণা, ভুল তথ্য বা আমাদের নাম অপব্যবহার করলে অ্যাকাউন্ট স্থগিত ও ওয়ালেট আটকে দেওয়া হতে পারে। কাস্টমারের তথ্য শুধু অর্ডারের কাজে ব্যবহার করতে হবে।'}
+    ];
   },
   get faqList(){return this._arr(this.rcfg.faq).filter(v=>v&&v.q)},
   async sendEcomRequest(){
