@@ -3617,22 +3617,26 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   </div>
 </div>
 
-<!-- ═══ RESELLER SIDEBAR DRAWER (NEW) ═══ -->
-<div class="col-overlay" x-show="resellSidebarOpen" x-cloak style="position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);touch-action:none;overscroll-behavior:contain" @click.self="resellSidebarOpen=false">
-  <div class="h-full overflow-y-auto overflow-x-hidden transition-transform duration-200" :style="'width:82%;max-width:300px;background:var(--card);touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;will-change:transform;'+(resellSidebarOpen?'transform:translateX(0)':'transform:translateX(-100%)')">
-    <div class="p-4 flex items-center gap-3" style="background:var(--header)">
-      <div class="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-bold text-white flex-shrink-0" style="background:var(--accent)" x-text="(reseller?.shopName||reseller?.name||'R').charAt(0)"></div>
-      <div class="min-w-0"><p class="text-sm font-bold text-white truncate" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs text-white opacity-60" x-text="resellSession"></p></div>
-    </div>
-    <div class="py-2">
-      <template x-for="m in resellSidebarMenu" :key="m._id">
-        <button @click="resellMenuClick(m)" class="w-full flex items-center gap-3 px-4 py-3 text-left" style="background:none;border:none;cursor:pointer;border-bottom:1px solid var(--border)">
-          <i :class="m.icon" class="w-4 text-center text-sm" style="color:var(--accent)"></i>
-          <span class="text-sm font-semibold" style="color:var(--fg2)" x-text="m.label"></span>
-        </button>
-      </template>
-    </div>
-  </div>
+<!-- ═══ RESELLER SIDEBAR DRAWER (v2) ═══ -->
+<div class="col-overlay rx-ov" x-show="resellSidebarOpen" x-cloak x-transition.opacity.duration.250ms style="position:fixed;inset:0;z-index:400;touch-action:none;overscroll-behavior:contain" @click.self="resellSidebarOpen=false">
+<aside class="rx-dr" aria-label="রিসেলার মেনু">
+<div class="rx-dh"><button type="button" class="rx-dx rx-tap" @click="resellSidebarOpen=false" aria-label="বন্ধ করুন"><i class="fa-solid fa-xmark"></i></button>
+<div class="rx-dp"><div class="rx-av" x-text="(reseller?.name||reseller?.shopName||'R').charAt(0).toUpperCase()"></div><div class="min-w-0"><h3 x-text="reseller?.name||reseller?.shopName"></h3><p x-text="resellSession"></p><span class="rx-vf"><i></i>ভেরিফাইড রিসেলার</span></div></div></div>
+<div class="rx-dn">
+<div class="rx-gg"><p class="rx-gl">নেভিগেশন ও প্রোডাক্ট</p>
+<template x-for="(m,i) in resellSidebarMenu.filter(m=>['s0','s1','s5','s6','s7'].includes(m._id))" :key="m._id">
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((0)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+</template></div>
+<div class="rx-gg"><p class="rx-gl">অ্যাকাউন্ট ও পেমেন্ট</p>
+<template x-for="(m,i) in resellSidebarMenu.filter(m=>['s2','s10','s13','s14'].includes(m._id))" :key="m._id">
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((5)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+</template></div>
+<div class="rx-gg"><p class="rx-gl">সাপোর্ট ও অন্যান্য</p>
+<template x-for="(m,i) in resellSidebarMenu.filter(m=>['s16','s17'].includes(m._id)||String(m._id).startsWith('c_'))" :key="m._id">
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((9)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+</template></div>
+</div>
+</aside>
 </div>
 
 <!-- ঘোষণা পপআপ + ভিডিও মডাল (রিসেলার, অ্যাডমিন-কনফিগ) -->
@@ -3762,7 +3766,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
   <!-- ═══ SOCIAL FOLLOW BANNERS (Facebook / TikTok) ═══ -->
   <style id="dd-social-css">
-  .dd-so{margin:14px 14px 0;font-family:'Hind Siliguri',sans-serif}
+  .dd-so{margin:8px 14px 0;font-family:'Hind Siliguri',sans-serif}
   .dd-so-h{text-align:center;font-weight:800;font-size:21px;line-height:1.25;color:#111;margin:0}
   .dd-so-h b{color:#E8380D}
   .dd-so-s{text-align:center;font-size:12px;color:#6b6258;margin:5px 0 12px}
@@ -3811,8 +3815,6 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     go(n){this.i=n;this.count();this.timer()},
     timer(){clearInterval(this.t);this.t=setInterval(()=>this.go((this.i+1)%2),6000)}
   }" x-init="const el=$el;if('IntersectionObserver' in window){new IntersectionObserver((e,o)=>{if(e[0].isIntersecting){count();timer();o.disconnect()}},{threshold:.25}).observe(el)}else{count();timer()}">
-    <h2 class="dd-so-h">সোশ্যাল মিডিয়ায় <b>ফলো করুন</b></h2>
-    <p class="dd-so-s">নতুন অফার আর আপডেট সবার আগে পেতে আমাদের পেজে যুক্ত হোন</p>
     <template x-for="(it,idx) in items" :key="it.k">
       <a x-show="i===idx" :href="url()" target="_blank" rel="noopener noreferrer" class="dd-so-card in" :class="it.cls">
         <div class="dd-so-top">
@@ -5002,7 +5004,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
     <template x-if="resellStatus==='approved'">
       <div>
-        <div class="flex items-center justify-between mb-4">
+        <div x-show="resellSubTab!=='home'" class="flex items-center justify-between mb-4">
           <div class="flex items-center gap-2.5 min-w-0">
             <button @click="resellSidebarOpen=true" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-bars text-xs" style="color:var(--fg2)"></i></button>
             <div class="min-w-0"><p class="font-display text-lg truncate" style="color:var(--fg)" x-text="reseller?.shopName||reseller?.name"></p><p class="text-xs" style="color:var(--fg3)">রিসেলার প্যানেল</p></div>
@@ -5017,58 +5019,33 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 
         <!-- ══ HOME (button grid, matches shopbasebd) ══ -->
         <template x-if="resellSubTab==='home'">
-          <div class="rh">
-            <div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(rhMarquee)"></p></div>
+<div class="rx">
+<div class="rx-mr"><div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(rhMarquee)"></p></div>
+<button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
             <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" @click="resellSubTab='shop'" class="text-xs font-bold mt-2 px-3 py-1.5 rounded-lg" style="background:#B45309;color:#fff;border:0;cursor:pointer">পিন বদলান</button></div></div>
 
-            <!-- ব্যানার -->
-            <div class="rh-banner" x-data="{a:0}" x-init="const t=setInterval(()=>{if(!$el.isConnected){clearInterval(t);return}const n=(banners||[]).filter(b=>b&&b.img).length;if(n>1)a=(a+1)%n},4200)">
-              <template x-if="(banners||[]).filter(b=>b&&b.img).length>0">
-                <div class="rh-ban-img">
-                  <template x-for="(b,i) in (banners||[]).filter(b=>b&&b.img)" :key="i"><img x-show="a===i" :src="optImg(b.img,900)" alt="" loading="lazy"/></template>
-                  <div class="rh-dots"><template x-for="(b,i) in (banners||[]).filter(b=>b&&b.img)" :key="'d'+i"><i :class="a===i?'on':''"></i></template></div>
-                </div>
-              </template>
-              <template x-if="(banners||[]).filter(b=>b&&b.img).length===0">
-                <div class="rb-wrap" x-data="{a:0}" x-init="const _t=setInterval(()=>{if(!$el.isConnected){clearInterval(_t);return}a=(a+1)%3},1500)">
-                  <div class="rb-s rb-1" :class="a===0?'on':''">
-                    <div class="rb-txt"><p class="rb-t" x-text="(settings.siteName||'Daily Deal')+' রিসেলিং'"></p><p class="rb-s2">কম দামে পণ্য নিন · নিজের দামে বিক্রি করুন · লাভ সরাসরি ওয়ালেটে</p></div>
-                    <span class="rb-ic rb-bounce"><i class="fa-solid fa-bag-shopping"></i></span>
-                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
-                  </div>
-                  <div class="rb-s rb-2" :class="a===1?'on':''">
-                    <div class="rb-txt"><p class="rb-t">নিজের দামে বিক্রি করুন</p><p class="rb-s2">পণ্যের দাম নিজে ঠিক করুন, লাভ জমুক আপনার ওয়ালেটে</p></div>
-                    <span class="rb-ic rb-float"><i class="fa-solid fa-coins"></i></span>
-                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
-                  </div>
-                  <div class="rb-s rb-3" :class="a===2?'on':''">
-                    <div class="rb-txt"><p class="rb-t">রেফার করে বাড়তি আয়</p><p class="rb-s2">বন্ধুদের জয়েন করালে ৩ লেভেলে কমিশন পান</p></div>
-                    <span class="rb-ic rb-pulse"><i class="fa-solid fa-user-plus"></i></span>
-                    <i class="rb-c c1"></i><i class="rb-c c2"></i><i class="rb-shine"></i>
-                  </div>
-                  <div class="rb-dots"><i :class="a===0?'on':''"></i><i :class="a===1?'on':''"></i><i :class="a===2?'on':''"></i></div>
-                </div>
-              </template>
+            
+<section class="rx-card rx-prof">
+<div class="rx-pr"><div class="rx-pl"><button type="button" class="rx-mb rx-tap" @click="resellSidebarOpen=true" aria-label="মেনু"><i class="fa-solid fa-bars"></i></button>
+<div class="min-w-0"><h2 x-text="reseller?.name||reseller?.shopName"></h2><span class="rx-tg"><i class="fa-solid fa-store"></i><span>রিসেলার প্যানেল • <span x-text="reseller?.shopName||'Shop'"></span></span></span></div></div>
+<div class="rx-pa"><button type="button" class="rx-wd rx-tap" @click="resellSubTab='withdraw'">উইথড্র</button><button type="button" class="rx-lo rx-tap" @click="resellMenuClick({action:'exitToSite'})" title="ইউজার সাইটে ফিরে যান" aria-label="ইউজার সাইটে ফিরে যান"><i class="fa-solid fa-arrow-right-from-bracket"></i></button></div></div>
+<div class="rx-wl">
+<div class="rx-w1"><span class="rx-wi"><i class="fa-solid fa-wallet"></i></span><div><p>মেইন ব্যালেন্স</p><b x-text="'৳ '+(reseller?.walletBalance||0).toLocaleString()"></b></div></div>
+<button type="button" class="rx-w2 rx-tap" x-show="reseller&&reseller.myReferralCode" x-cloak @click="refWalletOpen=true"><span class="rx-wi"><i class="fa-solid fa-users"></i></span><div><p>রেফারেল ওয়ালেট</p><b><span x-text="'৳ '+refBalance.toLocaleString()"></span> <small :class="refSalesOk?'ok':'lk'" x-text="refSalesOk?'✓ শর্ত পূরণ':'('+refSoldCount+'/'+refMinSales+' সেল)'"></small></b></div></button>
+<div class="rx-w2" x-show="!(reseller&&reseller.myReferralCode)" x-cloak><span class="rx-wi"><i class="fa-solid fa-users"></i></span><div><p>রেফারেল ওয়ালেট</p><b>৳ 0</b></div></div></div>
+<section class="rx-rf" :class="refCopied?'done':''" x-show="reseller&&reseller.myReferralCode" x-cloak role="button" @click="copyRefHome()">
+<div class="rx-rtop"><span class="rx-rico"><i class="fa-solid fa-gift"></i></span><div class="min-w-0"><span class="rx-rt">প্যাসিভ ইনকাম • ৩ জেনারেশন</span><p class="rx-rc" x-text="reseller&&reseller.myReferralCode"></p></div></div>
+<p class="rx-rh" x-text="refCopied?'কপি হয়েছে ✓':'ট্যাপ করে রেফার লিংক কপি করুন এবং বন্ধুদের শেয়ার করুন'"></p>
+<div class="rx-rb"><button type="button" class="a rx-tap" @click.stop="copyRefHome()" title="কোড কপি করুন" aria-label="কোড কপি করুন"><i class="fa-solid" :class="refCopied?'fa-check':'fa-copy'"></i><span x-text="refCopied?'কপি হয়েছে':'কপি করুন'"></span></button><button type="button" class="b rx-tap" @click.stop="shareRefHome()" title="শেয়ার করুন" aria-label="শেয়ার করুন"><i class="fa-solid fa-share-nodes"></i><span>শেয়ার করুন</span></button></div></section>
+<div class="rh-ref0" x-show="reseller&&!reseller.myReferralCode" x-cloak>
+              <span class="ic"><i class="fa-solid fa-coins"></i></span>
+              <div><b>প্যাসিভ ইনকাম</b><p>অ্যাকাউন্ট অ্যাপ্রুভ হলে আপনার রেফার কোড এখানে চলে আসবে — কপি করে শেয়ার করুন, ৩ জেনারেশন পর্যন্ত কমিশন পান।</p></div>
             </div>
+</section>
 
-            <!-- কুইক লিংক -->
-            <div class="rh-quick">
-              <template x-for="t in rhQuick" :key="t._id"><button type="button" @click="resellButtonClick(t)" class="rh-q"><span class="rh-qi" :style="'background:'+t.bg"><i :class="t.icon"></i></span><b x-text="t.label"></b></button></template>
-            </div>
-
-            <!-- নতুন লিংক অর্ডার অ্যালার্ট -->
-            <div x-show="pendingLinkOrders.length>0" x-cloak class="rh-alert">
-              <span><i class="fa-solid fa-bell"></i></span>
-              <div class="flex-1"><p class="font-bold text-sm" x-text="'নতুন লিংক অর্ডার ('+pendingLinkOrders.length+')'"></p><p class="text-xs mt-0.5">আপনার লিংক থেকে অর্ডার এসেছে — এপ্রুভ করুন</p></div>
-              <button @click="resellOrdersSubTab='link';resellSubTab='orders'">দেখুন</button>
-            </div>
-
-            <!-- নতুন কালেকশন (ছোট কার্ড) -->
-            <div class="rh-zc2">
-              <span class="ic"><i class="fa-solid fa-store"></i></span>
-              <div class="tx"><p class="t">নতুন কালেকশন</p><p class="s">সেরা পণ্য বেছে নিন · প্রতিদিন নতুন যুক্ত হচ্ছে</p></div>
-              <button @click="resellSubTab='post'">দেখুন <i class="fa-solid fa-arrow-right"></i></button>
-            </div>
+<section class="rx-al" x-show="pendingLinkOrders.length>0" x-cloak>
+<div class="rx-ai"><span><i class="fa-solid fa-bell"></i></span><div><h3 x-text="'নতুন লিংক অর্ডার ('+pendingLinkOrders.length+')'"></h3><p>আপনার লিংক থেকে অর্ডার এসেছে — এপ্রুভ করুন</p></div></div>
+<button type="button" class="rx-tap" @click="resellOrdersSubTab='link';resellSubTab='orders'">দেখুন</button></section>
 
             <!-- কাজের ভিডিও (চিকন কার্ড) — অ্যাডমিন থেকে লিংক + থাম্বনেইল দিলে দেখাবে -->
             <template x-if="workVideo">
@@ -5079,77 +5056,87 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               </div>
             </template>
 
-            <!-- প্যাসিভ ইনকাম — আপনার রেফার কোড (ঘুরন্ত লাইটিং অ্যানিমেশন) — এক ট্যাপে কপি -->
-            <div class="rh-ref" :class="refCopied?'done':''" x-show="reseller&&reseller.myReferralCode" x-cloak @click="copyRefHome()" role="button">
-              <i class="rh-lite" aria-hidden="true"></i><i class="rh-sp s1"></i><i class="rh-sp s2"></i><i class="rh-sp s3"></i>
-              <span class="ic"><i class="fa-solid fa-coins"></i></span>
-              <div class="tx"><p class="l">প্যাসিভ ইনকাম · আপনার রেফার কোড</p><p class="c" x-text="reseller&&reseller.myReferralCode"></p><p class="h" x-text="refCopied?'কপি হয়েছে ✓':'ট্যাপ করে রেফার লিংক কপি · ৩ জেনারেশন পর্যন্ত কমিশন'"></p></div>
-              <div class="cp">
-                <button class="b1" @click.stop="copyRefHome()" title="কোড কপি করুন" aria-label="কোড কপি করুন"><i class="fa-solid" :class="refCopied?'fa-check':'fa-copy'"></i></button>
-                <button class="b2" @click.stop="shareRefHome()" title="শেয়ার করুন" aria-label="শেয়ার করুন"><i class="fa-solid fa-share-nodes"></i></button>
+<section class="rx-card rx-rs" x-init="_rsLoadIncome()">
+<div class="rx-hd"><h3><i class="fa-solid fa-arrow-trend-up"></i> আমার রিসেলিং</h3><button type="button" class="rx-lk rx-tap" @click="rsOpenDash('dashboard')">বিস্তারিত →</button></div>
+<div class="rx-k3"><div><p>মোট অর্ডার</p><b x-text="rsStats.total"></b></div><div class="g"><p>কনফার্মড প্রফিট</p><b x-text="'৳'+rsStats.profitDone.toLocaleString()"></b></div><div class="r"><p>টিম ইনকাম</p><b x-text="'৳'+rsIncome.total.toLocaleString()"></b></div></div>
+<div class="rx-k4">
+<button type="button" class="rx-tap" @click="rsOpenDash('list')"><span class="rx-ic" style="background:#F97316"><i class="fa-solid fa-file-lines"></i></span><span class="t">অর্ডার ও প্রফিট</span></button>
+<button type="button" class="rx-tap" @click="resellOrderStatusF='কমপ্লিট';rsOpenDash('list')"><span class="rx-ic" style="background:#059669"><i class="fa-solid fa-truck-fast"></i></span><span class="t">ডেলিভারি স্ট্যাটাস</span></button>
+<button type="button" class="rx-tap" @click="rsOpenDash('team')"><span class="rx-ic" style="background:#2563EB"><i class="fa-solid fa-users"></i></span><span class="t">আমার টিম</span></button>
+<button type="button" class="rx-tap" @click="rsOpenDash('dashboard')"><span class="rx-ic" style="background:#F59E0B"><i class="fa-solid fa-coins"></i></span><span class="t">টিম ইনকাম</span></button>
+</div></section>
+
+<section class="rx-sec" x-show="resellHomeButtons.length>0||rhQuick.length>0">
+<div class="rx-tabs" role="tablist">
+<template x-for="t in rxTabDefs" :key="'tb'+t.k"><button type="button" role="tab" class="rx-tb rx-tap" :class="rxTab===t.k?'on':''" :aria-selected="rxTab===t.k" x-show="rxHomeTabs[t.k].length>0" @click="rxTab=t.k"><i :class="t.icon"></i><span x-text="t.label"></span></button></template></div>
+<template x-for="t in rxTabDefs" :key="'pn'+t.k">
+<div class="rx-pn" :class="'rx-pn-'+t.k" x-show="rxTab===t.k" x-transition.opacity.duration.200ms>
+<p class="rx-pt" x-text="t.sub"></p>
+<div class="rx-pg">
+<template x-for="b in rxHomeTabs[t.k]" :key="b._id">
+<button type="button" @click="resellButtonClick(b)" class="rx-pb rx-tap"><span class="rx-ic" :style="'background:'+(b.bg||'#F3F4F6')+';color:'+(b.color||'#fff')"><i :class="b.icon"></i></span><span class="rx-lb" x-text="b.label"></span></button>
+</template></div></div></template>
+</section>
+
+<section class="rx-nt"><div><span><i class="fa-solid fa-store"></i></span><div><h4>জরুরী নোটিশ</h4><p>কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয় — তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p></div></div>
+<button type="button" class="rx-tap" @click="resellSubTab='shop'"><i class="fa-solid fa-user-pen"></i> এডিট</button></section>
+</div>
+</template>
+
+<!-- ══ PRODUCT SEARCH (শুধু সার্চ: নাম / আইডি / ছবি — ক্যাটাগরি ও ফিড নেই) ══ -->
+        <template x-if="resellSubTab==='search'">
+          <div class="space-y-3" x-init="$cleanup(()=>{resellSearchQuery='';clearImgSearch()})">
+            <div class="flex items-center gap-3"><button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer" aria-label="ফিরে যান"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button><p class="font-bold text-base" style="color:var(--fg)">প্রোডাক্ট সার্চ</p></div>
+
+            <div class="ss-box">
+              <div class="ss-tabs" role="tablist">
+                <button type="button" role="tab" class="ss-tab rx-tap" :class="resellSearchMode==='name'?'on':''" @click="resellSearchMode='name';clearImgSearch()"><i class="fa-solid fa-font"></i><span>প্রোডাক্ট নাম</span></button>
+                <button type="button" role="tab" class="ss-tab rx-tap" :class="resellSearchMode==='id'?'on':''" @click="resellSearchMode='id';clearImgSearch()"><i class="fa-solid fa-hashtag"></i><span>প্রোডাক্ট আইডি</span></button>
+                <button type="button" role="tab" class="ss-tab rx-tap" :class="resellSearchMode==='image'?'on':''" @click="resellSearchMode='image';resellSearchQuery=''"><i class="fa-solid fa-camera"></i><span>ছবি দিয়ে</span></button>
               </div>
-            </div>
-            <button type="button" x-show="reseller&&reseller.myReferralCode" x-cloak @click="refWalletOpen=true" class="dd-card p-3 w-full flex items-center gap-3 text-left mb-3" style="cursor:pointer;border:1px solid #DDD6FE;background:linear-gradient(135deg,#F5F3FF,#EDE9FE)">
-              <span class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:#7C3AED;color:#fff"><i class="fa-solid fa-wallet text-sm"></i></span>
-              <span class="flex-1 min-w-0"><span class="block text-xs" style="color:#6D28D9">রেফারেল ওয়ালেট · টিম থেকে আয়</span><span class="block font-display text-base" style="color:#5B21B6" x-text="'৳'+refBalance.toLocaleString()"></span><span class="block mt-0.5" style="font-size:10px" :style="refSalesOk?'color:#15803D':'color:#B45309'"><i class="fa-solid mr-1" :class="refSalesOk?'fa-circle-check':'fa-lock'"></i><span x-text="refSalesOk?'সেল শর্ত পূরণ ✓':'উইথড্রে '+refMinSales+'টি প্রোডাক্ট সেল বাধ্যতামূলক ('+refSoldCount+'/'+refMinSales+')'"></span></span></span>
-              <i class="fa-solid fa-chevron-right text-xs" style="color:#6D28D9"></i>
-            </button>
-            <div class="rh-ref0" x-show="reseller&&!reseller.myReferralCode" x-cloak>
-              <span class="ic"><i class="fa-solid fa-coins"></i></span>
-              <div><b>প্যাসিভ ইনকাম</b><p>অ্যাকাউন্ট অ্যাপ্রুভ হলে আপনার রেফার কোড এখানে চলে আসবে — কপি করে শেয়ার করুন, ৩ জেনারেশন পর্যন্ত কমিশন পান।</p></div>
+
+              <div x-show="resellSearchMode!=='image'" class="ss-inp">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="rs-search-input" type="search" x-model="resellSearchQuery" :placeholder="resellSearchMode==='id'?'প্রোডাক্ট আইডি লিখুন (যেমন: 1024)':'প্রোডাক্টের নাম লিখুন...'" autocomplete="off"/>
+                <button type="button" x-show="resellSearchQuery" @click="resellSearchQuery=''" aria-label="মুছুন"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+
+              <div x-show="resellSearchMode==='image'" x-cloak>
+                <label class="ss-drop">
+                  <img x-show="imgSearch.preview" :src="imgSearch.preview" alt=""/>
+                  <span class="ss-di" x-show="!imgSearch.preview"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                  <span class="ss-dt"><b x-text="imgSearch.preview?'অন্য ছবি দিন':'প্রোডাক্টের ছবি আপলোড করুন'"></b><small>যে ধরনের প্রোডাক্ট খুঁজছেন তার একটি স্পষ্ট ছবি দিন</small></span>
+                  <input type="file" accept="image/*" class="hidden" @change="runImgSearch($event)"/>
+                </label>
+                <div class="ss-bar" x-show="imgSearch.busy"><i :style="'width:'+imgSearch.pct+'%'"></i></div>
+                <p class="ss-note" x-show="imgSearch.busy" x-text="'ছবি মেলানো হচ্ছে... '+imgSearch.pct+'%'"></p>
+                <button type="button" class="ss-clr" x-show="imgSearch.preview&&!imgSearch.busy" @click="clearImgSearch()"><i class="fa-solid fa-xmark"></i> ছবি মুছুন</button>
+              </div>
             </div>
 
-            <!-- আমার রিসেলিং ড্যাশবোর্ড (অর্ডার · প্রফিট · টিম ইনকাম) -->
-            <div class="rh-dash" x-init="_rsLoadIncome()">
-              <div class="hd"><b><i class="fa-solid fa-chart-line" style="color:var(--accent);margin-right:6px"></i>আমার রিসেলিং</b><button @click="rsOpenDash('dashboard')">বিস্তারিত <i class="fa-solid fa-arrow-right"></i></button></div>
-              <div class="st">
-                <div><p>মোট অর্ডার</p><b x-text="rsStats.total"></b></div>
-                <div><p>কনফার্মড প্রফিট</p><b style="color:#16A34A" x-text="'৳'+rsStats.profitDone.toLocaleString()"></b></div>
-                <div><p>টিম ইনকাম</p><b style="color:var(--accent)" x-text="'৳'+rsIncome.total.toLocaleString()"></b></div>
-              </div>
-              <div class="rh-ft4">
-                <button @click="rsOpenDash('list')"><i class="fa-solid fa-file-invoice" style="background:#EA580C"></i>অর্ডার ও প্রফিট</button>
-                <button @click="resellOrderStatusF='কমপ্লিট';rsOpenDash('list')"><i class="fa-solid fa-truck-fast" style="background:#16A34A"></i>ডেলিভারি স্ট্যাটাস</button>
-                <button @click="rsOpenDash('team')"><i class="fa-solid fa-users" style="background:#2563EB"></i>আমার টিম</button>
-                <button @click="rsOpenDash('dashboard')"><i class="fa-solid fa-sack-dollar" style="background:#B8860B"></i>টিম ইনকাম</button>
-              </div>
-            </div>
-
-            <div class="rh-sec" x-show="resellHomeButtons.length>0"><i class="fa-solid fa-grip"></i><b>মূল টুলস</b><span></span></div>
-            <!-- মূল টুলস (রঙিন জোন) -->
-            <div class="rh-band">
-              <div class="rh-grid">
-                <template x-for="(b,bi) in resellHomeButtons.slice(0,8)" :key="b._id">
-                  <button @click="resellButtonClick(b)" class="rh-tile"><span class="rh-ic" :class="'rh-c'+(bi%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
+            <!-- ফলাফল -->
+            <template x-if="!rsSrch.on&&!imgSearch.busy">
+              <div class="ss-empty"><span><i class="fa-solid fa-magnifying-glass"></i></span><b>প্রোডাক্ট খুঁজুন</b><p>নাম বা আইডি লিখুন, অথবা ছবি আপলোড করুন — মিল থাকা প্রোডাক্ট এখানে দেখাবে।</p></div>
+            </template>
+            <template x-if="rsSrch.on&&rsSrch.list.length===0">
+              <div class="ss-empty nf"><span><i class="fa-solid fa-box-open"></i></span><b x-text="resellSearchMode==='image'?'এই ধরনের কোনো প্রোডাক্ট পাওয়া যায়নি':(resellSearchMode==='id'?'এই আইডিতে কোনো প্রোডাক্ট নেই':'এই নামে কোনো প্রোডাক্ট নেই')"></b><p x-text="resellSearchMode==='image'?'আরও স্পষ্ট ছবি দিয়ে আবার চেষ্টা করুন, অথবা নাম/আইডি দিয়ে খুঁজুন।':'বানান ঠিক আছে কিনা দেখুন অথবা অন্য নাম/আইডি দিয়ে আবার চেষ্টা করুন।'"></p></div>
+            </template>
+            <div x-show="rsSrch.on&&rsSrch.list.length>0" x-data="{n:20}">
+              <p class="ss-cnt"><i class="fa-solid fa-circle-check"></i> <span x-text="rsSrch.list.length+'টি প্রোডাক্ট পাওয়া গেছে'"></span></p>
+              <div class="space-y-2">
+                <template x-for="p in rsSrch.list.slice(0,n)" :key="p.fbKey||p.id">
+                  <div class="ss-item rx-tap" role="button" tabindex="0" @click="openPost(p)" @keydown.enter="openPost(p)">
+                    <img class="ss-th" :src="optImg((p.images&&p.images[0])||p.img||'',200)" alt="" loading="lazy" onerror="this.style.visibility='hidden'"/>
+                    <div class="ss-bd">
+                      <p class="ss-nm" x-text="p.name"></p>
+                      <p class="ss-id" x-show="p.productId||p.sku">আইডিঃ <b x-text="p.productId||p.sku"></b></p>
+                      <div class="ss-pr"><span class="a">পাইকারি ৳<b x-text="p.resellerPrice"></b></span><span class="m" x-show="p.marketPrice>0">মার্কেট ৳<b x-text="p.marketPrice"></b></span></div>
+                    </div>
+                    <span class="ss-go"><i class="fa-solid fa-chevron-right"></i></span>
+                  </div>
                 </template>
               </div>
-            </div>
-
-            <div class="rh-sec" x-show="resellHomeButtons.length>8"><i class="fa-solid fa-sack-dollar"></i><b>আয়ের টুলস</b><span></span></div>
-            <!-- আয়ের টুলস (সাদা প্যানেল) -->
-            <div class="rh-panel">
-              <div class="rh-grid">
-                <template x-for="(b,bi) in resellHomeButtons.slice(8,12)" :key="b._id">
-                  <button @click="resellButtonClick(b)" class="rh-tile flat"><span class="rh-ic" :class="'rh-c'+((bi+2)%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
-                </template>
-              </div>
-            </div>
-
-            <div class="rh-sec" x-show="resellHomeButtons.length>12"><i class="fa-solid fa-headset"></i><b>অর্ডার, ব্যালেন্স ও সাপোর্ট</b><span></span></div>
-            <!-- অর্ডার, ব্যালেন্স ও সাপোর্ট -->
-            <div class="rh-soft">
-              <div class="rh-grid">
-                <template x-for="(b,bi) in resellHomeButtons.slice(12)" :key="b._id">
-                  <button @click="resellButtonClick(b)" class="rh-tile"><span class="rh-ic" :class="'rh-c'+((bi+4)%6)"><i :class="b.icon"></i></span><span class="rh-lb" x-text="b.label"></span></button>
-                </template>
-              </div>
-            </div>
-
-            <!-- প্রোফাইল নোটিশ -->
-            <div class="rh-note">
-              <span><i class="fa-solid fa-store"></i></span>
-              <div class="flex-1"><p class="font-bold text-sm">জরুরী নোটিশ</p><p class="text-xs mt-0.5 leading-relaxed">কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয় — তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p></div>
-              <button @click="resellSubTab='shop'"><i class="fa-solid fa-user-pen"></i> এডিট</button>
+              <button type="button" class="ss-more" x-show="rsSrch.list.length>n" @click="n+=20">আরও দেখুন</button>
             </div>
           </div>
         </template>
@@ -5158,36 +5145,14 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <div class="space-y-5" x-show="resellSubTab==='post'">
 
 <div x-show="!sellView" class="space-y-5">
-            <!-- BACK + SEARCH -->
+            <!-- BACK + SEARCH (ট্যাপ করলে শুধু সার্চ পেজ খুলবে) -->
             <div class="flex items-center gap-2">
-              <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
-              <div class="relative flex-1">
-                <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-xs" style="color:var(--fg3)"></i>
-                <input id="resell-search-input" x-model="resellSearchQuery" class="dd-input pl-8" placeholder="প্রোডাক্ট খুঁজুন..."/>
-              </div>
+              <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer" aria-label="ফিরে যান"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
+              <button type="button" class="ss-open rx-tap" @click="resellButtonClick({action:'search'})" aria-label="প্রোডাক্ট সার্চ খুলুন">
+                <i class="fa-solid fa-magnifying-glass"></i><span>নাম, আইডি বা ছবি দিয়ে প্রোডাক্ট খুঁজুন...</span><em><i class="fa-solid fa-camera"></i></em>
+              </button>
             </div>
-
-            <!-- v5 search modes -->
-            <div class="space-y-2">
-              <div class="pill-scroll">
-                <button type="button" class="v5-chip" :class="resellSearchMode==='name'?'on':''" @click="resellSearchMode='name';clearImgSearch()"><i class="fa-solid fa-font mr-1"></i>প্রোডাক্ট নাম</button>
-                <button type="button" class="v5-chip" :class="resellSearchMode==='id'?'on':''" @click="resellSearchMode='id';clearImgSearch()"><i class="fa-solid fa-hashtag mr-1"></i>প্রোডাক্ট আইডি</button>
-                <button type="button" class="v5-chip" :class="resellSearchMode==='image'?'on':''" @click="resellSearchMode='image';resellSearchQuery=''"><i class="fa-solid fa-camera mr-1"></i>ছবি দিয়ে সার্চ</button>
-              </div>
-              <div x-show="resellSearchMode==='image'" x-cloak class="dd-card p-3">
-                <div class="flex items-center gap-3">
-                  <img x-show="imgSearch.preview" :src="imgSearch.preview" class="w-14 h-14 rounded-xl object-cover flex-shrink-0"/>
-                  <div class="flex-1 min-w-0">
-                    <label class="btn-primary text-xs cursor-pointer inline-flex items-center" style="padding:9px 14px"><i class="fa-solid fa-image mr-2"></i><span x-text="imgSearch.preview?'অন্য ছবি দিন':'ছবি আপলোড করুন'"></span><input type="file" accept="image/*" class="hidden" @change="runImgSearch($event)"/></label>
-                    <p class="text-xs mt-1.5" style="color:var(--fg3)" x-show="!imgSearch.busy&&!imgSearch.done">যে ধরনের প্রোডাক্ট খুঁজছেন তার ছবি দিন — মিল থাকা প্রোডাক্ট নিচে দেখাবে।</p>
-                    <p class="text-xs mt-1.5 font-semibold" style="color:var(--accent)" x-show="imgSearch.busy" x-text="'মেলানো হচ্ছে... '+imgSearch.pct+'%'"></p>
-                    <p class="text-xs mt-1.5 font-semibold" style="color:#16A34A" x-show="imgSearch.done" x-text="'সবচেয়ে মিল থাকা '+imgSearch.ids.length+'টি প্রোডাক্ট নিচে'"></p>
-                  </div>
-                  <button x-show="imgSearch.preview" @click="clearImgSearch()" class="text-xs" style="background:none;border:none;color:var(--fg3);cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-              </div>
-              <div x-show="resellFeedMode!=='all'&&!resellSearchQuery" x-cloak class="flex items-center justify-between rounded-xl px-3 py-2" style="background:var(--accentL)"><p class="text-xs font-bold" style="color:var(--accent)" x-text="resellFeedTitle"></p><button @click="resellFeedMode='all'" class="text-xs font-bold" style="background:none;border:none;color:var(--accent);cursor:pointer">সব প্রোডাক্ট দেখুন</button></div>
-            </div>
+            <div x-show="resellFeedMode!=='all'" x-cloak class="flex items-center justify-between rounded-xl px-3 py-2" style="background:var(--accentL)"><p class="text-xs font-bold" style="color:var(--accent)" x-text="resellFeedTitle"></p><button @click="resellFeedMode='all'" class="text-xs font-bold" style="background:none;border:none;color:var(--accent);cursor:pointer">সব প্রোডাক্ট দেখুন</button></div>
             <!-- CATEGORY BUTTONS -->
             <div x-show="resellFeedCats.length>0" x-cloak>
               <div class="cat-scroll-wrap">
@@ -5695,14 +5660,28 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <!-- ══ FULL PROFILE (matches shopbasebd's profile page) ══ -->
         <template x-if="resellSubTab==='shop'">
           <div class="space-y-3">
-            <button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button>
-            <div class="dd-card p-4">
-              <p class="font-bold text-sm flex items-center gap-2 mb-3" style="color:var(--fg)"><i class="fa-solid fa-user-pen" style="color:var(--accent)"></i>পার্সোনাল প্রোফাইল</p>
-              <p class="text-xs mb-1" style="color:var(--fg2)">মোবাইল নম্বরঃ <span class="font-bold" style="color:var(--fg)" x-text="resellSession"></span></p>
-              <p class="lock-note" style="margin-top:4px"><i class="fa-solid fa-lock"></i><span>এই লগইন নম্বরটি স্থায়ী — নিরাপত্তার জন্য কখনো পরিবর্তন করা যাবে না।</span></p>
-              <p class="text-xs mt-2" style="color:var(--fg2)">ব্যক্তিগত নামঃ <span class="font-bold" style="color:var(--fg)" x-text="reseller?.name"></span></p>
+            <div class="flex items-center gap-3"><button @click="resellSubTab='home'" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs" style="color:var(--fg2)"></i></button><p class="font-bold text-base" style="color:var(--fg)">আমার প্রোফাইল</p></div>
+
+            <div class="pf-hero">
+              <span class="pf-av" x-text="(reseller?.name||reseller?.shopName||'R').trim().charAt(0).toUpperCase()"></span>
+              <div class="min-w-0"><h3 x-text="reseller?.name||reseller?.shopName"></h3><p class="pf-sh"><i class="fa-solid fa-store"></i> <span x-text="reseller?.shopName||'—'"></span></p>
+              <span class="pf-bd" :class="reseller?.status==='approved'?'ok':''"><i class="fa-solid fa-circle-check"></i> <span x-text="({approved:'অনুমোদিত রিসেলার',pending:'অনুমোদনের অপেক্ষায়'})[reseller?.status]||'রিসেলার'"></span></span></div>
             </div>
-            <div class="dd-card p-4 space-y-4">
+
+            <div class="pf-card">
+              <p class="pf-ttl"><i class="fa-solid fa-id-card"></i> অ্যাকাউন্টের তথ্য</p>
+              <div class="pf-row"><span class="pf-ri"><i class="fa-solid fa-user"></i></span><div><p>ব্যক্তিগত নাম</p><b x-text="reseller?.name||'—'"></b></div></div>
+              <div class="pf-row"><span class="pf-ri"><i class="fa-solid fa-phone"></i></span><div class="flex-1 min-w-0"><p>মোবাইল নম্বর (লগইন)</p><b x-text="resellSession"></b></div><span class="pf-lock"><i class="fa-solid fa-lock"></i> লক</span></div>
+              <p class="lock-note" style="margin:2px 0 6px"><i class="fa-solid fa-lock"></i><span>এই লগইন নম্বরটি স্থায়ী — নিরাপত্তার জন্য কখনো পরিবর্তন করা যাবে না।</span></p>
+              <div class="pf-row" x-show="reseller?.email"><span class="pf-ri"><i class="fa-solid fa-envelope"></i></span><div class="min-w-0"><p>ইমেইল</p><b class="break-all" x-text="reseller?.email"></b></div></div>
+              <div class="pf-row" x-show="reseller?.myReferralCode"><span class="pf-ri"><i class="fa-solid fa-gift"></i></span><div><p>আমার রেফার কোড</p><b x-text="reseller?.myReferralCode"></b></div></div>
+              <div class="pf-row" x-show="reseller?.referredBy"><span class="pf-ri"><i class="fa-solid fa-user-plus"></i></span><div class="min-w-0"><p>যার রেফারে জয়েন</p><b class="break-all" x-text="reseller?.referredBy"></b></div></div>
+              <div class="pf-row" x-show="reseller?.createdAt"><span class="pf-ri"><i class="fa-solid fa-calendar-check"></i></span><div><p>অ্যাকাউন্ট খোলার তারিখ</p><b x-text="rsJoin(reseller?.createdAt)"></b></div></div>
+              <div class="pf-row" x-show="reseller?.district||reseller?.address"><span class="pf-ri"><i class="fa-solid fa-location-dot"></i></span><div class="min-w-0"><p>ঠিকানা</p><b x-text="[reseller?.address,reseller?.district].filter(Boolean).join(', ')"></b></div></div>
+            </div>
+
+            <div class="pf-card space-y-4">
+              <p class="pf-ttl"><i class="fa-solid fa-pen-to-square"></i> তথ্য এডিট করুন</p>
               <div>
                 <label class="dd-label">শপ বা পেইজ নাম *</label>
                 <p class="text-xs mb-1.5" style="color:var(--accent)">ইনভয়েসে আপনার এই নামটি উল্লেখ থাকবে।</p>
@@ -5718,7 +5697,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                 <p class="text-xs mb-1.5" style="color:var(--fg3)">হ্যাঁ দিলে সাপোর্ট নাম্বারটি ইনভয়েসে বিকল্প নাম্বার হিসেবে দেখানো হবে।</p>
                 <select class="dd-input cursor-pointer" x-model="resellProfileForm.showSupportOnInvoice"><option value="হ্যাঁ">হ্যাঁ</option><option value="না">না</option></select>
               </div>
-              <div><label class="dd-label">ইমেইল (অপশনাল)</label><input class="dd-input" type="email" x-model="resellProfileForm.email" placeholder="you@example.com"/></div>
+              <div><label class="dd-label">ইমেইল / জিমেইল আইডি (অপশনাল)</label><input class="dd-input" type="email" x-model="resellProfileForm.email" placeholder="yourname@gmail.com"/></div>
               <div>
                 <label class="dd-label">জেলা *</label>
                 <select class="dd-input cursor-pointer" x-model="resellProfileForm.district"><option value="">— জেলা বেছে নিন —</option><template x-for="d in Object.values(bdLoc).flat()" :key="d"><option :value="d" x-text="d"></option></template></select>
@@ -5726,8 +5705,9 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <div><label class="dd-label">ঠিকানা *</label><textarea class="dd-input resize-none" rows="3" x-model="resellProfileForm.address" placeholder="আপনার ঠিকানা লিখুন"></textarea></div>
               <button @click="saveResellerProfile()" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-check mr-2"></i>পরিবর্তন করুন</button>
             </div>
-            <div class="dd-card p-4 space-y-3">
-              <p class="font-bold text-sm flex items-center gap-2" style="color:var(--fg)"><i class="fa-solid fa-key" style="color:var(--accent)"></i>পিন পরিবর্তন</p>
+
+            <div class="pf-card space-y-3">
+              <p class="pf-ttl"><i class="fa-solid fa-key"></i> পিন পরিবর্তন</p>
               <p class="text-xs" style="color:var(--fg3)">কমপক্ষে ৬ ডিজিটের পিন দিন (শুধু সংখ্যা)। 000000, 123456 এর মতো সহজ পিন চলবে না।</p>
               <div><label class="dd-label">বর্তমান পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.old" autocomplete="current-password"/></div>
               <div><label class="dd-label">নতুন পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.nw" autocomplete="new-password"/></div>
@@ -6086,13 +6066,13 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <div x-show="postView" x-cloak class="pv-wrap">
   <template x-if="postView">
   <div>
-    <div class="pv-top"><button @click="postView=null" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--bg2);border:none;cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button><p class="font-bold text-sm">প্রোডাক্ট ডিটেইলস</p></div>
+    <div class="pv-top"><button @click="postView=null" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--bg2);border:none;cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button><p class="font-bold text-sm">প্রোডাক্ট ডিটেইলস</p><button type="button" @click="postView=null" class="pvx-bag" title="বের হোন" aria-label="বের হোন"><i class="fa-solid fa-bag-shopping"></i></button></div>
     <div class="pv-imgs"><template x-for="(im,ix) in (postView.images||[])" :key="ix"><div class="pv-img"><img :src="im" onerror="this.style.visibility='hidden'"/><button @click="dlImage(im,'product_'+(ix+1)+'.jpg')"><i class="fa-solid fa-download"></i></button></div></template></div>
     <div class="px-4 pt-3"><button @click="dlAll(postView)" class="pv-dl"><i class="fa-solid fa-download"></i> সব ছবি ডাউনলোড</button></div>
     <div class="pv-card">
       <p class="text-center text-sm font-bold" style="color:#16A34A"><i class="fa-solid fa-circle-check"></i> ভেরিফাইড প্রোডাক্ট</p>
-      <div class="grid grid-cols-2 gap-2 mt-3 text-sm text-center"><div class="pv-chip">প্রাইসঃ <b style="color:var(--accent)" x-text="'৳'+postView.resellerPrice"></b></div><div class="pv-chip">স্টকঃ <b style="color:#16A34A">আছে</b></div></div>
-      <p class="text-sm mt-3" x-show="postView.marketPrice>0">মার্কেট প্রাইসঃ <b x-text="'৳'+postView.marketPrice"></b> — সাজেস্টেড বিক্রয়মূল্য সর্বোচ্চ <b style="color:var(--accent)" x-text="'৳'+postView.marketPrice"></b> টাকা।</p>
+      <div class="pvx-price"><div class="pvx-pl"><span class="pvx-pi"><i class="fa-solid fa-tags"></i></span><div><p class="pvx-lb">আপনার পাইকারি প্রাইস</p><b class="pvx-am" x-text="'৳'+postView.resellerPrice"></b></div></div><span class="pvx-st"><i class="fa-solid fa-circle-check"></i> স্টকঃ আছে</span></div>
+      <div class="pvx-mk" x-show="postView.marketPrice>0"><span class="pvx-mi"><i class="fa-solid fa-store"></i></span><div><p class="pvx-mt">মার্কেট প্রাইসঃ <b x-text="'৳'+postView.marketPrice"></b></p><p class="pvx-ms">সাজেস্টেড বিক্রয়মূল্য সর্বোচ্চ <b x-text="'৳'+postView.marketPrice"></b> টাকা</p></div></div>
       <p class="text-xs mt-2" style="color:var(--fg3)">SKU: <span x-text="postView.sku||String(postView.id||'').slice(-6)"></span></p>
       <div class="mt-3"><p class="text-sm font-bold mb-1.5"><i class="fa-regular fa-clock mr-1" style="color:var(--accent)"></i>লিংক কতক্ষণ সক্রিয় থাকবে?</p>
         <div class="flex flex-wrap gap-2"><template x-for="m in [3,5,15,30,60,180,1440]" :key="m"><button type="button" @click="linkMin=m" class="pv-size" :class="linkMin===m?'on':''" x-text="m>=1440?'১ দিন':(m>=60?(m/60).toLocaleString('bn-BD')+' ঘণ্টা':m.toLocaleString('bn-BD')+' মিনিট')"></button></template></div>
@@ -6391,7 +6371,7 @@ function App(){return{
   reseller:null,fbMyOrders:[],fbMyResellOrders:[],rsRefreshing:false,fbWithdrawals:[],custReportData:null,
   resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
-  resellSidebarOpen:false,
+  resellSidebarOpen:false,rxTab:'tools',
   resellOrdersSubTab:'list',rsTeam:{loading:false,err:'',gens:[[],[],[]],at:0,upd:0,has:false},rsTeamGen:0,rsTeamSel:'',rsTeamQ:'',resellOrderStatusF:'সব',resellOrderSearch:'',
   supportForm:{orderId:'',message:''},fbSupportTickets:[],
   depositForm:{amount:'',method:'bkash',trxId:''},fbDeposits:[],withdrawTab:'withdraw',
@@ -6530,8 +6510,20 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     return L.concat(extra).filter(b=>!b._off).sort((a,b)=>a._ord-b._ord);
   },
   get resellHomeButtons(){return this._ovList(this.resellHomeButtonsBase,b=>'h_'+b.action,'home')},
+  rxTabDefs:[
+    {k:'tools',label:'টুলস',icon:'fa-solid fa-toolbox',sub:'প্রোডাক্ট ও সেলিং টুলস'},
+    {k:'wallet',label:'ওয়ালেট ও আয়',icon:'fa-solid fa-wallet',sub:'রিচার্জ, স্টেটমেন্ট ও আয়ের সুযোগ'},
+    {k:'support',label:'সাপোর্ট ও অর্ডার',icon:'fa-solid fa-headset',sub:'অর্ডার, হেল্পলাইন ও যোগাযোগ'}],
+  _rxGrp(b){const a=b&&b.action;if(['freelance','recharge','ecom','referral','walletstatement'].includes(a))return 'wallet';if(['orders','activeorders','dashboard','faq','youtube','telegram','support'].includes(a))return 'support';return 'tools'},
+  get rxHomeTabs(){const H=this.resellHomeButtons,Q=this.rhQuick.filter(q=>!['q_call','q_yt','q_tg'].includes(q._id));return{tools:H.filter(b=>this._rxGrp(b)==='tools'),wallet:H.filter(b=>this._rxGrp(b)==='wallet'),support:H.filter(b=>this._rxGrp(b)==='support').concat(Q)}},
   get resellSidebarMenu(){return this._ovList(this.resellSidebarMenuBase,(b,i)=>'s'+i,'sidebar')},
-  get rhQuick(){
+  get rxSlides(){
+const imgs=(this.banners||[]).filter(b=>b&&b.img).map(b=>({k:'img',img:b.img})),sn=(this.settings&&this.settings.siteName)||'Daily Deal';
+const txt=imgs.length?[]:[{k:'t',c:'amber',ey:'রিসেলিং সুবিধা',t:sn+' রিসেলিং',s:'কম দামে পণ্য নিন · নিজের দামে বিক্রি করুন · লাভ সরাসরি ওয়ালেটে',ic:'fa-bag-shopping'},{k:'t',c:'red',ey:'নিজের দামে বিক্রি',t:'নিজের দামে বিক্রি করুন',s:'পণ্যের দাম নিজে ঠিক করুন, লাভ জমুক আপনার ওয়ালেটে',ic:'fa-coins'},{k:'t',c:'purple',ey:'বাড়তি আয়',t:'রেফার করে বাড়তি আয়',s:'বন্ধুদের জয়েন করালে ৩ লেভেলে কমিশন পান',ic:'fa-user-plus'}];
+const L=imgs.concat(txt);
+const w=this.workVideo;if(w)L.push({k:'t',c:'dark',ey:'কাজের ভিডিও',t:w.title,s:w.sub||'',ic:'fa-play',act:'video',btn:'ভিডিও দেখুন',th:this.wvThumb});
+return L},
+get rhQuick(){
     const c=this.rc_contact,ov=this.rcfg.builtinOverrides||{};
     const call=(this.rc_helplines[0]&&this.rc_helplines[0].number)||this.rcfg.supportNumber||this.settings.shopPhone||'';
     const base=[
@@ -6705,7 +6697,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get filteredMenProds(){if(!this.menCatFilter)return this.menProducts;return this.menProducts.filter(p=>p.cat===this.menCatFilter);},
   get filteredWomenProds(){if(!this.womenCatFilter)return this.womenProducts;return this.womenProducts.filter(p=>p.cat===this.womenCatFilter);},
   get gridClass(){return this.gridCols===3?'grid-3':this.gridCols===4?'grid-4':'grid-2'},
-  get _navSig(){return this.activeTab+'|'+this.activeCat+'|'+(this.detailSheet.open?1:0)+'|'+(this.detailSheet.open&&this.detailSheet.prod?(this.detailSheet.prod.fbKey||this.detailSheet.prod.id||''):'')},
+  get _navSig(){return this.activeTab+'|'+this.activeCat+'|'+(this.detailSheet.open?1:0)+'|'+(this.detailSheet.open&&this.detailSheet.prod?(this.detailSheet.prod.fbKey||this.detailSheet.prod.id||''):'')+'|'+this.resellSubTab+'|'+(this.postView?(this.postView.fbKey||this.postView.id||'p'):'')+'|'+(this.sellView?1:0)},
   get filteredProds(){
     const q=(this.q||'').trim().toLowerCase(),k=this.fbProducts,a=this.activeCat,sb=this.activeSub,sc=this.catScope,fc=this.fbCategories,fs=this.fbSections,n=k?k.length:0,c=window.__ddFpc;
     if(c&&c.k===k&&c.n===n&&c.a===a&&c.sb===sb&&c.q===q&&c.sc===sc&&c.fc===fc&&c.fs===fs)return c.v;
@@ -6929,6 +6921,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get resellOfferProducts(){return this.resellableProducts.filter(p=>p.oldPrice&&p.oldPrice>p.price)},
   get resellNewProducts(){return [...this.resellableProducts].reverse().slice(0,10)},
   get resellFilteredProducts(){if(this.resellActiveCat==='সব'){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecProds(sec)}return this.resellableProducts}const t=this._catTree(this._cn(this.resellActiveCat));let base=this.resellableProducts;if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec){const sp=new Set(this.getSectionProducts(sec).map(p=>p.fbKey||p.id));base=base.filter(p=>sp.has(p.fbKey||p.id))}}return base.filter(p=>t.has(p.cat))},
+  get rsSrch(){const m=this.resellSearchMode;return{on:m==='image'?!!this.imgSearch.done:!!(this.resellSearchQuery||'').trim(),list:this.resellSearchResults}},
   get resellSearchResults(){
     const q=(this.resellSearchQuery||'').trim().toLowerCase(),m=this.resellSearchMode;
     if(m==='image')return this.imgSearch.done?this.imgSearch.ids.map(k=>this.resellableProducts.find(p=>(p.fbKey||p.id)===k)).filter(Boolean):[];
@@ -7236,19 +7229,29 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   },
 
   // ══════════ BROWSER BACK BUTTON / SPA HISTORY NAV ══════════
-  _navSkip:false,
+  _navSkip:false,_hs:[],_hi:0,_pvMap:{},
+  _navState(i){
+    const dp=this.detailSheet,pv=this.postView;let pk=null;
+    if(pv){pk=pv.fbKey||pv.id||null;if(pk!=null)this._pvMap[pk]=pv}
+    return {i,tab:this.activeTab,cat:this.activeCat,detail:!!dp.open,
+      prodKey:(dp.open&&dp.prod)?(dp.prod.fbKey||dp.prod.id||null):null,
+      rs:this.resellSubTab,pk,sv:!!this.sellView};
+  },
   _initHistoryNav(){
-    try{history.replaceState({tab:this.activeTab,cat:this.activeCat,detail:false,prodKey:null},'')}catch(e){}
-    this.$watch('_navSig',()=>{
+    try{this._hs=[this._navSig];this._hi=0;history.replaceState(this._navState(0),'')}catch(e){}
+    this.$watch('_navSig',(sig)=>{
       if(this._navSkip)return;
       try{
-        history.pushState({tab:this.activeTab,cat:this.activeCat,detail:this.detailSheet.open,
-          prodKey:(this.detailSheet.open&&this.detailSheet.prod)?(this.detailSheet.prod.fbKey||this.detailSheet.prod.id||null):null},'');
+        /* অ্যাপের ভেতরের ব্যাক/ক্লোজ বাটন = আগের ধাপে ফেরা → ব্রাউজারের হিস্ট্রিও এক ধাপ পিছাবে */
+        if(this._hi>0&&this._hs[this._hi-1]===sig){this._hi--;history.back();return}
+        this._hs=this._hs.slice(0,this._hi+1);this._hs.push(sig);this._hi=this._hs.length-1;
+        history.pushState(this._navState(this._hi),'');
       }catch(e){}
     });
     window.addEventListener('popstate',(e)=>{
       this._navSkip=true;
       const st=e.state||{tab:'home',cat:'সব',detail:false,prodKey:null};
+      if(typeof st.i==='number')this._hi=st.i;
       if(st.detail&&st.prodKey){
         const p=this.allProducts.find(x=>(x.fbKey||x.id)===st.prodKey);
         if(p)this.detailSheet={open:true,prod:p};else this.detailSheet.open=false;
@@ -7257,7 +7260,14 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       }
       this.activeTab=st.tab||'home';
       if(st.cat)this.activeCat=st.cat;
-      requestAnimationFrame(()=>{this._navSkip=false});
+      if(st.rs!==undefined){
+        this.resellSubTab=st.rs||'home';this.sellView=!!st.sv;
+        if(st.pk!=null){
+          const p=this._pvMap[st.pk]||(this.allProducts||[]).find(x=>(x.fbKey||x.id)===st.pk);
+          this.postView=p||null;
+        }else this.postView=null;
+      }
+      requestAnimationFrame(()=>{this._navSkip=false;this._hs[this._hi]=this._navSig});
     });
   },
 
@@ -8776,7 +8786,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     switch(b.action){
       case 'allproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='all';this.resellSubTab='products';break;
       case 'newproducts': this.resellSearchQuery='';this.resellActiveCat='সব';this.resellActiveSec='';this.resellFeedMode='new';this.resellSubTab='post';break;
-      case 'search': this.resellFeedMode='all';this.resellSubTab='post';this.$nextTick(()=>document.getElementById('resell-search-input')?.focus());break;
+      case 'search': this.resellFeedMode='all';this.resellSearchQuery='';this.resellSearchMode='name';this.clearImgSearch();this.resellSubTab='search';this.$nextTick(()=>document.getElementById('rs-search-input')?.focus());break;
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
       case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
       case 'dashboard': this.resellOrdersSubTab='dashboard';this.resellSubTab='orders';break;
@@ -9216,7 +9226,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       await Promise.all([worker(),worker(),worker(),worker(),worker(),worker()]);
       if(!ok){this.imgSearch={...this.imgSearch,busy:false};return this.showToast('ছবি মেলানো যাচ্ছে না, নাম বা আইডি দিয়ে খুঁজুন','error')}
       scored.sort((a,b)=>b.s-a.s);
-      this.imgSearch={busy:false,done:true,pct:100,ids:scored.slice(0,20).map(x=>x.k),preview:url};
+      this.imgSearch={busy:false,done:true,pct:100,ids:scored.filter(x=>x.s>=0.64).slice(0,20).map(x=>x.k),preview:url};
     }catch(e){this.imgSearch={...this.imgSearch,busy:false};this.showToast('ছবিটি পড়া যায়নি','error')}
   },
   clearImgSearch(){this.imgSearch={busy:false,done:false,pct:0,ids:[],preview:''}},
@@ -10640,7 +10650,7 @@ section[x-show*="'profile'"] .dd-logout:active{transform:scale(.98)!important}
 </style>
 <style id="dd-home-v2">
 /* ═══ Home: social section + quick-access hub polish (visual only) ═══ */
-.dd-so{margin:16px 14px 0}
+.dd-so{margin:8px 14px 0}
 .dd-so-h{font-size:21px;letter-spacing:.2px;color:var(--fg)}
 .dd-so-h b{background:linear-gradient(90deg,#E8380D,#FF7A45);-webkit-background-clip:text;background-clip:text;color:transparent}
 .dd-so-s{color:var(--fg3);margin:6px 0 14px}
@@ -11095,7 +11105,7 @@ function syncBtn(){
   if(NATIVE||IOS)return;
   syncPend();
   var d=D(),b=document.getElementById('ddApk');
-  var want=!!(cfg&&cfg.enabled!==false&&cfg.apkUrl&&d&&d.resellSession&&d.resellStatus==='approved'&&d.activeTab==='resell'&&!d.resellSidebarOpen&&!dismissed);
+  var want=!!(cfg&&cfg.enabled!==false&&cfg.apkUrl&&d&&d.resellSession&&d.resellStatus==='approved'&&d.activeTab==='resell'&&d.resellSubTab==='home'&&!d.postView&&!d.resellSidebarOpen&&!dismissed);
   if(!want){if(b)b.classList.remove('on');return}
   if(!b)b=buildBtn();
   var t=b.querySelector('.tx b'),s=b.querySelector('.tx small');
@@ -11442,7 +11452,7 @@ window.ddImgSave=async function(items,toast){
 <!--  /DD-IMGSAVE  -->
 
 <!-- ═════ DD-UI-POLISH-V1 — শুধু CSS (কোনো JS/ফাংশন নেই), শুধু ফোনের স্ক্রিনে (≤640px) প্রযোজ্য ═════
-     বসানোর জায়গা: user-site HTML ফাইলের একদম শেষে, </body> এর ঠিক আগে। সরাতে চাইলে শুধু এই স্টাইল ব্লকটা মুছুন। -->
+     বসানোর জায়গা: user-site HTML ফাইলের একদম শেষে, body বন্ধ হওয়ার ঠিক আগে। সরাতে চাইলে শুধু এই স্টাইল ব্লকটা মুছুন। -->
 <style id="dd-ui-polish-v1">
 @media (max-width:640px){
 /* ── ক্যাটাগরি অনুযায়ী কিনুন: ছোট ও পরিপাটি ── */
@@ -11480,6 +11490,241 @@ body .dd-gl-chips{margin:0 -12px 6px;padding:3px 12px;gap:6px;-webkit-mask-image
 body .dd-gl-chip{font-size:10.5px;padding:3px 9px;gap:4px}
 body .dd-gl-btn{display:flex;width:100%;min-width:0;padding:7px 14px;font-size:12.5px;border-radius:11px}
 }
+</style>
+<style id="dd-reseller-ui-v2">
+/* ═══ DD-RESELLER-UI-V2 — রিসেলিং হোম + সাইডবার (শুধু স্টাইল; ফাংশন/ডেটা আগের মতোই) ═══ */
+@keyframes rxp{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes rxd{from{transform:translateX(-100%)}to{transform:none}}
+@keyframes rxi{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+.rx{display:flex;flex-direction:column;gap:14px;color:#111827;font-family:'Hind Siliguri',sans-serif}
+.rx *,.rx-dr *{box-sizing:border-box}
+.rx button,.rx-dr button{font-family:inherit;cursor:pointer;border:0;background:none;padding:0;color:inherit;-webkit-tap-highlight-color:transparent}
+.rx-tap{transition:transform .15s cubic-bezier(.4,0,.2,1)}.rx-tap:active{transform:scale(.95)}
+.rx h1,.rx h2,.rx h3,.rx p,.rx-dr h3,.rx-dr p{margin:0}
+.rx i[class*="fa-"]{line-height:1}
+/* top bar */
+.rx-top{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#18181B;color:#fff;border-radius:16px;padding:9px 12px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.rx-lg{display:flex;align-items:center;gap:10px;min-width:0}.rx-lgi{width:36px;height:36px;border-radius:12px;background:#DC2626;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.rx-top h1{font-size:16px;font-weight:700;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rx-top .rx-lg p{font-size:11px;color:#9CA3AF;line-height:1.2}
+.rx-tr{display:flex;align-items:center;gap:8px;flex:none}
+.rx-bal{display:flex;align-items:center;gap:6px;background:#27272A!important;border:1px solid rgba(245,158,11,.3)!important;padding:5px 12px!important;border-radius:99px;font-size:12px;font-weight:700;color:#FCD34D!important}
+.rx-bal i{width:8px;height:8px;border-radius:50%;background:#FBBF24;animation:rxp 1.6s infinite}
+.rx-out{width:32px;height:32px;border-radius:50%;background:#27272A!important;color:#D1D5DB!important;display:flex;align-items:center;justify-content:center;font-size:13px}
+/* cards */
+.rx-card{background:#fff;border:1px solid #F3F4F6;border-radius:16px;padding:14px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.rx-pr{display:flex;align-items:center;justify-content:space-between;gap:8px}.rx-pl{display:flex;align-items:center;gap:12px;min-width:0}
+.rx-mb{width:36px;height:36px;border-radius:12px;background:#F3F4F6!important;color:#374151!important;display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.rx-pl h2{font-size:16px;font-weight:700;line-height:1.25;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rx-tg{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;color:#047857;background:#ECFDF5;padding:2px 8px;border-radius:6px;margin-top:2px;max-width:100%}
+.rx-wd{background:#DC2626!important;color:#fff!important;font-size:12px;font-weight:600;padding:7px 13px!important;border-radius:12px;flex:none;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.rx-wl{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #F3F4F6}
+.rx-w1,.rx-w2{display:flex;align-items:center;gap:10px;border-radius:12px;padding:10px;text-align:left;min-width:0}
+.rx-w1{background:rgba(255,251,235,.8);border:1px solid rgba(253,230,138,.7)}.rx-w2{background:rgba(250,245,255,.8);border:1px solid rgba(233,213,255,.7)}
+.rx-wi{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex:none;font-size:14px}
+.rx-w1 .rx-wi{background:rgba(245,158,11,.15);color:#D97706}.rx-w2 .rx-wi{background:rgba(168,85,247,.15);color:#9333EA}
+.rx-wl p{font-size:11px;color:#6B7280;line-height:1.3}.rx-wl b{display:block;font-size:14px;font-weight:700;color:#111827;line-height:1.3}
+.rx-wl small{font-size:10px;font-weight:500}.rx-wl small.ok{color:#15803D}.rx-wl small.lk{color:#B45309}
+/* alert */
+.rx-al{display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(90deg,#FEF2F2,#FFF7ED);border:1px solid rgba(254,202,202,.8);border-radius:16px;padding:12px;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.rx-ai{display:flex;align-items:center;gap:10px;min-width:0}.rx-ai>span{width:36px;height:36px;border-radius:12px;background:#DC2626;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.rx-ai h3{font-size:12px;font-weight:700;color:#111827}.rx-ai p{font-size:11px;color:#4B5563;line-height:1.35}
+.rx-al>button{background:#DC2626!important;color:#fff!important;font-size:12px;font-weight:600;padding:7px 14px!important;border-radius:12px;flex:none}
+/* slider */
+.rx-st{position:relative;height:126px;border-radius:16px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.rx-sd{position:absolute;inset:0;opacity:0;transition:opacity .55s ease;pointer-events:none;color:#fff}.rx-sd.on{opacity:1;pointer-events:auto}.rx-sd.act{cursor:pointer}
+.rx-sd>img{width:100%;height:100%;object-fit:cover;display:block}
+.rx-sx{height:100%;display:flex;align-items:center;gap:10px;padding:14px 16px 24px}.rx-tx{flex:1;min-width:0}
+.rx-ey{font-size:11px;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:rgba(255,255,255,.78)}.rx-g-amber .rx-ey{color:#FDE68A}
+.rx-tx h3{font-size:18px;font-weight:700;line-height:1.25;margin-top:2px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rx-sb{font-size:12px;line-height:1.4;margin-top:3px;color:rgba(255,255,255,.88);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.rx-cta{display:inline-flex;align-items:center;gap:6px;margin-top:6px;background:#fff;color:#18181B;font-size:12px;font-weight:700;padding:4px 12px;border-radius:99px}
+.rx-sic{width:58px;height:58px;border-radius:18px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex:none;overflow:hidden}.rx-sic img{width:100%;height:100%;object-fit:cover}
+.rx-g-amber{background:linear-gradient(90deg,#D97706,#B45309 50%,#92400E)}.rx-g-red{background:linear-gradient(90deg,#DC2626,#9F1239)}.rx-g-purple{background:linear-gradient(90deg,#7C3AED,#4C1D95)}.rx-g-teal{background:linear-gradient(90deg,#0F766E,#134E4A)}.rx-g-dark{background:linear-gradient(90deg,#3F3F46,#18181B)}
+.rx-dt{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;z-index:2}.rx-dt i{width:6px;height:6px;border-radius:3px;background:rgba(255,255,255,.5);transition:width .3s}.rx-dt i.on{width:18px;background:#fff}
+/* my reselling */
+.rx-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}.rx-hd h3{font-size:14px;font-weight:700;color:#111827;display:flex;align-items:center;gap:6px}.rx-hd h3 i{color:#DC2626}
+.rx-lk{font-size:12px;font-weight:600;color:#DC2626!important;background:#FEF2F2!important;padding:4px 10px!important;border-radius:8px}
+.rx-k3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rx-k3>div{background:#F9FAFB;border:1px solid #F3F4F6;border-radius:12px;padding:10px 6px;text-align:center}
+.rx-k3>div.g{background:rgba(236,253,245,.6);border-color:#D1FAE5}.rx-k3>div.r{background:rgba(255,241,242,.6);border-color:#FFE4E6}
+.rx-k3 p{font-size:11px;color:#6B7280;line-height:1.3}.rx-k3 b{display:block;font-size:16px;font-weight:700;color:#111827;margin-top:2px}.rx-k3 .g b{color:#059669}.rx-k3 .r b{color:#DC2626}
+.rx-k4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.rx-k4 button,.rx-gr button{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+.rx-k4 button{background:#F9FAFB!important;border-radius:12px;padding:8px 2px!important}
+.rx-ic{width:36px;height:36px;border-radius:12px;color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px}
+.rx-k4 span.t,.rx-lb{font-size:11px;font-weight:500;color:#374151;text-align:center;line-height:1.25}
+/* tool grids */
+.rx-sec{display:flex;flex-direction:column;gap:8px}.rx-sec>h3{font-size:14px;font-weight:700;color:#111827;display:flex;align-items:center;gap:6px;padding:0 2px}.rx-sec>h3 i{color:#DC2626}
+.rx-gr{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px}
+.rx-gr .rx-ic{width:44px;height:44px;border-radius:16px;font-size:18px}
+/* referral */
+.rx-rf{display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;background:linear-gradient(135deg,#1F1A14,#3B2A10 55%,#7C4A03);border:1px solid rgba(251,191,36,.35);border-radius:20px;padding:14px;cursor:pointer;color:#fff;box-shadow:0 8px 22px rgba(124,74,3,.22),inset 0 1px 0 rgba(255,255,255,.08)}
+.rx-rf::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(251,191,36,.28),transparent 70%);pointer-events:none}
+.rx-rtop{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
+.rx-rico{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#FBBF24,#F59E0B);color:#78350F;display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;box-shadow:0 4px 10px rgba(245,158,11,.4)}
+.rx-rt{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.04em;color:#FDE68A;background:rgba(253,230,138,.14);border:1px solid rgba(253,230,138,.25);padding:2px 8px;border-radius:99px}
+.rx-rc{display:inline-block;font-size:17px;font-weight:800;color:#fff;letter-spacing:.12em;margin-top:6px!important;font-family:ui-monospace,Menlo,monospace}.rx-rh{font-size:11px;color:rgba(253,230,138,.85);position:relative;z-index:1}.rx-rf.done{background:linear-gradient(135deg,#052E1A,#065F46 60%,#047857);border-color:rgba(110,231,183,.5)}.rx-rf.done .rx-rh{color:#A7F3D0}
+.rx-rb{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}.rx-rb button{height:40px;border-radius:12px;color:#fff!important;display:flex;align-items:center;justify-content:center;gap:7px;font-size:12.5px;font-weight:700}.rx-rb .a{background:linear-gradient(135deg,#FBBF24,#F59E0B)!important;color:#451A03!important;box-shadow:0 3px 8px rgba(245,158,11,.35)}.rx-rb .b{background:rgba(255,255,255,.14)!important;border:1px solid rgba(255,255,255,.22)!important}
+/* home tabs + premium buttons */
+.rx-tabs{display:flex;gap:4px;background:#F3F4F6;border:1px solid #E5E7EB;border-radius:16px;padding:4px;box-shadow:inset 0 1px 2px rgba(0,0,0,.05)}
+.rx-tb{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 4px!important;border-radius:12px;font-size:12px;font-weight:600;color:#6B7280;transition:background .2s,color .2s,box-shadow .2s}.rx-tb span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rx-tb i{font-size:13px}
+.rx-tb.on{background:#fff!important;color:#DC2626;font-weight:700;box-shadow:0 2px 8px rgba(17,24,39,.1),0 0 0 1px rgba(17,24,39,.04)}
+.rx-pt{font-size:11px;color:#9CA3AF;padding:2px 4px 8px}
+.rx-pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.rx-pb{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:8px;min-width:0;background:#fff!important;border:1px solid #EEF0F3!important;border-radius:18px;padding:14px 6px 12px!important;box-shadow:0 2px 10px rgba(17,24,39,.06);transition:transform .15s,box-shadow .2s,border-color .2s}
+.rx-pb:hover{box-shadow:0 6px 16px rgba(17,24,39,.1);border-color:#E2E5EA!important}
+.rx-pb .rx-ic{width:46px;height:46px;border-radius:15px;font-size:19px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 3px 8px rgba(17,24,39,.08)}
+.rx-pb .rx-lb{font-size:11.5px;font-weight:600;color:#1F2937;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* v3: profile card + dark button panel */
+.rx-prof{border:1.5px solid transparent!important;background:linear-gradient(#fff,#fff) padding-box,linear-gradient(135deg,#DC2626,#F59E0B 50%,#7C3AED) border-box!important;border-radius:20px!important;box-shadow:0 8px 22px rgba(17,24,39,.1)!important;padding:16px!important}
+.rx-prof .rx-mb{background:#F3F4F6!important;border:1px solid #E5E7EB!important;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.rx-prof .rx-wl{border-top:1px dashed #E5E7EB;gap:12px}
+.rx-prof .rx-w1{background:linear-gradient(135deg,#FFFBEB,#FEF3C7)!important;border:1px solid #FCD34D!important;box-shadow:0 2px 8px rgba(245,158,11,.15)}
+.rx-prof .rx-w2{background:linear-gradient(135deg,#FAF5FF,#F3E8FF)!important;border:1px solid #D8B4FE!important;box-shadow:0 2px 8px rgba(147,51,234,.12)}
+.rx-prof .rx-wl b{font-size:15px}
+.rx-dk{background:linear-gradient(160deg,#18181B,#27272A 60%,#18181B);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:14px;gap:10px;box-shadow:0 10px 26px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.06)}
+.rx-dk .rx-tabs{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);box-shadow:none}
+.rx-dk .rx-tb{color:#A1A1AA}
+.rx-dk .rx-tb.on{background:linear-gradient(135deg,#EF4444,#B91C1C)!important;color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.45)}
+.rx-dk .rx-pt{color:#A1A1AA;padding:4px 4px 8px}
+.rx-dk .rx-pb{background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.03))!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08)}
+.rx-dk .rx-pb:hover{border-color:rgba(251,191,36,.5)!important;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.rx-dk .rx-pb .rx-lb{color:#F4F4F5}
+.rx-dk .rx-pb .rx-ic{box-shadow:0 0 0 2px rgba(255,255,255,.12),0 4px 10px rgba(0,0,0,.4)}
+/* v5: soft pastel card buttons (as reference screenshots) */
+.rx-pn{border-radius:22px;padding:14px 14px 12px}
+.rx-pn-tools,.rx-pn-support{background:linear-gradient(160deg,#D6F2E8,#E8F6F1 60%,#DDF3EB);border:1px solid #C5E8DB}
+.rx-pn-wallet{background:#fff;border:1px solid #F1F1F4;box-shadow:0 2px 10px rgba(17,24,39,.06)}
+.rx-pt{padding:0 2px 8px;color:#6B7280}
+.rx-pg{grid-template-columns:repeat(4,1fr);gap:9px}
+.rx-pb{border:0!important;border-radius:18px!important;padding:11px 3px 10px!important;gap:7px;background:linear-gradient(180deg,#FBF9F6,#EDE7DF)!important;box-shadow:0 4px 10px rgba(60,40,20,.1),inset 0 1px 0 rgba(255,255,255,.9)!important}
+.rx-pb:hover{box-shadow:0 6px 14px rgba(60,40,20,.16),inset 0 1px 0 #fff!important}
+.rx-pb .rx-ic{width:40px;height:40px;border-radius:14px;font-size:17px;background-image:linear-gradient(145deg,rgba(255,255,255,.6),rgba(255,255,255,0) 65%)!important;box-shadow:0 3px 8px rgba(60,40,20,.1),inset 0 0 0 1px rgba(255,255,255,.5)}
+.rx-pb .rx-lb{font-size:10.5px;font-weight:600;color:#3F3A34}
+.rx-pn-wallet .rx-pb{background:transparent!important;box-shadow:none!important}
+.rx-tabs{background:#F4F4F5;border:1px solid #E5E7EB}
+.rx-tb.on{background:#fff!important;color:#DC2626;box-shadow:0 2px 8px rgba(17,24,39,.12);outline:0}
+.rx-rs{border:1px solid #F1F1F4!important;border-radius:20px!important;box-shadow:0 2px 10px rgba(17,24,39,.06)!important}
+.rx-rs .rx-k3>div{border:0!important;background:linear-gradient(180deg,#F1EEE9,#E9E4DC)!important;border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.8)}
+.rx-rs .rx-k4 button{border:0!important;background:linear-gradient(180deg,#FBF9F6,#EDE7DF)!important;border-radius:16px;box-shadow:0 4px 10px rgba(60,40,20,.1),inset 0 1px 0 rgba(255,255,255,.9)}
+.rx-rs .rx-k4 .rx-ic{width:36px;height:36px;border-radius:12px;font-size:15px;box-shadow:0 3px 8px rgba(0,0,0,.15)}
+.rx-rf{flex-direction:row!important;align-items:center;justify-content:space-between;gap:8px!important;padding:8px 10px!important;border-radius:14px!important}
+.rx-rf::after{display:none}
+.rx-rf .rx-rico{width:34px;height:34px;border-radius:10px;font-size:15px}
+.rx-rf .rx-rtop{gap:9px;min-width:0}
+.rx-rf .rx-rt{font-size:9px;padding:1px 6px}
+.rx-rf .rx-rc{font-size:14px;margin-top:3px!important}
+.rx-rf .rx-rh{display:none}
+.rx-rf .rx-rb{display:flex;gap:6px;flex:none}
+.rx-rf .rx-rb button{width:34px;height:34px;border-radius:10px;padding:0}
+.rx-rf .rx-rb span{display:none}
+/* v6: logout beside withdraw, referral inside profile card */
+.rx-pa{display:flex;align-items:center;gap:8px;flex:none}
+.rx-lo{width:34px;height:34px;border-radius:12px;background:#FEF2F2!important;color:#DC2626!important;border:1px solid #FECACA!important;display:flex;align-items:center;justify-content:center;font-size:14px;box-shadow:0 1px 3px rgba(220,38,38,.15)}
+.rx-prof .rx-rf{margin-top:12px;box-shadow:0 4px 12px rgba(124,74,3,.2)}
+.rx-prof .rh-ref0{margin-top:12px}
+/* v7: product details price boxes + exit bag */
+.pvx-bag{margin-left:auto;width:36px;height:36px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:15px;background:#FEF2F2;color:#DC2626;border:1px solid #FECACA;cursor:pointer;box-shadow:0 1px 4px rgba(220,38,38,.18)}
+.pvx-price{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding:8px 10px;border-radius:12px;background:linear-gradient(135deg,#ECFDF5,#F0FDF4 60%,#fff);border:1.2px solid #86EFAC;box-shadow:0 2px 8px rgba(22,163,74,.1)}
+.pvx-pl{display:flex;align-items:center;gap:8px;min-width:0}
+.pvx-pi{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#22C55E,#15803D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none}
+.pvx-lb{font-size:10.5px;font-weight:600;color:#166534;line-height:1.2}
+.pvx-am{display:block;font-size:17px;font-weight:800;color:#15803D;line-height:1.15}
+.pvx-st{flex:none;font-size:10px;font-weight:700;color:#15803D;background:#fff;border:1px solid #BBF7D0;border-radius:99px;padding:3px 8px}
+.pvx-mk{display:flex;align-items:center;gap:8px;margin-top:6px;padding:7px 10px;border-radius:10px;background:#FEF2F2;border:1px solid #FECACA;border-left:4px solid #DC2626}
+.pvx-mi{width:24px;height:24px;border-radius:8px;background:#DC2626;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.pvx-mt{font-size:12.5px;font-weight:600;color:#111;line-height:1.25}.pvx-mt b{font-weight:800;color:#111}
+.pvx-ms{font-size:10px;color:#111;opacity:.7;margin-top:1px;line-height:1.3}.pvx-ms b{font-weight:700}
+/* v8: home profile button + profile page */
+.rx-mr{display:flex;align-items:center;gap:8px}.rx-mr .rh-marq{flex:1;min-width:0}
+.rx-pf{margin-left:auto;width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;background:linear-gradient(135deg,#EF4444,#B91C1C)!important;color:#fff!important;border:2px solid #fff!important;box-shadow:0 3px 10px rgba(220,38,38,.4)}
+.pf-hero{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#18181B,#27272A 55%,#3B2A10);color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.2)}
+.pf-av{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#EF4444,#F59E0B);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;flex:none;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.25)}
+.pf-hero h3{font-size:17px;font-weight:700;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-sh{font-size:12px;color:#D4D4D8;margin:2px 0 6px}
+.pf-bd{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:99px;color:#FDE68A;background:rgba(253,230,138,.15);border:1px solid rgba(253,230,138,.3)}.pf-bd.ok{color:#6EE7B7;background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.35)}
+.pf-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;box-shadow:0 2px 10px rgba(17,24,39,.05)}
+.pf-ttl{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--fg);margin:0 0 10px}.pf-ttl i{color:var(--accent)}
+.pf-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px dashed var(--border)}.pf-row:last-of-type{border-bottom:0}
+.pf-ri{width:34px;height:34px;border-radius:11px;background:var(--bg2);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;flex:none}
+.pf-row p{font-size:11px;color:var(--fg3);margin:0;line-height:1.3}.pf-row b{display:block;font-size:13.5px;font-weight:700;color:var(--fg);line-height:1.35}
+.pf-lock{flex:none;font-size:10.5px;font-weight:700;color:#B45309;background:#FEF3C7;border:1px solid #FDE68A;border-radius:99px;padding:3px 9px}
+/* v9: product search page */
+.ss-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:12px;box-shadow:0 4px 14px rgba(17,24,39,.07)}
+.ss-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--bg2);border-radius:14px;padding:4px;margin-bottom:12px}
+.ss-tab{display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 4px;border-radius:11px;border:0;background:none;font:600 12px 'Hind Siliguri',sans-serif;color:var(--fg3);cursor:pointer;min-width:0}
+.ss-tab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss-tab.on{background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;box-shadow:0 4px 10px rgba(220,38,38,.35)}
+.ss-inp{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);background:var(--bg);border-radius:14px;padding:0 12px;height:48px;transition:border-color .2s,box-shadow .2s}
+.ss-inp:focus-within{border-color:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.12)}
+.ss-inp>i{color:var(--fg3);font-size:14px}.ss-inp input{flex:1;min-width:0;border:0;outline:0;background:none;font:500 14px 'Hind Siliguri',sans-serif;color:var(--fg)}
+.ss-inp button{border:0;background:var(--bg2);color:var(--fg3);width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:11px}
+.ss-drop{display:flex;align-items:center;gap:12px;border:1.5px dashed #FCA5A5;background:#FEF2F2;border-radius:16px;padding:12px;cursor:pointer}
+.ss-drop>img{width:64px;height:64px;border-radius:12px;object-fit:cover;flex:none;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ss-di{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+.ss-dt{display:flex;flex-direction:column;min-width:0}.ss-dt b{font-size:13.5px;color:#7F1D1D}.ss-dt small{font-size:11px;color:#9F5A5A;margin-top:2px}
+.ss-bar{height:6px;border-radius:99px;background:var(--bg2);margin-top:10px;overflow:hidden}.ss-bar i{display:block;height:100%;background:linear-gradient(90deg,#EF4444,#F59E0B);transition:width .2s}
+.ss-note{font-size:11.5px;font-weight:600;color:#DC2626;margin-top:6px}
+.ss-clr{margin-top:8px;border:0;background:none;color:var(--fg3);font:600 12px 'Hind Siliguri',sans-serif;cursor:pointer}
+.ss-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:34px 20px;border-radius:20px;background:var(--card);border:1px dashed var(--border)}
+.ss-empty>span{width:64px;height:64px;border-radius:50%;background:var(--bg2);color:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}
+.ss-empty b{font-size:15px;color:var(--fg)}.ss-empty p{font-size:12px;color:var(--fg3);margin-top:6px;line-height:1.6;max-width:280px}
+.ss-empty.nf>span{background:#FEF2F2;color:#DC2626}
+.ss-cnt{font-size:12.5px;font-weight:700;color:#15803D;margin:4px 2px 8px}
+.ss-item{display:flex;align-items:center;gap:12px;padding:10px;border-radius:16px;background:var(--card);border:1px solid var(--border);box-shadow:0 2px 8px rgba(17,24,39,.06);cursor:pointer}
+.ss-th{width:68px;height:68px;border-radius:12px;object-fit:cover;background:var(--bg2);flex:none}
+.ss-bd{flex:1;min-width:0}.ss-nm{font-size:13.5px;font-weight:700;color:var(--fg);line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;margin:0}
+.ss-id{font-size:11px;color:var(--fg3);margin:2px 0 0}.ss-id b{color:var(--fg2)}
+.ss-pr{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.ss-pr span{font-size:11px;font-weight:600;border-radius:8px;padding:3px 8px}
+.ss-pr .a{background:#ECFDF5;color:#15803D;border:1px solid #BBF7D0}.ss-pr .m{background:#FEF2F2;color:#111;border:1px solid #FECACA}.ss-pr b{font-weight:800}
+.ss-go{width:28px;height:28px;border-radius:50%;background:var(--bg2);color:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:11px;flex:none}
+.ss-more{display:block;width:100%;margin-top:10px;padding:11px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);font:700 13px 'Hind Siliguri',sans-serif;color:var(--fg);cursor:pointer}
+
+/* v10: post-tab search launcher + search page polish */
+.ss-open{flex:1;min-width:0;display:flex;align-items:center;gap:10px;height:44px;padding:0 8px 0 14px;border-radius:14px;border:1.5px solid var(--border);background:var(--card);box-shadow:0 2px 8px rgba(17,24,39,.06);text-align:left;cursor:pointer;font-family:'Hind Siliguri',sans-serif}
+.ss-open>i{color:var(--fg3);font-size:14px}
+.ss-open span{flex:1;min-width:0;font-size:13px;font-weight:500;color:var(--fg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss-open em{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,#EF4444,#B91C1C);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-style:normal;flex:none}
+.ss-open em i{color:#fff}
+.ss-open:active{transform:scale(.99)}
+.ss-inp input::placeholder{color:var(--fg3);opacity:1}
+/* notice */
+.rx-nt{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(240,253,250,.7);border:1px dashed #5EEAD4;border-radius:16px;padding:12px}
+.rx-nt>div{display:flex;align-items:flex-start;gap:10px;min-width:0}.rx-nt>div>span{width:36px;height:36px;border-radius:12px;background:#0D9488;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;margin-top:2px}
+.rx-nt h4{margin:0;font-size:12px;font-weight:700;color:#111827}.rx-nt p{font-size:11px;color:#4B5563;line-height:1.6;margin-top:2px}
+.rx-nt>button{background:#0D9488!important;color:#fff!important;font-size:12px;font-weight:600;padding:7px 14px!important;border-radius:12px;flex:none}
+/* sidebar */
+.rx-ov{background:rgba(0,0,0,.6)!important;backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.rx-dr{position:absolute;top:0;bottom:0;left:0;width:285px;max-width:86%;background:#fff;border-radius:0 24px 24px 0;box-shadow:0 20px 50px rgba(0,0,0,.35);display:flex;flex-direction:column;overflow:hidden;animation:rxd .35s cubic-bezier(.22,1,.36,1);color:#374151;font-family:'Hind Siliguri',sans-serif}
+.rx-dh{position:relative;background:linear-gradient(135deg,#18181B,#27272A 50%,#18181B);color:#fff;padding:28px 20px 20px;flex:none}
+.rx-dx{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1)!important;color:#D1D5DB!important;display:flex;align-items:center;justify-content:center;font-size:14px}
+.rx-dp{display:flex;align-items:center;gap:14px}.rx-av{width:48px;height:48px;border-radius:16px;background:linear-gradient(45deg,#DC2626,#F97316);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;border:1px solid rgba(255,255,255,.15);flex:none}
+.rx-dp h3{font-size:16px;font-weight:700;line-height:1.25;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rx-dp p{font-size:12px;color:#9CA3AF;margin-top:2px;font-family:ui-monospace,Menlo,monospace}
+.rx-vf{display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:10px;color:#6EE7B7;background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.3);padding:2px 8px;border-radius:99px}.rx-vf i{width:6px;height:6px;border-radius:50%;background:#34D399}
+.rx-dn{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:16px;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.rx-gg+.rx-gg{border-top:1px solid #F3F4F6;padding-top:12px}.rx-gl{font-size:11px;font-weight:700;color:#9CA3AF;text-transform:uppercase;letter-spacing:.06em;padding:0 12px;margin-bottom:6px!important}
+.rx-it{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px!important;border-radius:12px;text-align:left;font-size:14px;font-weight:500;color:#374151;margin-bottom:4px;animation:rxi .3s cubic-bezier(.22,1,.36,1) both}
+.rx-it:hover{background:#F9FAFB!important}.rx-it.on{background:#FEF2F2!important;color:#DC2626;font-weight:600}
+.rx-ii{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex:none;background:#F3F4F6;color:#374151}.rx-il{flex:1;min-width:0}
+.rx-it em{font-style:normal;font-size:10px;font-weight:700;background:#FFE4E6;color:#E11D48;padding:2px 8px;border-radius:99px}.rx-ar{font-size:11px;color:#9CA3AF}
+.rx-it.on .rx-ii{background:#DC2626;color:#fff}
+.rx-sc-s1 .rx-ii{background:#F1F5F9;color:#475569}.rx-sc-s5 .rx-ii{background:#FFF1F2;color:#E11D48}.rx-sc-s6 .rx-ii{background:#FDF2F8;color:#DB2777}.rx-sc-s7 .rx-ii{background:#FFFBEB;color:#D97706}
+.rx-sc-s2 .rx-ii{background:#EFF6FF;color:#2563EB}.rx-sc-s10 .rx-ii{background:#FFF7ED;color:#EA580C}.rx-sc-s13 .rx-ii{background:#EEF2FF;color:#4F46E5}.rx-sc-s14 .rx-ii{background:#ECFDF5;color:#059669}
+.rx-sc-s16 .rx-ii{background:#ECFEFF;color:#0891B2}.rx-sc-s17 .rx-ii{background:#FAF5FF;color:#9333EA}
+/* v10: সাইডবার — কার্ড-স্টাইল বাটন, সমান ব্যবধান, নিচের ফাঁকা জায়গা পূরণ */
+.rx-dn{padding:14px 12px 18px;gap:14px;justify-content:space-between;background:linear-gradient(180deg,#fff,#FAFAFA)}
+.rx-gg{display:flex;flex-direction:column;gap:7px}
+.rx-gg+.rx-gg{border-top:0;padding-top:0}
+.rx-gl{display:flex;align-items:center;gap:8px;padding:0 4px;margin:0 0 2px!important;font-size:11.5px;letter-spacing:.04em;text-transform:none;color:#6B7280}
+.rx-gl::before{content:"";width:4px;height:14px;border-radius:4px;background:linear-gradient(180deg,#EF4444,#F59E0B);flex:none}
+.rx-gl::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,#E5E7EB,transparent)}
+.rx-it{margin-bottom:0;min-height:54px;padding:8px 12px!important;gap:13px;background:#fff;border:1px solid #EEF0F3;border-radius:16px;box-shadow:0 2px 8px -4px rgba(17,24,39,.12);font-weight:600;font-size:14.5px;transition:transform .15s,box-shadow .2s,border-color .2s,background .2s}
+.rx-it:hover{background:#fff!important;border-color:#FECACA;box-shadow:0 6px 14px -8px rgba(220,38,38,.35)}
+.rx-it:active{transform:scale(.985)}
+.rx-it.on{background:linear-gradient(135deg,#FEF2F2,#FFF7ED)!important;border-color:#FCA5A5;box-shadow:0 6px 16px -8px rgba(220,38,38,.4)}
+.rx-ii{width:38px;height:38px;border-radius:12px;font-size:15px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.04)}
+.rx-it:not(:has(.rx-ar))::after{content:"\f054";font-family:"Font Awesome 6 Free","Font Awesome 5 Free",sans-serif;font-weight:900;font-size:10px;color:#C4C9D1;flex:none}
+.rx-it.on::after{color:#DC2626}
+@media (prefers-reduced-motion:reduce){.rx-dr,.rx-it{animation:none}.rx-sd{transition:none}.rx-bal i{animation:none}}
 </style>
 </body>
 </html>
