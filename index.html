@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://connect.facebook.net; worker-src 'self' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
-<meta name="dd-build" content="20261122-1"/>
+<meta name="dd-build" content="20261119-1"/>
 <script id="dd-selfupdate">(function(){try{
 /* অ্যাপ/ব্রাউজারে পুরনো ক্যাশ হওয়া পেজ ধরা: সার্ভারের নতুন ভার্সন থাকলে একবার নিজে রিফ্রেশ হয় (প্রতি নতুন ভার্সনে সর্বোচ্চ ১ বার) */
 var m=document.querySelector('meta[name="dd-build"]');if(!m)return;var B=m.content;
@@ -288,7 +288,7 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
   listenIntlConfig:(cb)=>onValue(ref(db,'intlConfig'),s=>cb(s.val()||{}),{onlyOnce:false}),
-  listenIntlCats:(cb)=>_live(()=>ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},'intlCats'),
+  listenIntlCats:(cb)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenOrderKey:(k,cb)=>_live(()=>ref(db,'orders/'+k),s=>{const v=s.val();cb(v?{fbKey:k,...v}:null)},'orderKey'),
@@ -7255,7 +7255,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       const cc=rd('dd_c_cats');if(Array.isArray(cc)&&cc.length)this.fbCategories=cc;
       const cs=rd('dd_c_secs');if(Array.isArray(cs)&&cs.length){this.fbSections=cs;this.secLoaded=true}
       const cr=rd('dd_c_rcfg');if(cr&&typeof cr==='object')this.rcfg=cr;
-      const cb=rd('dd_c_btns');if(Array.isArray(cb))this.customButtons=cb;const ci=rd('dd_c_intl');if(Array.isArray(ci)&&ci.length)this.intlCats=ci;
+      const cb=rd('dd_c_btns');if(Array.isArray(cb))this.customButtons=cb;
       const ct=rd('dd_c_set');if(ct){if(ct.settings)Object.assign(this.settings,ct.settings);if(ct.banners&&ct.banners.length)this.banners=ct.banners;if(ct.homepageLimit)this.homepageLimit=ct.homepageLimit;if(ct.gridCols)this.gridCols=ct.gridCols;if(ct.marqueeText){this.marqueeText=ct.marqueeText;this.marqueeEnabled=true}if(ct.tickers&&ct.tickers.length)this.tickers=ct.tickers}
     }catch(e){}
     this._initHistoryNav();
@@ -7297,7 +7297,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this._captureReferral();this._refLanding();
       window.$db.listenResellerConfig(c=>{this.rcfg=c||{};try{localStorage.setItem('dd_c_rcfg',JSON.stringify(c||{}))}catch(e){}this._checkRPop()});
       window.$db.listenServices(s=>{this.fbServices=s.sort((a,b)=>(a.order||0)-(b.order||0))});
-      window.$db.listenCategories(cats=>{this._stage('cat',()=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}})});window.$db.listenIntlCats(c=>{this.intlCats=c;try{localStorage.setItem('dd_c_intl',JSON.stringify(c))}catch(e){}});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
+      window.$db.listenCategories(cats=>{this._stage('cat',()=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}})});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this._stage('sec',()=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true;try{localStorage.setItem('dd_c_secs',JSON.stringify(this.fbSections))}catch(e){}})});
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
