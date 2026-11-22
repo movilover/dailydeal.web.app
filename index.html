@@ -3326,7 +3326,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       <!-- ৪) হিসাব -->
       <div class="inv-sum">
         <div><span>পণ্যের মূল্য</span><b x-text="'৳'+(inv.order.subtotal||0).toLocaleString()"></b></div>
-        <div><span>ডেলিভারি চার্জ</span><b x-text="'৳'+(inv.order.shipping||0).toLocaleString()"></b></div>
+        <div><span>ডেলিভারি চার্জ</span><b x-text="(inv.order.intlDest&&inv.order.intlDest.chargePending)?'অর্ডারের পর জানানো হবে':'৳'+(inv.order.shipping||0).toLocaleString()"></b></div>
         <div x-show="inv.order.codExtraCharge>0"><span>ক্যাশ অন ডেলিভারি চার্জ</span><b x-text="'৳'+(inv.order.codExtraCharge||0).toLocaleString()"></b></div>
         <div x-show="inv.order.promoDiscount>0" style="color:#16A34A"><span>প্রোমো ছাড়</span><b style="color:#16A34A" x-text="'−৳'+(inv.order.promoDiscount||0).toLocaleString()"></b></div>
         <div x-show="inv.order.prepaidDiscount>0" style="color:#16A34A"><span>অগ্রিম পেমেন্ট ছাড়</span><b style="color:#16A34A" x-text="'−৳'+(inv.order.prepaidDiscount||0).toLocaleString()"></b></div>
@@ -3336,6 +3336,14 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <div class="tot"><span>সর্বমোট</span><b x-text="'৳'+ordTotal(inv.order).toLocaleString()"></b></div>
         <div x-show="inv.order.advancePaid>0" style="margin-top:3px"><span>অগ্রিম পরিশোধ</span><b style="color:#16A34A" x-text="'৳'+(inv.order.advancePaid||0).toLocaleString()"></b></div>
         <div x-show="inv.order.dueOnDelivery>0"><span>ডেলিভারিতে বাকি</span><b x-text="'৳'+(inv.order.dueOnDelivery||0).toLocaleString()"></b></div>
+      </div>
+
+      <!-- গ্লোবাল অর্ডার: ডেলিভারি চার্জ জানার যোগাযোগ -->
+      <div x-show="inv.order.intlDest&&inv.order.intlDest.chargePending" x-cloak class="gi-note" style="margin:10px 0">
+        <p class="gi-t"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ জানতে যোগাযোগ করুন</p>
+        <p class="gi-s" x-text="(intlCfg&&intlCfg.contact&&intlCfg.contact.text)||'আপনার গ্লোবাল অর্ডারটি গ্রহণ করা হয়েছে। ডেলিভারি চার্জ আমরা কনফার্ম করে আপনাকে জানাবো — অথবা নিচের মাধ্যমে যোগাযোগ করে জেনে নিন।'"></p>
+        <div class="gi-btns"><template x-for="c in intlContacts" :key="'ic'+c.key"><a :href="intlContactUrl(c,inv.order)" target="_blank" rel="noopener noreferrer" class="gi-btn" :style="'background:'+c.color"><i :class="c.icon"></i> <span x-text="c.label"></span></a></template></div>
+        <p class="gi-s" x-show="!intlContacts.length" style="margin-top:6px">অর্ডার আইডি <b x-text="'#'+inv.order.id"></b> উল্লেখ করে আমাদের সাপোর্টে যোগাযোগ করুন।</p>
       </div>
 
       <!-- ৫) অর্ডার আইডি + QR -->
@@ -3629,15 +3637,15 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <div class="rx-dn">
 <div class="rx-gg"><p class="rx-gl">নেভিগেশন ও প্রোডাক্ট</p>
 <template x-for="(m,i) in resellSidebarMenu.filter(m=>['s0','s1','s5','s6','s7'].includes(m._id))" :key="m._id">
-<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((0)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((0)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><em x-show="m.action==='cart'&&sellCart.length>0" x-text="sellCartCount"></em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
 </template></div>
 <div class="rx-gg"><p class="rx-gl">অ্যাকাউন্ট ও পেমেন্ট</p>
 <template x-for="(m,i) in resellSidebarMenu.filter(m=>['s2','s10','s13','s14'].includes(m._id))" :key="m._id">
-<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((5)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((5)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><em x-show="m.action==='cart'&&sellCart.length>0" x-text="sellCartCount"></em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
 </template></div>
 <div class="rx-gg"><p class="rx-gl">সাপোর্ট ও অন্যান্য</p>
 <template x-for="(m,i) in resellSidebarMenu.filter(m=>['s16','s17'].includes(m._id)||String(m._id).startsWith('c_'))" :key="m._id">
-<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((9)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
+<button type="button" @click="resellMenuClick(m)" class="rx-it rx-tap" :class="['rx-sc-'+m._id,(m.action==='home'&&resellSubTab==='home')?'on':'']" :style="'animation-delay:'+((9)+i)*35+'ms'"><span class="rx-ii"><i :class="m.icon"></i></span><span class="rx-il" x-text="m.label"></span><em x-show="m._id==='s5'">নতুন</em><em x-show="m.action==='cart'&&sellCart.length>0" x-text="sellCartCount"></em><i x-show="m._id==='s1'" class="fa-solid fa-arrow-up-right-from-square rx-ar"></i></button>
 </template></div>
 </div>
 </aside>
@@ -4137,7 +4145,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <section x-show="activeTab==='intl'" x-cloak class="animate-fade-in pb-24">
   <!-- Header -->
   <div class="px-4 pt-4 pb-3 flex items-center gap-3">
-    <button @click="intlCat!=='সব'?(intlSub?intlSub='':(intlCat='সব')):(activeTab='home')" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+    <button @click="intlCat!=='সব'?(intlSub?intlSub='':(intlShowAll?intlShowAll=false:(intlCat='সব'))):(activeTab='home')" class="w-9 h-9 rounded-full flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-chevron-left text-sm"></i></button>
     <div class="flex-1 min-w-0"><p class="font-extrabold text-base"><i class="fa-solid fa-earth-asia" style="margin-right:8px"></i>Global Store</p>
       <p class="text-xs truncate" style="color:var(--fg3)"><span>ইন্টারন্যাশনাল</span><template x-if="intlCat!=='সব'"><span> › <b x-text="intlCat"></b></span></template><template x-if="intlSub"><span> › <b x-text="intlSub"></b></span></template></p></div>
   </div>
@@ -4172,12 +4180,25 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </template>
     </div>
     <div class="flex gap-2 overflow-x-auto grp-row" x-show="intlCat!=='সব'" style="padding-bottom:4px">
-      <button type="button" class="sub-chip" @click="intlCat='সব';intlSub=''">সব ক্যাটাগরি</button>
-      <template x-for="c in intlTopCats" :key="'t'+c.fbKey"><button type="button" class="sub-chip" :class="intlCat===c.name?'on':''" @click="intlSub='';intlCat=c.name"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
+      <button type="button" class="sub-chip" @click="intlCat='সব';intlSub='';intlShowAll=false">সব ক্যাটাগরি</button>
+      <template x-for="c in intlTopCats" :key="'t'+c.fbKey"><button type="button" class="sub-chip" :class="intlCat===c.name?'on':''" @click="intlSub='';intlShowAll=false;intlCat=c.name"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
     </div>
   </div>
-  <!-- Sub categories of the selected category -->
-  <div class="px-4 mt-4" x-show="intlCat!=='সব'&&intlCurSubs.length>0&&intlQ===''" x-cloak>
+  <!-- Sub categories: ক্যাটাগরিতে ক্লিক → সাব-ক্যাটাগরি গ্রিড; সাব-ক্যাটাগরিতে ক্লিক → পণ্য -->
+          <div class="px-4 mt-4" x-show="intlDrill" x-cloak>
+            <div class="flex items-center justify-between mb-2"><p class="section-title" x-text="intlCat+' — সাব-ক্যাটাগরি বেছে নিন'"></p></div>
+            <div class="grid grid-cols-3 gap-3">
+              <template x-for="s in intlCurSubs" :key="'sg'+s.fbKey">
+                <div @click="intlSub=s.name" class="ig-card">
+                  <div class="ig-img"><img x-show="s.img" :src="s.img" alt="" onerror="this.style.display='none'"/><i x-show="!s.img" :class="emoFa(s.emoji,'fa-box-open')"></i><b class="ig-ct" x-text="intlSubCount(s)+'টি'"></b></div>
+                  <p class="ig-nm" x-text="s.name"></p>
+                </div>
+              </template>
+              <div @click="intlShowAll=true" class="ig-card ig-all"><div class="ig-img"><i class="fa-solid fa-border-all"></i><b class="ig-ct" x-text="intlCatCount(intlCurCat)+'টি'"></b></div><p class="ig-nm">সব পণ্য দেখুন</p></div>
+            </div>
+          </div>
+<!-- Sub categories of the selected category -->
+  <div class="px-4 mt-4" x-show="intlCat!=='সব'&&intlCurSubs.length>0&&intlQ===''&&!intlDrill" x-cloak>
     <p class="section-title mb-2">সাব-ক্যাটাগরি</p>
     <div class="sub-cat-scroll">
       <div class="sub-cat-item" :class="!intlSub?'active':''" @click="intlSub=''"><div class="sub-cat-img-wrap" :style="!intlSub?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><i class="fa-solid fa-border-all"></i></div><span class="sub-cat-name">সব</span></div>
@@ -4186,10 +4207,10 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   </div>
   <p x-show="!intlTopCats.length" class="text-center text-sm py-12" style="color:var(--fg3)">শীঘ্রই আসছে...</p>
   <!-- Products -->
-  <div class="px-4 mt-5" x-show="intlTopCats.length>0||intlProducts.length>0">
-    <div class="flex items-center justify-between mb-2"><p class="section-title" x-text="intlSub||(intlCat!=='সব'?intlCat:'সব পণ্য')"></p><span class="text-xs" style="color:var(--fg3)" x-text="intlFiltered.length+'টি পণ্য'"></span></div>
+  <div class="px-4 mt-5" x-show="(intlTopCats.length>0||intlProducts.length>0)&&!intlDrill">
+    <div class="flex items-center justify-between mb-2"><p class="section-title" x-text="intlHome?'🆕 নতুন পণ্য':(intlSub||(intlCat!=='সব'?intlCat:'সব পণ্য'))"></p><span class="text-xs" style="color:var(--fg3)" x-text="(intlHome?intlShown.length+'/'+intlProducts.length:intlFiltered.length)+'টি পণ্য'"></span></div>
     <div class="grid grid-cols-2 gap-3">
-      <template x-for="p in intlFiltered" :key="p.fbKey">
+      <template x-for="p in intlShown" :key="p.fbKey">
         <div class="rounded-2xl overflow-hidden" style="background:var(--card);border:1px solid var(--border);box-shadow:0 2px 10px rgba(0,0,0,.04)">
           <div style="position:relative;cursor:pointer" @click="openDetailSheet(p)">
             <img :src="optImg(p.images?.[0]||p.img||'',380)" class="w-full aspect-square object-cover" loading="lazy" onerror="this.onerror=null;this.src=DD_PH"/>
@@ -4203,6 +4224,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </template>
     </div>
     <p x-show="intlFiltered.length===0&&intlTopCats.length>0" class="text-center text-sm py-10" style="color:var(--fg3)">এই ক্যাটাগরিতে এখনো কোনো পণ্য নেই — শীঘ্রই আসছে</p>
+          <button type="button" x-show="intlHome&&intlProducts.length>intlNewN" @click="intlNewN+=10" class="gi-more"><i class="fa-solid fa-angles-down"></i> আরও ১০টি পণ্য দেখুন</button>
   </div>
   <!-- Countries & delivery -->
   <div class="px-4 mt-6" x-show="intlCat==='সব'&&intlQ===''" x-cloak>
@@ -4210,7 +4232,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     <div class="space-y-2">
       <template x-for="c in intlCountries" :key="c.code">
         <details class="rounded-2xl p-3" style="background:var(--card);border:1px solid var(--border)">
-          <summary class="flex items-center gap-2 cursor-pointer" style="list-style:none"><span class="text-xl" x-text="c.flag||'🌍'"></span><span class="text-sm font-bold flex-1" x-text="c.name"></span><span class="text-xs font-bold" style="color:var(--accent)" x-show="intlFeeOf(c.code)!=null" x-text="'৳'+Number(intlFeeOf(c.code)).toLocaleString('bn-BD')"></span><i class="fa-solid fa-chevron-down text-xs" style="color:var(--fg3)"></i></summary>
+          <summary class="flex items-center gap-2 cursor-pointer" style="list-style:none"><span class="text-xl" x-text="c.flag||'🌍'"></span><span class="text-sm font-bold flex-1" x-text="c.name"></span><span class="text-xs font-bold" style="color:var(--accent)" x-show="!intlLater&&intlFeeOf(c.code)!=null" x-text="'৳'+Number(intlFeeOf(c.code)).toLocaleString('bn-BD')"></span><i class="fa-solid fa-chevron-down text-xs" style="color:var(--fg3)"></i></summary>
           <div class="mt-2 text-xs" style="color:var(--fg2)"><p x-show="c.days"><i class="fa-regular fa-clock"></i> সময়: <b x-text="c.days"></b></p><div class="flex flex-wrap gap-1.5 mt-2"><template x-for="r in c.regions" :key="r"><span class="px-2 py-0.5 rounded-full" style="background:var(--bg2);border:1px solid var(--border)" x-text="r"></span></template></div></div>
         </details>
       </template>
@@ -4469,17 +4491,25 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
             </div>
           </div>
           <div x-show="destAbroad" x-cloak class="space-y-3 p-3 rounded-2xl" style="background:var(--bg2);border:1.5px dashed var(--accent)">
-            <div><label class="dd-label">দেশ *</label>
-              <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.country" @change="setDest(form.country)"><template x-for="c in intlCountries.filter(x=>intlFeeOf(x.code)!=null)" :key="c.code"><option :value="c.code" x-text="(c.flag||'')+' '+c.name"></option></template></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
-              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
+            <div><label class="dd-label">দেশ বেছে নিন *</label>
+              <div class="gc-grid"><template x-for="c in intlCountries.filter(x=>intlOk(x.code))" :key="c.code"><button type="button" class="gc-chip" :class="form.country===c.code?'on':''" @click="setDest(c.code)"><span class="gc-f" x-text="c.flag||'🌍'"></span><span class="gc-n" x-text="c.name"></span></button></template></div>
+              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span x-show="!intlLater"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="intlLater" style="color:#B45309"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ অর্ডারের পর জানানো হবে</span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
             </div>
-            <div><label class="dd-label">শহর / এলাকা *</label>
+            <div class="loc-card" :class="iloc&&iloc.cc===form.country?'ok':''">
+            <div class="loc-hd"><div class="loc-pin" :class="ilocBusy?'busy':''"><i class="fa-solid fa-location-dot"></i><span class="loc-ring"></span><span class="loc-ring r2"></span></div>
+            <div style="min-width:0"><p class="loc-t">লোকেশন</p><p class="loc-s" x-text="ilocBusy?'GPS থেকে আপনার অবস্থান নেওয়া হচ্ছে…':(iloc&&iloc.cc===form.country?'লোকেশন নেওয়া হয়েছে (±'+iloc.acc+' মি.)':'এক ট্যাপে দেশ, শহর ও ঠিকানা অটো-ফিল')"></p></div></div>
+            <div class="loc-bar" x-show="ilocBusy" x-cloak><i style="width:62%"></i></div>
+            <button type="button" @click="useMyLocationAbroad()" :disabled="ilocBusy" class="loc-btn"><i class="fa-solid" :class="ilocBusy?'fa-spinner fa-spin':'fa-location-crosshairs'"></i><span x-text="ilocBusy?'লোকেশন নেওয়া হচ্ছে...':(iloc?'লোকেশন আবার নিন':'📍 আমার বর্তমান লোকেশন ব্যবহার করুন')"></span></button>
+            <p class="loc-note" x-show="ilocMsg" x-text="ilocMsg"></p>
+            <p class="loc-note" x-show="!ilocMsg">ফোনের লোকেশন চালু করে "Allow" দিলে দেশ, শহর ও ঠিকানা নিজে বসে যাবে — চাইলে নিচের বক্সে নিজেও লিখতে পারবেন।</p>
+          </div>
+          <div><label class="dd-label">শহর / এলাকা *</label>
               <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.city"><option value="">— বেছে নিন —</option><template x-for="r in (destCountry?destCountry.regions:[])" :key="r"><option :value="r" x-text="r"></option></template><option value="__other">অন্য শহর/এলাকা (লিখুন)</option></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
               <input x-show="form.city==='__other'" x-cloak class="dd-input mt-2" x-model="form.cityOther" placeholder="শহর/এলাকার নাম"/>
             </div>
             <div><label class="dd-label">প্রাপকের নাম (ঐচ্ছিক)</label><input class="dd-input" x-model="form.recvName" placeholder="খালি রাখলে আপনার নামই যাবে"/></div>
             <div><label class="dd-label">প্রাপকের ফোন (দেশের কোডসহ) *</label><input class="dd-input" type="tel" x-model="form.recvPhone" :placeholder="'+'+(destCountry?destCountry.phone:'')+' XXXXXXXX'"/></div>
-            <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="2" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, পোস্টাল কোড..."></textarea></div>
+            <div><label class="dd-label">বিস্তারিত ঠিকানা * <span style="font-weight:500;color:var(--fg3)">(নিজে লিখুন বা লোকেশন থেকে নিন)</span></label><textarea class="dd-input resize-none" rows="3" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, শহর, পোস্টাল কোড — যেখানে আছেন সেটা সম্পূর্ণ লিখুন..."></textarea></div>
             <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
           </div>
           <div x-show="!destAbroad" class="loc-card" :class="form.loc?'ok':''">
@@ -4550,7 +4580,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <template x-for="it in cart" :key="it.fbKey||it.id">
           <div class="flex justify-between text-sm py-1.5" style="border-bottom:1px dashed var(--border)"><span style="color:var(--fg2)" class="flex-1 truncate pr-2 text-xs" x-text="it.name+(it.qty>1?' ×'+it.qty:'')+(it.size||it.color?' ('+[it.size,it.color].filter(Boolean).join(', ')+')':'')"></span><span class="font-mono text-xs font-semibold flex-shrink-0" style="color:var(--fg)" x-text="'৳'+(it.price*it.qty).toLocaleString()"></span></div>
         </template>
-        <div class="flex justify-between text-sm mt-2 pt-2" style="border-top:1px solid var(--border)"><span style="color:var(--fg2)">ডেলিভারি</span><span class="font-mono text-xs font-semibold" x-text="shipping>0?'৳'+shipping:'বিভাগ সিলেক্ট করুন'"></span></div>
+        <div class="flex justify-between text-sm mt-2 pt-2" style="border-top:1px solid var(--border)"><span style="color:var(--fg2)">ডেলিভারি</span><span class="font-mono text-xs font-semibold" x-text="(destAbroad&&intlLater)?'অর্ডারের পর জানানো হবে':(shipping>0?'৳'+shipping:'বিভাগ সিলেক্ট করুন')"></span></div>
         <div x-show="codExtraCharge>0" x-cloak class="flex justify-between text-sm py-1" style="color:#B45309"><span>COD চার্জ</span><span class="font-mono text-xs font-semibold" x-text="'+৳'+codExtraCharge"></span></div>
         <div x-show="prepaidDiscountAmount>0" x-cloak class="flex justify-between text-sm py-1" style="color:#16A34A"><span x-text="'প্রি-পেমেন্ট ছাড় ('+(selectedPM?.prepaidDiscountPct||0)+'%)'"></span><span class="font-mono text-xs font-semibold" x-text="'−৳'+prepaidDiscountAmount"></span></div>
         <div x-show="advanceShipDiscount>0" x-cloak class="flex justify-between text-sm py-1" style="color:#16A34A"><span>ডেলিভারি ছাড়</span><span class="font-mono text-xs font-semibold" x-text="'−৳'+advanceShipDiscount"></span></div>
@@ -4567,7 +4597,12 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         </div>
         <p class="text-xs mt-2 font-bold" style="color:#16A34A" x-show="appliedPromo"><i class="fa-solid fa-circle-check mr-1"></i>কোড প্রয়োগ হয়েছে!</p>
       </div>
-      <div x-show="cartNeedsConfirm" x-cloak class="text-xs font-bold px-3 py-2.5 rounded-xl mb-2" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A"><i class="fa-brands fa-whatsapp"></i> ডেলিভারি চার্জ: <b>To Be Confirmed</b> — ঠিকানা দিয়ে নিচের বাটনে WhatsApp-এ চার্জ জেনে নিন। চার্জ না জেনে কোনো পেমেন্ট নেওয়া হবে না।</div>
+      <div x-show="destAbroad&&intlLater&&!cartNeedsConfirm" x-cloak class="gi-note">
+          <p class="gi-t"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ কীভাবে জানবেন?</p>
+          <p class="gi-s" x-text="(intlCfg&&intlCfg.contact&&intlCfg.contact.text)||'অর্ডার কনফার্ম করার পর ডেলিভারি চার্জ আমরা আপনাকে জানাবো। চাইলে আপনিও নিচের মাধ্যমে যোগাযোগ করে জেনে নিতে পারবেন। চার্জ জানার আগে আপনার কাছ থেকে ডেলিভারির টাকা নেওয়া হবে না।'"></p>
+          <div class="gi-btns"><template x-for="c in intlContacts" :key="'gi'+c.key"><span class="gi-chip" :style="'background:'+c.color"><i :class="c.icon"></i> <span x-text="c.label.replace(' জানুন','').replace('-এ','')"></span></span></template></div>
+        </div>
+        <div x-show="cartNeedsConfirm" x-cloak class="text-xs font-bold px-3 py-2.5 rounded-xl mb-2" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A"><i class="fa-brands fa-whatsapp"></i> ডেলিভারি চার্জ: <b>To Be Confirmed</b> — ঠিকানা দিয়ে নিচের বাটনে WhatsApp-এ চার্জ জেনে নিন। চার্জ না জেনে কোনো পেমেন্ট নেওয়া হবে না।</div>
       <div class="dp-bar" style="margin:0 -16px">
         <div class="flex-1 flex flex-col justify-center">
           <span class="text-xs" style="color:var(--fg3)">সর্বমোট</span>
@@ -5060,6 +5095,8 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               </div>
             </template>
 
+<div class="sc-home" x-show="sellCart.length>0" x-cloak role="button" tabindex="0" @click="resellSubTab='post';sellView=true" @keydown.enter="resellSubTab='post';sellView=true"><span class="ic"><i class="fa-solid fa-basket-shopping"></i></span><div class="tx"><b>অর্ডার তালিকায় <span x-text="sellCart.length"></span>টি প্রোডাক্ট আছে</b><small><span x-text="sellCartCount"></span> পিস • প্রফিট ৳<span x-text="sellCartProfit.toLocaleString()"></span></small></div><span class="go">সম্পূর্ণ করুন <i class="fa-solid fa-arrow-right"></i></span></div>
+
 <section class="rx-card rx-rs" x-init="_rsLoadIncome()">
 <div class="rx-hd"><h3><i class="fa-solid fa-arrow-trend-up"></i> আমার রিসেলিং</h3><button type="button" class="rx-lk rx-tap" @click="rsOpenDash('dashboard')">বিস্তারিত →</button></div>
 <div class="rx-k3"><div><p>মোট অর্ডার</p><b x-text="rsStats.total"></b></div><div class="g"><p>কনফার্মড প্রফিট</p><b x-text="'৳'+rsStats.profitDone.toLocaleString()"></b></div><div class="r"><p>টিম ইনকাম</p><b x-text="'৳'+rsIncome.total.toLocaleString()"></b></div></div>
@@ -5203,32 +5240,36 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
             <div x-show="sellCart.length>0" class="sell-bar" @click="sellView=true"><span><i class="fa-solid fa-basket-shopping"></i> অর্ডার তালিকা (<b x-text="sellCartCount"></b>টি)</span><span>দেখুন <i class="fa-solid fa-arrow-right"></i></span></div>
             </div>
             <div x-show="sellView" class="flex items-center gap-2"><button @click="sellView=false" class="w-9 h-9 rounded-xl flex items-center justify-center" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button><p class="section-title">অর্ডার তালিকা</p></div>
-            <div x-show="sellView&&sellCart.length===0" class="text-center py-10 text-sm" style="color:var(--fg3)">তালিকা খালি। পোস্ট থেকে পণ্য যোগ করুন।</div>
+            <div x-show="sellView&&sellCart.length===0" class="sc-empty"><span><i class="fa-solid fa-basket-shopping"></i></span><b>অর্ডার তালিকা খালি</b><p>পোস্ট থেকে পণ্য বেছে নিয়ে এখানে যোগ করুন।</p><button type="button" class="sc-more" @click="sellView=false"><i class="fa-solid fa-plus"></i> প্রোডাক্ট বেছে নিন</button></div>
 
             <template x-if="sellView&&sellCart.length>0">
-              <div class="dd-card overflow-hidden">
-                <div class="px-4 py-3" style="background:var(--header)"><p class="text-white font-bold text-sm">বিক্রয় তালিকা (<span x-text="sellCartCount"></span>টি)</p></div>
-                <div class="p-3 space-y-2.5">
-                  <template x-for="(it,i) in sellCart" :key="i">
-                    <div class="flex items-center gap-2.5 pb-2.5" style="border-bottom:1px dashed var(--border)">
-                      <img :src="it.images?.[0]||''" class="w-11 h-11 rounded-lg object-cover flex-shrink-0" onerror="this.onerror=null;this.src=DD_PH"/>
-                      <div class="flex-1 min-w-0">
-                        <p class="text-xs font-semibold truncate" style="color:var(--fg)" x-text="it.name"></p>
-                        <p class="text-xs" style="color:var(--fg3)" x-text="'কস্ট: ৳'+it.resellerPrice+' × '+it.qty"></p>
-                        <div class="flex items-center gap-1.5 mt-1">
-                          <span class="text-xs" style="color:var(--fg3)">বিক্রয়মূল্য ৳</span>
-                          <input type="number" x-model.number="it.resellerSellPrice" class="dd-input py-1 text-xs" style="width:70px;padding:4px 6px"/>
+              <div class="sc-card">
+                <div class="sc-hd"><div><p class="sc-ht"><i class="fa-solid fa-basket-shopping"></i> অর্ডার তালিকা</p><p class="sc-hs">মোট <b x-text="sellCart.length"></b>টি প্রোডাক্ট • <b x-text="sellCartCount"></b> পিস</p></div><button type="button" class="sc-clr" @click="clearSellCart()"><i class="fa-solid fa-trash-can"></i> সব মুছুন</button></div>
+                <div class="sc-list">
+                  <template x-for="(it,i) in sellCart" :key="(it._k||it.fbKey||it.id)+'-'+i">
+                    <div class="sc-row">
+                      <img :src="it.variantImg||it.images?.[0]||it.img||''" class="sc-im" alt="" onerror="this.onerror=null;this.src=DD_PH"/>
+                      <div class="sc-bd">
+                        <p class="sc-nm" x-text="it.name"></p>
+                        <p class="sc-mt"><span x-show="it.size" x-text="'সাইজ: '+it.size"></span><span x-show="it.productId" x-text="'আইডি: '+it.productId"></span><span x-text="'কস্ট ৳'+it.resellerPrice"></span></p>
+                        <div class="sc-ln">
+                          <label class="sc-pr"><span>বিক্রয়মূল্য ৳</span><input type="number" inputmode="numeric" x-model.number="it.resellerSellPrice" @change="_sellSave()"/></label>
+                          <div class="sc-qt"><button type="button" @click="sellQty(i,-1)" aria-label="কমান"><i class="fa-solid fa-minus"></i></button><b x-text="it.qty"></b><button type="button" @click="sellQty(i,1)" aria-label="বাড়ান"><i class="fa-solid fa-plus"></i></button></div>
                         </div>
+                        <p class="sc-pf" :class="(Number(it.resellerSellPrice)||0)<(it.resellerPrice||0)?'bad':''" x-text="(Number(it.resellerSellPrice)||0)<(it.resellerPrice||0)?('বিক্রয়মূল্য কমপক্ষে ৳'+it.resellerPrice+' হতে হবে'):('এই পণ্যে লাভ ৳'+(((Number(it.resellerSellPrice)||0)-(it.resellerPrice||0))*it.qty).toLocaleString())"></p>
                       </div>
-                      <button @click="removeSellItem(i)" class="text-red-400 bg-transparent border-none cursor-pointer"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                      <button type="button" class="sc-rm" @click="removeSellItem(i)" aria-label="মুছুন"><i class="fa-solid fa-trash-can"></i></button>
                     </div>
                   </template>
                 </div>
-                <div class="px-4 py-3" style="background:var(--bg2)">
-                  <div class="flex justify-between text-xs mb-1"><span style="color:var(--fg3)">মোট কস্ট</span><span class="font-mono font-semibold" x-text="'৳'+sellCartCost.toLocaleString()"></span></div>
-                  <div class="flex justify-between text-xs mb-1"><span style="color:var(--fg3)">কাস্টমার মূল্য</span><span class="font-mono font-semibold" x-text="'৳'+sellCartTotal.toLocaleString()"></span></div>
-                  <div class="flex justify-between text-sm font-bold pt-1.5" style="border-top:1px solid var(--border)"><span style="color:#16A34A">আপনার প্রফিট</span><span class="font-mono" style="color:#16A34A" x-text="'৳'+sellCartProfit.toLocaleString()"></span></div>
+                <button type="button" class="sc-more sc-wide" @click="sellView=false"><i class="fa-solid fa-plus"></i> অন্য প্রোডাক্ট বেছে নিন</button>
+                <div class="sc-sm">
+                  <div><span>মোট প্রোডাক্ট</span><b x-text="sellCart.length+'টি ('+sellCartCount+' পিস)'"></b></div>
+                  <div><span>মোট কস্ট</span><b class="font-mono" x-text="'৳'+sellCartCost.toLocaleString()"></b></div>
+                  <div><span>কাস্টমার মূল্য</span><b class="font-mono" x-text="'৳'+sellCartTotal.toLocaleString()"></b></div>
+                  <div class="g"><span>আপনার প্রফিট</span><b class="font-mono" x-text="'৳'+sellCartProfit.toLocaleString()"></b></div>
                 </div>
+                <p class="sc-sv"><i class="fa-solid fa-cloud-arrow-down"></i> এই তালিকা সেভ থাকে — সাইট থেকে বের হয়ে গেলেও মুছবে না।</p>
               </div>
             </template>
 
@@ -6228,6 +6269,16 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   <p class="dlg-p" x-text="pvPopup==='low'?('এই পণ্যের রিসেলার প্রাইস ৳'+(postView?postView.resellerPrice:'')+'। এর চেয়ে কম দামে বিক্রি করা যাবে না।'):('আপনি ৳'+pvPrice+' লিখেছেন, কিন্তু মার্কেট প্রাইস ৳'+(postView?postView.marketPrice:'')+'। এত বেশি দামে কাস্টমার নাও কিনতে পারে। চালিয়ে যাবেন?')"></p>
   <div class="flex gap-2 mt-4"><button @click="pvPopup=''" class="dlg-b2">সংশোধন করি</button><button x-show="pvPopup==='high'" @click="addFromPost(true)" class="dlg-b1">হ্যাঁ, অ্যাড করুন</button></div>
 </div></div>
+<!-- অর্ডার তালিকায় যোগ হওয়ার পর: অন্য প্রোডাক্ট বেছে নিন / অর্ডার সম্পূর্ণ করুন -->
+<div x-show="sellAdded" x-cloak class="dlg-back" style="z-index:130" @click.self="sellAdded=false"><div class="dlg sc-dlg">
+  <div class="dlg-ic" style="background:#DCFCE7;color:#16A34A"><i class="fa-solid fa-circle-check"></i></div>
+  <p class="dlg-t">অর্ডার তালিকায় যোগ হয়েছে</p>
+  <p class="dlg-p sc-dn" x-text="sellLastName"></p>
+  <div class="sc-dsum"><div><b x-text="sellCart.length"></b><span>প্রোডাক্ট</span></div><div><b x-text="sellCartCount"></b><span>পিস</span></div><div class="g"><b x-text="'৳'+sellCartProfit.toLocaleString()"></b><span>মোট প্রফিট</span></div></div>
+  <button type="button" class="sc-more sc-wide" @click="sellPickMore()"><i class="fa-solid fa-plus"></i> অন্য প্রোডাক্ট বেছে নিন</button>
+  <button type="button" class="dlg-b1 sc-go" @click="sellOpenList()"><i class="fa-solid fa-circle-check"></i> অর্ডার সম্পূর্ণ করুন</button>
+  <p class="sc-sv" style="margin-top:10px"><i class="fa-solid fa-cloud-arrow-down"></i> তালিকা সেভ থাকবে</p>
+</div></div>
 <!-- TERMS POPUP -->
 <div x-show="sellTermsOpen" x-cloak class="dlg-back" @click.self="sellTermsOpen=false"><div class="dlg" style="max-width:380px;text-align:left">
   <p class="dlg-t" style="text-align:center">শর্ত সমূহ</p>
@@ -6409,7 +6460,7 @@ function App(){return{
   resellProfileForm:{shopName:'',supportNumber:'',showSupportOnInvoice:'হ্যাঁ',email:'',district:'',address:''},
   resellApply:{name:'',shopName:'',referralCode:'',agree:false},
   resellShopNameInput:'',
-  sellCart:[],sellPlacing:false,
+  sellCart:[],sellPlacing:false,sellAdded:false,sellLastName:'',
   sellForm:{customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''},
   withdrawForm:{amount:'',method:'bkash',number:''},
   refWalletOpen:false,refWalletAmt:'',refWalletBusy:false,refTab:'wd',refWd:{method:'bkash',number:'',amount:'',busy:false,warn:false},
@@ -6437,7 +6488,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -6641,8 +6692,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
   get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
   // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
-  get intlTopCats(){const ids=new Set(this.intlCatsActive.map(c=>c.fbKey));return this.intlCatsActive.filter(c=>!c.parent||!ids.has(c.parent))},
-  intlSubsOf(c){return c?this.intlCatsActive.filter(x=>x.parent===c.fbKey):[]},
+  get intlTopCats(){const L=this.intlCatsActive,ids=new Set(L.map(c=>c.fbKey));const nm=new Set(L.filter(c=>!c.parent).map(c=>c.name));return L.filter(c=>!c.parent||(!ids.has(c.parent)&&!nm.has(c.parent)))},
+  intlSubsOf(c){return c?this.intlCatsActive.filter(x=>x.parent&&(x.parent===c.fbKey||(!c.parent&&x.parent===c.name&&!this.intlCatsActive.some(y=>y.fbKey===x.parent)))):[]},
   get intlCurCat(){return this.intlTopCats.find(c=>c.name===this.intlCat)||null},
   get intlCurSubs(){return this.intlSubsOf(this.intlCurCat)},
   intlCatCount(c){const names=new Set([c.name,...this.intlSubsOf(c).map(s=>s.name)]);return this.intlProducts.filter(p=>names.has(p.intlCat)||names.has(p.intlSub)).length},
@@ -6654,7 +6705,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     }else if(this.intlCat!=='সব'){L=L.filter(p=>p.intlCat===this.intlCat)}
     const q=String(this.intlQ||'').trim().toLowerCase();if(q)L=L.filter(p=>String(p.name||'').toLowerCase().includes(q));
     return L},
-  intlPick(c){this.intlSub='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
+  intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlCat=(this.intlCat===c.name?'সব':c.name)},
   // ইন্টারন্যাশনাল ডেলিভারি কনফিগ (অ্যাডমিন সেভ করলে আসে; না থাকলে ডিফল্ট শুধু তথ্য হিসেবে দেখায়)
   get intlCfgSaved(){const f=this.intlCfg&&this.intlCfg.fees;return !!(f&&typeof f==='object'&&Object.keys(f).length)},
   get intlCountries(){
@@ -6663,10 +6714,24 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!L.length)L=DD_INTL_COUNTRIES.map(x=>({...x}));
     return L.filter(x=>x&&x.name&&x.active!==false).map(x=>({...x,regions:this._arr(x.regions).map(String).filter(Boolean)})).sort((a,b)=>(Number(a.order)||99)-(Number(b.order)||99))},
   get intlFeats(){const f=this._arr(this.intlCfg&&this.intlCfg.features).filter(x=>x&&x.title);return f.length?f:DD_INTL_FEATS},
-  get canAbroad(){return this.intlCfgSaved&&this.intlCountries.some(c=>this.intlFeeOf(c.code)!=null)},
-  intlFeeOf(code){const f=this.intlCfg&&this.intlCfg.fees,v=f&&f[code];return(v!==undefined&&v!==null&&v!==''&&!isNaN(Number(v)))?Number(v):null},
+  get intlLater(){const k=this.intlCfg&&this.intlCfg.contact;return !k||k.later!==false},
+  intlOk(code){return this.intlFeeOf(code)!=null||(this.intlLater&&this.intlCountries.some(c=>c.code===code))},
+  get intlContacts(){const k=(this.intlCfg&&this.intlCfg.contact)||{},o=[],rc=this.rc_contact||{};
+    const wa=String(k.wa||this.helpWa||(this.settings&&this.settings.wa)||'').replace(/\D/g,'');
+    if(k.waOn!==false&&wa)o.push({key:'wa',label:'WhatsApp-এ জানুন',icon:'fa-brands fa-whatsapp',color:'#25D366',num:wa});
+    const fb=this.safeUrl(k.fb||rc.messenger||rc.facebookPage||'');
+    if(k.fbOn!==false&&fb)o.push({key:'fb',label:'ফেসবুক পেজে মেসেজ দিন',icon:'fa-brands fa-facebook-messenger',color:'#1877F2',url:fb});
+    const tel=String(k.tel||'').replace(/[^\d+]/g,'');
+    if(k.telOn&&tel)o.push({key:'tel',label:'কল করুন',icon:'fa-solid fa-phone',color:'#0EA5E9',url:'tel:'+tel});
+    return o},
+  intlContactUrl(c,o){if(!c)return'#';if(c.key!=='wa')return c.url;
+    const d=(o&&o.intlDest)||{},msg='হ্যালো! আমি গ্লোবাল অর্ডার করেছি, ডেলিভারি চার্জ জানতে চাই।\nঅর্ডার আইডি: #'+(o&&o.id||'')+'\nনাম: '+(o&&o.customerName||'')+'\nদেশ: '+(d.countryName||'')+(d.city?' · '+d.city:'')+'\nঠিকানা: '+String(d.address||'').split('\n')[0];
+    return 'https://wa.me/'+c.num+'?text='+encodeURIComponent(msg)},
+  get canAbroad(){return this.intlCountries.some(c=>this.intlOk(c.code))},
+  intlFeeOf(code){const f=this.intlCfg&&this.intlCfg.fees,v=f&&f[code];if(v!==undefined&&v!==null&&v!==''&&!isNaN(Number(v)))return Number(v);
+  if(!this.intlCfgSaved){const d=DD_INTL_COUNTRIES.find(x=>x.code===code);if(d&&d.fee!==undefined&&d.fee!==null&&!isNaN(Number(d.fee)))return Number(d.fee)}return null},
   get destCountry(){return this.form.country?(this.intlCountries.find(c=>c.code===this.form.country)||null):null},
-  get destAbroad(){return !!this.destCountry&&this.intlFeeOf(this.form.country)!=null},
+  get destAbroad(){return !!this.destCountry&&this.intlOk(this.form.country)},
   setDest(code){
     this.form.country=code||'';this.form.city='';this.form.cityOther='';
     if(code){try{localStorage.setItem('dd_intl_dest',code)}catch(e){}if(this.form.pay==='cod'){const m=this.payMethods[0];if(m)this.form.pay=m.id}}
@@ -6775,7 +6840,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get cartSubtotal(){return this.cart.reduce((s,i)=>s+i.price*i.qty,0)},
   get cartNeedsConfirm(){return this.cart.some(i=>i&&i.deliveryConfirm)},
   cjIntlShipping(base){const m=this.cart.map(i=>(i&&i.delivery&&i.delivery.mode)||'default');if(m.every(x=>x==='free'))return 0;const fx=this.cart.filter(i=>i&&i.delivery&&i.delivery.mode==='fixed').map(i=>Number(i.delivery.fee)||0);return fx.length?Math.max(...fx):base},
-  get shipping(){if(this.cartNeedsConfirm)return 0;if(this.destAbroad)return this.cjIntlShipping(this.intlFeeOf(this.form.country));if(!this.form.division)return 0;return this.shipRate(this.form.division)},
+  get shipping(){if(this.cartNeedsConfirm)return 0;if(this.destAbroad)return this.intlLater?0:this.cjIntlShipping(this.intlFeeOf(this.form.country));if(!this.form.division)return 0;return this.shipRate(this.form.division)},
   get grandTotal(){return Math.max(0,this.cartSubtotal+this.shipping+this.codExtraCharge-this.prepaidDiscountAmount-this.advanceShipDiscount-this.promoDiscountAmount)},
   get promoDiscountAmount(){
     if(!this.appliedPromo)return 0;
@@ -7050,6 +7115,45 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.locMsg=m;this.showToast(m,'error');
     }).finally(()=>{this.locBusy=false;this.locStep=0});
   },
+  // 📍 বিদেশের লোকেশন: GPS → দেশ, শহর ও ঠিকানা অটো-ফিল (ইংরেজি + বাংলা নাম মিলিয়ে)
+  useMyLocationAbroad(){
+    if(!navigator.geolocation){this.ilocMsg='এই ডিভাইস/ব্রাউজারে লোকেশন সাপোর্ট নেই — ঠিকানা নিজে লিখুন';return this.showToast(this.ilocMsg,'error')}
+    if(this.ilocBusy)return;this.ilocBusy=true;this.ilocMsg='';
+    const getPos=o=>new Promise((res,rej)=>navigator.geolocation.getCurrentPosition(res,rej,o));
+    return (async()=>{
+      let pos;try{pos=await getPos({enableHighAccuracy:true,timeout:12000,maximumAge:0})}catch(e){if(e&&e.code===1)throw e;pos=await getPos({enableHighAccuracy:false,timeout:10000,maximumAge:120000})}
+      const lat=Number(pos.coords.latitude.toFixed(6)),lng=Number(pos.coords.longitude.toFixed(6)),acc=Math.round(pos.coords.accuracy||0);
+      const to=(u,ms)=>{const c=new AbortController(),tm=setTimeout(()=>c.abort(),ms);return fetch(u,{signal:c.signal}).then(r=>{if(!r.ok)throw new Error('http');return r.json()}).finally(()=>clearTimeout(tm))};
+      const q='&format=jsonv2&zoom=18&addressdetails=1&lat='+lat+'&lon='+lng;
+      const [enR,bnR,bdR]=await Promise.allSettled([to('https://nominatim.openstreetmap.org/reverse?accept-language=en'+q,9000),to('https://nominatim.openstreetmap.org/reverse?accept-language=bn'+q,9000),to('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+lat+'&longitude='+lng+'&localityLanguage=en',9000)]);
+      const en=enR.status==='fulfilled'?enR.value:null,bn=bnR.status==='fulfilled'?bnR.value:null,bd=bdR.status==='fulfilled'?bdR.value:null,a=(en&&en.address)||{},ab=(bn&&bn.address)||{};
+      const cc=String(a.country_code||(bd&&bd.countryCode)||'').toUpperCase(),cName=a.country||(bd&&bd.countryName)||cc;
+      this.iloc={lat,lng,acc,cc,address:''};
+      const match=this.intlCountries.find(c=>c.code===cc&&this.intlOk(c.code));
+      if(!match){this.ilocMsg='আপনার অবস্থান '+(cName||'অজানা')+' — এই দেশে ডেলিভারি চালু নেই। উপরের তালিকা থেকে দেশ বেছে নিয়ে ঠিকানা লিখুন।';this.showToast('এই দেশে ডেলিভারি চালু নেই','error');return}
+      if(this.form.country!==match.code)this.setDest(match.code);
+      await this.$nextTick();
+      const cityEn=[a.city,a.town,a.village,a.state_district,a.county,a.state,bd&&bd.city,bd&&bd.locality].filter(Boolean).map(String);
+      const cityBn=[ab.city,ab.town,ab.village,ab.state_district,ab.county,ab.state].filter(Boolean).map(String);
+      const norm=s=>String(s||'').toLowerCase().replace(/[^a-z\u0980-\u09FF0-9]+/g,'');
+      const regs=match.regions||[];
+      const hit=regs.find(r=>{const n=norm(r);return n&&[...cityBn,...cityEn].some(c=>{const m=norm(c);return m&&(m===n||m.includes(n)||n.includes(m))})});
+      const cityName=cityEn[0]||cityBn[0]||'';
+      if(hit){this.form.city=hit;this.form.cityOther=''}else if(cityName){this.form.city='__other';this.form.cityOther=cityName.slice(0,80)}
+      const parts=[a.house_number,a.road,a.neighbourhood,a.suburb||a.city_district,a.city||a.town||a.village,a.postcode].filter(Boolean);
+      const txt=(parts.length?parts.join(', '):String((en&&en.display_name)||'').split(',').slice(0,4).join(',')).slice(0,250);
+      this.iloc.address=txt;
+      const prev=this._ilocAuto||{};if(txt&&(!String(this.form.address||'').trim()||this.form.address===prev.address))this.form.address=txt;
+      this._ilocAuto={address:this.form.address};
+      this.ilocMsg=(match.flag||'')+' '+match.name+(cityName?' · '+cityName:'')+' — লোকেশন থেকে বসানো হয়েছে। ঠিক না হলে নিজে বদলে নিন।';
+      this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
+    })().catch(err=>{const m=err&&err.code===1?'লোকেশন অনুমতি (Allow) দেওয়া হয়নি — ফোন/ব্রাউজারের সেটিংসে অনুমতি দিয়ে আবার চাপুন':(err&&err.code===3?'লোকেশন পেতে দেরি হচ্ছে — খোলা জায়গায় গিয়ে আবার চেষ্টা করুন':'লোকেশন পাওয়া যায়নি — ঠিকানা নিজে লিখুন');this.ilocMsg=m;this.showToast(m,'error')}).finally(()=>{this.ilocBusy=false});
+  },
+  intlSubCount(s){return this.intlProducts.filter(p=>p.intlSub===s.name||p.intlCat===s.name).length},
+  get intlNewest(){return this.intlProducts.slice().sort((a,b)=>((Number(b.timestamp)||Number(b.createdAt)||0)-(Number(a.timestamp)||Number(a.createdAt)||0))||((Number(b.productId)||0)-(Number(a.productId)||0)))},
+  get intlHome(){return this.intlCat==='সব'&&String(this.intlQ||'').trim()===''},
+  get intlShown(){return this.intlHome?this.intlNewest.slice(0,this.intlNewN):this.intlFiltered},
+  get intlDrill(){return this.intlCat!=='সব'&&this.intlCurSubs.length>0&&!this.intlSub&&!this.intlShowAll&&String(this.intlQ||'').trim()===''},
   get resellHeadColor(){const w=this._realSecs.find(s=>this._secGender(s)==='women')||this._realSecs.find(s=>/মেয়ে|মহিলা|লেডিস|women|girl|ladies/i.test(s.name||''));return (w&&w.color)||'#6B7280'},
   get resellFeedCats(){return _ddMemo('rfc',[this.resellableProducts,this.allCategories,this.fbSections,this.resellActiveSec],()=>this._rfc0())},
   _rfc0(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecCats(sec)}return this.resellCategories},
@@ -7128,7 +7232,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.$watch('activeSub',v=>{this.catN=6;if(v)this._fetchCat(v)});
       this.$watch('activeTab',()=>{try{window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('activeCat',v=>{if(v&&v!=='সব'&&this.activeTab==='home')this._goCatProds()});
       this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
-      this.$watch('resellSession',v=>{if(v)this._fetchResellable()});this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});this.$watch('resellSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellOrdersSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellActiveCat',()=>{try{if(Date.now()-(window.__rsTabAt||0)>400&&this.activeTab==='resell'&&this.resellSubTab==='post')window.__ddGoAnchor('#dd-rs-anchor')}catch(e){}});
+      this.$watch('resellSession',v=>{this.sellCart=[];if(v){this._fetchResellable();this._sellLoad()}});this.$watch('resellableProducts.length',()=>this._sellSync());this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});this.$watch('resellSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellOrdersSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellActiveCat',()=>{try{if(Date.now()-(window.__rsTabAt||0)>400&&this.activeTab==='resell'&&this.resellSubTab==='post')window.__ddGoAnchor('#dd-rs-anchor')}catch(e){}});
     }catch(e){}
     try{this.$watch('activeTab',v=>{if(v==='allproducts')this.allSeen=true});if(this.activeTab==='allproducts')this.allSeen=true}catch(e){}
     /* SAFETY NET: the full-page skeleton (fixed, inset:0) only hides once
@@ -7705,7 +7809,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     try{this.myOrders.unshift({...order,fbKey:orderKey,_syncing:true})}catch(_e){}
     try{localStorage.setItem('dd_myorders',JSON.stringify(this.myOrders))}catch(_e){}
     this.cart=[];try{localStorage.removeItem('dd_cart')}catch(_e){}
-    this.form.trxId='';this.form.promoCode='';this.form.loc=null;this.locMsg='';this.appliedPromo=null;this.placing=false;
+    this.form.trxId='';this.form.promoCode='';this.form.loc=null;this.locMsg='';this.iloc=null;this.ilocMsg='';this.appliedPromo=null;this.placing=false;
     this.processingOrder=true;this._finishOrderUi(order,'অর্ডার কনফার্ম হয়েছে! ✅');
   },
   /* ব্যাকগ্রাউন্ড সেভ: ইউজার আইডি → রেফারাল → রেট-লিমিট → অর্ডার সেভ; ব্যর্থ হলে রিট্রাই, ফোনে ব্যাকআপ, রিলোডে আবার চেষ্টা */
@@ -7794,7 +7898,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       const rp=String(this.form.recvPhone||'').trim(),rn=String(this.form.recvName||'').trim()||this.form.name.trim();
       order.division=cc.name.slice(0,90);order.district=city.slice(0,90);
       order.address=(this.form.address.trim().slice(0,330)+' | প্রাপক: '+rn.slice(0,60)+' | ফোন: '+rp.slice(0,30)).slice(0,490);
-      order.intlDest={country:cc.code,countryName:cc.name.slice(0,60),city:city.slice(0,90),address:this.form.address.trim().slice(0,400),phone:rp.slice(0,30),name:rn.slice(0,80)};
+      order.intlDest={country:cc.code,countryName:cc.name.slice(0,60),city:city.slice(0,90),address:(this.form.address.trim()+((this.iloc&&this.iloc.cc===cc.code&&isFinite(this.iloc.lat)&&isFinite(this.iloc.lng))?'\n📍 https://maps.google.com/?q='+this.iloc.lat+','+this.iloc.lng:'')).slice(0,400),phone:rp.slice(0,30),name:rn.slice(0,80),chargePending:this.intlLater};
     }
     if(order.payType==='cod'){   // ⚡ সাথে সাথে কনফার্ম — সেভ ব্যাকগ্রাউন্ডে (রিট্রাই + ফোনে ব্যাকআপসহ)
       const _ok=window.$db.newKey('orders');
@@ -8363,14 +8467,29 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(p.marketPrice>0&&s>p.marketPrice&&!force){this.pvPopup='high';return}
     const vi=Number(this.pvColor)||0,vimg=(p.images&&p.images[vi])||p.img||'',k=(p.fbKey||p.id)+'|'+this.pvSize+'|'+vi,ex=this.sellCart.find(i=>i._k===k);
     if(ex){ex.qty+=this.pvQty;ex.resellerSellPrice=s}else this.sellCart.push({...p,_k:k,size:this.pvSize,color:'',variantImg:vimg,variantNo:vi+1,qty:this.pvQty,resellerSellPrice:s});
-    this.pvPopup='';this.postView=null;this.showToast('অর্ডার তালিকায় যোগ হয়েছে','success')},
+    this._sellSave();this.sellLastName=p.name||'';this.pvPopup='';this.postView=null;this.sellAdded=true},
   addToSellCart(p){
     const key=p.fbKey||p.id;
     const ex=this.sellCart.find(i=>(i.fbKey||i.id)===key);
     if(ex){ex.qty++}else{this.sellCart.push({...p,qty:1,resellerSellPrice:p.price})}
-    this.showToast('বিক্রয় তালিকায় যোগ হয়েছে! 🛍️','success');
+    this._sellSave();this.showToast('বিক্রয় তালিকায় যোগ হয়েছে! 🛍️','success');
   },
-  removeSellItem(i){this.sellCart.splice(i,1)},
+  removeSellItem(i){this.sellCart.splice(i,1);this._sellSave()},
+  // ══ অর্ডার তালিকা: সেভ থাকে (সাইট থেকে বের হলেও মুছে যায় না) ══
+  _sellKey(){return 'dd_sellcart_v1_'+String(this.resellSession||'')},
+  _sellSave(){try{if(!this.resellSession)return;const k=this._sellKey();if(!this.sellCart.length){localStorage.removeItem(k);return}
+    localStorage.setItem(k,JSON.stringify({t:Date.now(),items:this.sellCart.map(i=>({_k:i._k,id:i.id,fbKey:i.fbKey,name:i.name,price:i.price,resellerPrice:i.resellerPrice,marketPrice:i.marketPrice,genCommission1:i.genCommission1,genCommission2:i.genCommission2,genCommission3:i.genCommission3,productId:i.productId,sku:i.sku,images:(i.images||[]).slice(0,8),img:i.img,size:i.size,variantImg:i.variantImg,variantNo:i.variantNo,qty:i.qty,resellerSellPrice:i.resellerSellPrice}))}))}catch(e){}},
+  _sellLoad(){try{if(!this.resellSession||this.sellCart.length)return;const raw=localStorage.getItem(this._sellKey());if(!raw)return;const d=JSON.parse(raw),L=(d&&d.items)||[];
+    if(Array.isArray(L)&&L.length){this.sellCart=L.filter(i=>i&&i.name&&Number(i.qty)>0);this._sellSync()}}catch(e){}},
+  _sellSync(){try{if(!this.sellCart.length)return;const rp=this.resellableProducts;if(!rp||!rp.length)return;let ch=false;
+    this.sellCart.forEach(i=>{const k=i.fbKey||i.id,p=rp.find(x=>(x.fbKey||x.id)===k);if(!p)return;
+      ['name','price','resellerPrice','marketPrice','genCommission1','genCommission2','genCommission3','productId'].forEach(f=>{if(p[f]!==undefined&&i[f]!==p[f]){i[f]=p[f];ch=true}});
+      if(p.images&&p.images.length&&!(i.images&&i.images.length)){i.images=p.images;ch=true}});
+    if(ch)this._sellSave()}catch(e){}},
+  sellQty(i,d){const it=this.sellCart[i];if(!it)return;const n=(Number(it.qty)||1)+d;if(n<1||n>99)return;it.qty=n;this._sellSave()},
+  clearSellCart(){if(!this.sellCart.length)return;if(!confirm('অর্ডার তালিকার সব পণ্য মুছে ফেলবেন?'))return;this.sellCart=[];this._sellSave();this.showToast('তালিকা খালি করা হয়েছে','success')},
+  sellPickMore(){this.sellAdded=false;this.sellView=false;this.postView=null;this.resellSubTab='post'},
+  sellOpenList(){this.sellAdded=false;this.postView=null;this.resellSubTab='post';this.sellView=true;this._sellSync()},
   async placeSellOrder(force){
     if(!this.sellCart.length)return this.showToast('প্রোডাক্ট বেছে নিন!','error');
     if(!this.sellForm.customerName.trim())return this.showToast('কাস্টমারের নাম দিন!','error');
@@ -8411,7 +8530,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
         order.trxId=c.trx;
       }
       await window.$db.saveOrder(order,sKey);
-      this.sellCart=[];
+      this.sellCart=[];this._sellSave();
       this.sellForm={customerName:'',phone:'',division:'',district:'',address:'',advance:'',pay:'bkash',trxId:''};
       this.showInvoice(order);
       this.showToast('অর্ডার সফলভাবে বসানো হয়েছে! ✅','success');
@@ -8773,7 +8892,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       case 'orders': this.resellOrdersSubTab='list';this.resellSubTab='orders';break;
       case 'activeorders': this.resellOrdersSubTab='active';this.resellSubTab='orders';break;
       case 'report': this.resellOrdersSubTab='report';this.resellSubTab='orders';break;
-      case 'cart': this.resellSubTab='post';break;
+      case 'cart': this.resellSubTab='post';this.sellView=this.sellCart.length>0;break;
       case 'walletstatement': this.openWalletHistory();break;
       case 'withdraw': this.resellSubTab='withdraw';break;
       case 'referral': this.resellSubTab='referral';break;
@@ -11691,6 +11810,71 @@ body .dd-gl-btn{display:flex;width:100%;min-width:0;padding:7px 14px;font-size:1
 .ss-open em i{color:#fff}
 .ss-open:active{transform:scale(.99)}
 .ss-inp input::placeholder{color:var(--fg3);opacity:1}
+/* v11: অর্ডার তালিকা (একাধিক প্রোডাক্ট, সেভ থাকে) */
+.sc-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 6px 18px -10px rgba(17,24,39,.25);font-family:'Hind Siliguri',sans-serif}
+.sc-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px;background:linear-gradient(135deg,#18181B,#3B2A10);color:#fff}
+.sc-ht{font-weight:800;font-size:15px;margin:0;display:flex;align-items:center;gap:8px}.sc-ht i{color:#FBBF24}
+.sc-hs{font-size:12px;color:#D4D4D8;margin:3px 0 0}.sc-hs b{color:#FDE68A}
+.sc-clr{border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#FCA5A5;border-radius:99px;padding:6px 12px;font:700 11.5px 'Hind Siliguri',sans-serif;cursor:pointer;flex:none}
+.sc-list{padding:10px 12px;display:flex;flex-direction:column;gap:10px}
+.sc-row{display:flex;gap:11px;align-items:flex-start;padding:10px;border-radius:16px;background:var(--bg2);border:1px solid var(--border)}
+.sc-im{width:62px;height:62px;border-radius:12px;object-fit:cover;flex:none;background:var(--card)}
+.sc-bd{flex:1;min-width:0}.sc-nm{font-size:13.5px;font-weight:700;color:var(--fg);line-height:1.35;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sc-mt{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--fg3);margin:3px 0 0}
+.sc-ln{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;flex-wrap:wrap}
+.sc-pr{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--fg3)}
+.sc-pr input{width:78px;border:1.5px solid var(--border);background:var(--card);border-radius:10px;padding:6px 8px;font:700 13px 'Hind Siliguri',sans-serif;color:var(--fg);outline:none}.sc-pr input:focus{border-color:var(--accent)}
+.sc-qt{display:flex;align-items:center;background:var(--card);border:1.5px solid var(--border);border-radius:99px;overflow:hidden}
+.sc-qt button{width:30px;height:30px;border:0;background:none;color:var(--fg2);cursor:pointer;font-size:11px}.sc-qt b{min-width:26px;text-align:center;font-size:13px;color:var(--fg)}
+.sc-pf{font-size:11.5px;font-weight:700;color:#16A34A;margin:6px 0 0}.sc-pf.bad{color:#DC2626}
+.sc-rm{border:0;background:#FEE2E2;color:#DC2626;width:32px;height:32px;border-radius:10px;cursor:pointer;flex:none;font-size:12px}
+.sc-more{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:14px;border:1.8px dashed var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--card));color:var(--accent);font:800 13.5px 'Hind Siliguri',sans-serif;cursor:pointer}
+.sc-wide{display:flex;width:calc(100% - 24px);margin:0 12px 12px}
+.sc-sm{margin:0 12px 10px;padding:12px 14px;border-radius:14px;background:var(--bg2);display:flex;flex-direction:column;gap:6px}
+.sc-sm>div{display:flex;justify-content:space-between;font-size:12.5px;color:var(--fg3)}.sc-sm b{color:var(--fg);font-weight:700}
+.sc-sm>div.g{border-top:1px solid var(--border);padding-top:8px;margin-top:2px;font-size:14px}.sc-sm>div.g span,.sc-sm>div.g b{color:#16A34A;font-weight:800}
+.sc-sv{font-size:11.5px;color:var(--fg3);text-align:center;margin:0 12px 14px}.sc-sv i{color:#16A34A;margin-right:4px}
+.sc-empty{display:flex;flex-direction:column;align-items:center;text-align:center;padding:36px 20px;border-radius:20px;background:var(--card);border:1px dashed var(--border)}
+.sc-empty>span{width:64px;height:64px;border-radius:50%;background:var(--bg2);color:var(--fg3);display:flex;align-items:center;justify-content:center;font-size:26px;margin-bottom:12px}
+.sc-empty b{font-size:15px;color:var(--fg)}.sc-empty p{font-size:12px;color:var(--fg3);margin:6px 0 14px}
+.sc-dlg{max-width:360px}.sc-dn{font-weight:600;color:var(--fg)!important;margin-top:6px!important;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sc-dsum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0}
+.sc-dsum>div{background:var(--bg2);border-radius:12px;padding:9px 4px;display:flex;flex-direction:column}.sc-dsum b{font-size:15px;color:var(--fg)}.sc-dsum span{font-size:10.5px;color:var(--fg3)}.sc-dsum .g b{color:#16A34A}
+.sc-dlg .sc-wide{width:100%;margin:0 0 8px}
+.sc-go{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px!important;border-radius:14px!important;font-size:14px!important;background:linear-gradient(135deg,#16A34A,#15803D)!important;box-shadow:0 8px 18px -8px rgba(22,163,74,.6)}
+.sc-home{display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:12px;border-radius:18px;background:linear-gradient(135deg,#ECFDF5,#FEF3C7);border:1.5px solid #86EFAC;cursor:pointer;box-shadow:0 8px 18px -12px rgba(22,163,74,.5);font-family:'Hind Siliguri',sans-serif}
+.sc-home .ic{width:40px;height:40px;border-radius:13px;background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.sc-home .tx{flex:1;min-width:0}.sc-home b{display:block;font-size:13px;color:#14532D}.sc-home small{font-size:11.5px;color:#4D7C0F}
+.sc-home .go{flex:none;font-size:11.5px;font-weight:800;color:#fff;background:#16A34A;border-radius:99px;padding:7px 12px}
+/* v12: রিসেলার নিচের নেভ — চিকন ও কমপ্যাক্ট (নিচের সাদা ফাঁকা কমানো) */
+nav.bottom-nav{padding:6px 8px calc(4px + env(safe-area-inset-bottom,0px)*.45)!important;border-radius:18px 18px 0 0!important;align-items:stretch!important;gap:2px}
+nav.bottom-nav .nav-btn{flex:1;min-width:0;gap:2px;padding:2px 4px!important;justify-content:center}
+nav.bottom-nav .nav-btn .nav-icon-wrap{width:42px!important;height:28px!important;font-size:16px!important;border-radius:12px!important;box-shadow:0 2px 0 #d6cdbf,0 4px 8px rgba(0,0,0,.12),inset 0 1px 0 #fff!important}
+nav.bottom-nav .nav-btn.active .nav-icon-wrap{box-shadow:0 2px 0 color-mix(in srgb,var(--accent) 55%,#000),0 6px 10px color-mix(in srgb,var(--accent) 40%,transparent),inset 0 1px 0 rgba(255,255,255,.4)!important}
+nav.bottom-nav .nav-btn span{font-size:10.5px!important;font-weight:700;line-height:1.15}
+nav.bottom-nav .nav-btn.active span{color:var(--accent)}
+.sell-bar{bottom:calc(70px + env(safe-area-inset-bottom,0px)*.45)}
+/* v13: গ্লোবাল — দেশ চিপ, ক্যাটাগরি › সাব-ক্যাটাগরি গ্রিড */
+.gc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;max-height:236px;overflow-y:auto;padding:2px;-webkit-overflow-scrolling:touch}
+.gc-chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:9px 4px;border-radius:14px;background:var(--card);border:1.5px solid var(--border);cursor:pointer;font-family:'Hind Siliguri',sans-serif;transition:transform .15s,border-color .15s,box-shadow .15s}
+.gc-chip .gc-f{font-size:22px;line-height:1}.gc-chip .gc-n{font-size:10.5px;font-weight:700;color:var(--fg2);line-height:1.2;text-align:center}
+.gc-chip.on{border-color:var(--accent);background:var(--accentL);box-shadow:0 6px 14px -8px var(--accent)}.gc-chip.on .gc-n{color:var(--accent)}
+.gc-chip:active{transform:scale(.97)}
+.ig-card{cursor:pointer;text-align:center;font-family:'Hind Siliguri',sans-serif}
+.ig-img{position:relative;aspect-ratio:1/1;border-radius:18px;overflow:hidden;background:linear-gradient(160deg,#E0F2FE,#EDE9FE);border:2px solid transparent;display:flex;align-items:center;justify-content:center;font-size:30px;color:#4F46E5;box-shadow:0 6px 16px -10px rgba(30,58,138,.5);transition:transform .15s,border-color .15s}
+.ig-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ig-card:active .ig-img{transform:scale(.97)}.ig-card:hover .ig-img{border-color:var(--accent)}
+.ig-ct{position:absolute;right:5px;bottom:5px;background:rgba(15,23,42,.72);color:#fff;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:99px}
+.ig-nm{font-size:11.5px;font-weight:700;color:var(--fg);margin:6px 0 0;line-height:1.25}
+.ig-all .ig-img{background:linear-gradient(135deg,var(--accentL),#FFF7ED);color:var(--accent)}
+/* v14: গ্লোবাল — ডেলিভারি চার্জ নোট/যোগাযোগ */
+.gi-note{background:linear-gradient(135deg,#FFFBEB,#FEF3C7);border:1.5px solid #FCD34D;border-radius:16px;padding:12px 14px;margin-bottom:10px;font-family:'Hind Siliguri',sans-serif}
+.gi-t{font-weight:800;font-size:13px;color:#92400E;margin:0 0 4px;display:flex;align-items:center;gap:7px}
+.gi-s{font-size:12px;line-height:1.5;color:#78350F;margin:0}
+.gi-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.gi-btn{display:inline-flex;align-items:center;gap:7px;color:#fff!important;text-decoration:none;font-weight:700;font-size:12.5px;padding:9px 14px;border-radius:99px;box-shadow:0 6px 14px -8px rgba(0,0,0,.45)}
+.gi-chip{display:inline-flex;align-items:center;gap:6px;color:#fff;font-weight:700;font-size:11.5px;padding:5px 11px;border-radius:99px}
+.gi-more{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;padding:12px;border-radius:14px;border:1.8px dashed var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--card));color:var(--accent);font:800 13px 'Hind Siliguri',sans-serif;cursor:pointer}
 /* notice */
 .rx-nt{display:flex;align-items:center;justify-content:space-between;gap:10px;background:rgba(240,253,250,.7);border:1px dashed #5EEAD4;border-radius:16px;padding:12px}
 .rx-nt>div{display:flex;align-items:flex-start;gap:10px;min-width:0}.rx-nt>div>span{width:36px;height:36px;border-radius:12px;background:#0D9488;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex:none;margin-top:2px}
