@@ -287,8 +287,9 @@ listenReviews:(cb)=>onValue(ref(db,'reviews'),s=>{const v=s.val();cb(v?Object.en
   },
   listenOrders:(cb)=>onValue(ref(db,'orders'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSettings:(cb)=>onValue(ref(db,'settings'),s=>cb(s.val()||{}),{onlyOnce:false}),
+  getIntlCatsOnce:async()=>{try{const s=await get(ref(db,'intlCategories'));const v=s.val();return v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[]}catch(e){try{console.warn('intlCategories get failed:',e&&e.message)}catch(_){}return null}},
   listenIntlConfig:(cb)=>onValue(ref(db,'intlConfig'),s=>cb(s.val()||{}),{onlyOnce:false}),
-  listenIntlCats:(cb)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
+  listenIntlCats:(cb,onErr)=>onValue(ref(db,'intlCategories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},e=>{try{console.warn('intlCategories read failed:',e&&e.message)}catch(_){}if(onErr)onErr(e)}),
   listenCategories:(cb)=>onValue(ref(db,'categories'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenSections:(cb)=>onValue(ref(db,'sections'),s=>{const v=s.val();cb(v?Object.entries(v).map(([k,d])=>({fbKey:k,...d})):[])},{onlyOnce:false}),
   listenOrderKey:(k,cb)=>_live(()=>ref(db,'orders/'+k),s=>{const v=s.val();cb(v?{fbKey:k,...v}:null)},'orderKey'),
@@ -4149,6 +4150,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     <div class="flex-1 min-w-0"><p class="font-extrabold text-base"><i class="fa-solid fa-earth-asia" style="margin-right:8px"></i>Global Store</p>
       <p class="text-xs truncate" style="color:var(--fg3)"><span>ইন্টারন্যাশনাল</span><template x-if="intlCat!=='সব'"><span> › <b x-text="intlCat"></b></span></template><template x-if="intlSub"><span> › <b x-text="intlSub"></b></span></template></p></div>
   </div>
+  <div class="px-4" x-show="/[?&]dbg=1/.test(location.search)" x-cloak><p class="text-xs" style="background:#111;color:#0f0;padding:6px 8px;border-radius:8px;word-break:break-all" x-text="'intlCats='+intlCats.length+' | active='+intlCatsActive.length+' | top='+intlTopCats.length+' | subs(cur)='+intlCurSubs.length+' | intlProducts='+intlProducts.length+' | allProducts='+fbProducts.length+' | err='+(_icErr||'no')+' | cat='+intlCat+' | sub='+intlSub+' | showAll='+intlShowAll+' | drill='+intlDrill"></p></div>
   <!-- Hero + delivery highlights -->
   <div class="px-4" x-show="intlCat==='সব'">
     <div class="rounded-3xl p-4 text-white" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 10px 28px rgba(30,58,138,.3)">
@@ -6488,7 +6490,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',homeSec:'',resellActiveSec:'',
+  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -6690,12 +6692,13 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
   get allProducts(){return _ddMemo('ap',[this.fbProducts],()=>this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl))},
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
-  get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
+  get intlCatsActive(){const base=(this.intlCats&&this.intlCats.length)?this.intlCats:this._icFromProds();return base.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
+  _icFromProds(){const out=[],seen=new Set();let o=1;for(const p of this.intlProducts){const c=String(p.intlCat||'').trim();if(!c)continue;if(!seen.has('c|'+c)){seen.add('c|'+c);out.push({fbKey:'auto:'+c,name:c,emoji:'📦',img:'',order:o++})}const sb=String(p.intlSub||'').trim();if(sb&&!seen.has('s|'+c+'|'+sb)){seen.add('s|'+c+'|'+sb);out.push({fbKey:'auto:'+c+'|'+sb,name:sb,emoji:'📦',img:'',parent:'auto:'+c,order:o++})}}return out},
   // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
   _icn(v){return String(v==null?'':v).trim().toLowerCase()},
-  _icParent(x,L){const p=x&&(x.parent||x.parentKey||x.parentId);if(!p)return null;return L.find(y=>y!==x&&y.fbKey===p)||L.find(y=>y!==x&&!(y.parent||y.parentKey||y.parentId)&&this._icn(y.name)===this._icn(p))||null},
+  _icParent(x,L){const p=x&&(x.parent||x.parentKey||x.parentId);if(!p)return null;return L.find(y=>y.fbKey!==x.fbKey&&y.fbKey===p)||L.find(y=>y.fbKey!==x.fbKey&&!(y.parent||y.parentKey||y.parentId)&&this._icn(y.name)===this._icn(p))||null},
   get intlTopCats(){const L=this.intlCatsActive;return L.filter(c=>!this._icParent(c,L))},
-  intlSubsOf(c){if(!c)return [];const L=this.intlCatsActive;return L.filter(x=>x!==c&&this._icParent(x,L)===c)},
+  intlSubsOf(c){if(!c)return [];const L=this.intlCatsActive;const ck=c.fbKey;return L.filter(x=>x.fbKey!==ck&&(()=>{const p=this._icParent(x,L);return !!p&&p.fbKey===ck})())},
   get intlCurCat(){const n=this._icn(this.intlCat);return this.intlTopCats.find(c=>c.name===this.intlCat)||this.intlTopCats.find(c=>this._icn(c.name)===n)||null},
   get intlCurSubs(){return this.intlSubsOf(this.intlCurCat)},
   intlCatCount(c){if(!c)return 0;const names=new Set([c.name,...this.intlSubsOf(c).map(s=>s.name)].map(x=>this._icn(x)));return this.intlProducts.filter(p=>names.has(this._icn(p.intlCat))||names.has(this._icn(p.intlSub))).length},
@@ -7228,12 +7231,19 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!(p.price>0)||!p.name)return;
     this._dlChecked=true;this._dlLink=link;this.openLinkOrder(p,link,l);window.__ddLkReady=true;
   },
-  boot(){try{this._earlyLink()}catch(e){}
+  _icSet(a){if(!Array.isArray(a))return;this.intlCats=a;try{if(a.length)localStorage.setItem('dd_c_icats',JSON.stringify(a))}catch(e){}},
+  async _loadIntlCats(){if(this._icOn)return;this._icOn=true;
+    try{const c=JSON.parse(localStorage.getItem('dd_c_icats')||'[]');if(c.length&&!this.intlCats.length)this.intlCats=c}catch(e){}
+    try{await this._dbReady()}catch(e){}
+    try{window.$db.listenIntlCats(c=>{this._icErr='';this._icSet(c)},e=>{this._icErr=String((e&&(e.code||e.message))||'error')})}catch(e){this._icErr=String(e&&e.message||e)}
+    try{const a=await window.$db.getIntlCatsOnce();if(a&&a.length&&!this.intlCats.length)this._icSet(a)}catch(e){}},
+  async _icRefresh(){try{await this._dbReady();const a=await window.$db.getIntlCatsOnce();if(a)this._icSet(a)}catch(e){}},
+  boot(){try{this._earlyLink()}catch(e){}try{this._loadIntlCats()}catch(e){}
     try{
       this.$watch('activeCat',v=>{this.catN=6;if(v&&v!=='সব')this._fetchCat(v)});this.$watch('q',()=>{this.catN=6});
       this.$watch('activeSub',v=>{this.catN=6;if(v)this._fetchCat(v)});
       this.$watch('activeTab',()=>{try{window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('activeCat',v=>{if(v&&v!=='সব'&&this.activeTab==='home')this._goCatProds()});
-      this.$watch('activeTab',v=>{if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
+      this.$watch('activeTab',v=>{if(v==='intl'){this._loadIntlCats();this._icRefresh()}if(v==='allproducts')this._fetchSections();if(v==='resell')this._fetchResellable();if(v==='eid')this._fetchEid()});
       this.$watch('resellSession',v=>{this.sellCart=[];if(v){this._fetchResellable();this._sellLoad()}});this.$watch('resellableProducts.length',()=>this._sellSync());this.$watch('resellSidebarOpen',v=>{document.documentElement.classList.toggle('dd-lock',!!v)});this.$watch('resellSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellOrdersSubTab',()=>{try{window.__rsTabAt=Date.now();window.__ddTop&&window.__ddTop()}catch(e){}});this.$watch('resellActiveCat',()=>{try{if(Date.now()-(window.__rsTabAt||0)>400&&this.activeTab==='resell'&&this.resellSubTab==='post')window.__ddGoAnchor('#dd-rs-anchor')}catch(e){}});
     }catch(e){}
     try{this.$watch('activeTab',v=>{if(v==='allproducts')this.allSeen=true});if(this.activeTab==='allproducts')this.allSeen=true}catch(e){}
@@ -7299,7 +7309,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this._captureReferral();this._refLanding();
       window.$db.listenResellerConfig(c=>{this.rcfg=c||{};try{localStorage.setItem('dd_c_rcfg',JSON.stringify(c||{}))}catch(e){}this._checkRPop()});
       window.$db.listenServices(s=>{this.fbServices=s.sort((a,b)=>(a.order||0)-(b.order||0))});
-      window.$db.listenCategories(cats=>{this._stage('cat',()=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}})});window.$db.listenIntlCats(c=>{this.intlCats=c});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
+      window.$db.listenCategories(cats=>{this._stage('cat',()=>{this.fbCategories=cats;try{localStorage.setItem('dd_c_cats',JSON.stringify(cats))}catch(e){}})});window.$db.listenIntlConfig(c=>{this.intlCfg=c||{}});window.$db.listenReviews(r=>{this.fbReviews=r});
       window.$db.listenSections(sections=>{this._stage('sec',()=>{this.fbSections=sections.filter(s=>s.active!==false);this.secLoaded=true;try{localStorage.setItem('dd_c_secs',JSON.stringify(this.fbSections))}catch(e){}})});
       setTimeout(()=>{this.prodsFull=true;this.secLoaded=true},9000);
       window.$db.listenCustomButtons(btns=>{this.customButtons=btns.filter(b=>b.active!==false);try{localStorage.setItem('dd_c_btns',JSON.stringify(this.customButtons))}catch(e){}});
