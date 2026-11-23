@@ -4181,7 +4181,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     </div>
     <div class="flex gap-2 overflow-x-auto grp-row" x-show="intlCat!=='সব'" style="padding-bottom:4px">
       <button type="button" class="sub-chip" @click="intlCat='সব';intlSub='';intlShowAll=false">সব ক্যাটাগরি</button>
-      <template x-for="c in intlTopCats" :key="'t'+c.fbKey"><button type="button" class="sub-chip" :class="intlCat===c.name?'on':''" @click="intlSub='';intlShowAll=false;intlCat=c.name"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
+      <template x-for="c in intlTopCats" :key="'t'+c.fbKey"><button type="button" class="sub-chip" :class="intlCat===c.name?'on':''" @click="intlSub='';intlShowAll=false;intlQ='';intlCat=c.name"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
     </div>
   </div>
   <!-- Sub categories: ক্যাটাগরিতে ক্লিক → সাব-ক্যাটাগরি গ্রিড; সাব-ক্যাটাগরিতে ক্লিক → পণ্য -->
@@ -6692,20 +6692,22 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
   get intlCatsActive(){return this.intlCats.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
   // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
-  get intlTopCats(){const L=this.intlCatsActive,ids=new Set(L.map(c=>c.fbKey));const nm=new Set(L.filter(c=>!c.parent).map(c=>c.name));return L.filter(c=>!c.parent||(!ids.has(c.parent)&&!nm.has(c.parent)))},
-  intlSubsOf(c){return c?this.intlCatsActive.filter(x=>x.parent&&(x.parent===c.fbKey||(!c.parent&&x.parent===c.name&&!this.intlCatsActive.some(y=>y.fbKey===x.parent)))):[]},
-  get intlCurCat(){return this.intlTopCats.find(c=>c.name===this.intlCat)||null},
+  _icn(v){return String(v==null?'':v).trim().toLowerCase()},
+  _icParent(x,L){const p=x&&(x.parent||x.parentKey||x.parentId);if(!p)return null;return L.find(y=>y!==x&&y.fbKey===p)||L.find(y=>y!==x&&!(y.parent||y.parentKey||y.parentId)&&this._icn(y.name)===this._icn(p))||null},
+  get intlTopCats(){const L=this.intlCatsActive;return L.filter(c=>!this._icParent(c,L))},
+  intlSubsOf(c){if(!c)return [];const L=this.intlCatsActive;return L.filter(x=>x!==c&&this._icParent(x,L)===c)},
+  get intlCurCat(){const n=this._icn(this.intlCat);return this.intlTopCats.find(c=>c.name===this.intlCat)||this.intlTopCats.find(c=>this._icn(c.name)===n)||null},
   get intlCurSubs(){return this.intlSubsOf(this.intlCurCat)},
-  intlCatCount(c){const names=new Set([c.name,...this.intlSubsOf(c).map(s=>s.name)]);return this.intlProducts.filter(p=>names.has(p.intlCat)||names.has(p.intlSub)).length},
+  intlCatCount(c){if(!c)return 0;const names=new Set([c.name,...this.intlSubsOf(c).map(s=>s.name)].map(x=>this._icn(x)));return this.intlProducts.filter(p=>names.has(this._icn(p.intlCat))||names.has(this._icn(p.intlSub))).length},
   get intlFiltered(){
     let L=this.intlProducts;const cc=this.intlCurCat;
     if(cc){
-      if(this.intlSub){const sub=this.intlCurSubs.find(s=>s.name===this.intlSub);L=L.filter(p=>p.intlSub===this.intlSub||(p.intlCat===this.intlSub)||(sub&&p.intlSub===sub.name))}
-      else{const names=new Set([cc.name,...this.intlCurSubs.map(s=>s.name)]);L=L.filter(p=>names.has(p.intlCat)||names.has(p.intlSub))}
+      if(this.intlSub){const sn=this._icn(this.intlSub);L=L.filter(p=>this._icn(p.intlSub)===sn||this._icn(p.intlCat)===sn)}
+      else{const names=new Set([cc.name,...this.intlCurSubs.map(s=>s.name)].map(x=>this._icn(x)));L=L.filter(p=>names.has(this._icn(p.intlCat))||names.has(this._icn(p.intlSub)))}
     }else if(this.intlCat!=='সব'){L=L.filter(p=>p.intlCat===this.intlCat)}
     const q=String(this.intlQ||'').trim().toLowerCase();if(q)L=L.filter(p=>String(p.name||'').toLowerCase().includes(q));
     return L},
-  intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlCat=(this.intlCat===c.name?'সব':c.name)},
+  intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
   // ইন্টারন্যাশনাল ডেলিভারি কনফিগ (অ্যাডমিন সেভ করলে আসে; না থাকলে ডিফল্ট শুধু তথ্য হিসেবে দেখায়)
   get intlCfgSaved(){const f=this.intlCfg&&this.intlCfg.fees;return !!(f&&typeof f==='object'&&Object.keys(f).length)},
   get intlCountries(){
@@ -7149,7 +7151,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       this.showToast('লোকেশন নেওয়া হয়েছে 📍','success');
     })().catch(err=>{const m=err&&err.code===1?'লোকেশন অনুমতি (Allow) দেওয়া হয়নি — ফোন/ব্রাউজারের সেটিংসে অনুমতি দিয়ে আবার চাপুন':(err&&err.code===3?'লোকেশন পেতে দেরি হচ্ছে — খোলা জায়গায় গিয়ে আবার চেষ্টা করুন':'লোকেশন পাওয়া যায়নি — ঠিকানা নিজে লিখুন');this.ilocMsg=m;this.showToast(m,'error')}).finally(()=>{this.ilocBusy=false});
   },
-  intlSubCount(s){return this.intlProducts.filter(p=>p.intlSub===s.name||p.intlCat===s.name).length},
+  intlSubCount(s){if(!s)return 0;const n=this._icn(s.name);return this.intlProducts.filter(p=>this._icn(p.intlSub)===n||this._icn(p.intlCat)===n).length},
   get intlNewest(){return this.intlProducts.slice().sort((a,b)=>((Number(b.timestamp)||Number(b.createdAt)||0)-(Number(a.timestamp)||Number(a.createdAt)||0))||((Number(b.productId)||0)-(Number(a.productId)||0)))},
   get intlHome(){return this.intlCat==='সব'&&String(this.intlQ||'').trim()===''},
   get intlShown(){return this.intlHome?this.intlNewest.slice(0,this.intlNewN):this.intlFiltered},
