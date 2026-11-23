@@ -7,7 +7,7 @@
 <meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://www.google.com https://www.recaptcha.net https://connect.facebook.net; worker-src 'self' blob: https://cdn.jsdelivr.net https://cdnjs.cloudflare.com;"/>
 <meta name="referrer" content="strict-origin-when-cross-origin"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
-<meta name="dd-build" content="20261119-1"/>
+<meta name="dd-build" content="20261123-2"/>
 <script id="dd-selfupdate">(function(){try{
 /* অ্যাপ/ব্রাউজারে পুরনো ক্যাশ হওয়া পেজ ধরা: সার্ভারের নতুন ভার্সন থাকলে একবার নিজে রিফ্রেশ হয় (প্রতি নতুন ভার্সনে সর্বোচ্চ ১ বার) */
 var m=document.querySelector('meta[name="dd-build"]');if(!m)return;var B=m.content;
@@ -2427,6 +2427,77 @@ html.dd-lock,html.dd-lock body{overflow:hidden!important;height:100%!important;o
 <script>/* Render backend. Set renderUrl ONCE (e.g. 'https://your-app.onrender.com'); empty = integration disabled, site behaves exactly as before. */
 window.DD_CONFIG=window.DD_CONFIG||{renderUrl:'',keepAlive:true,frameBust:false};</script>
 <script defer src="assets/security/site-security.js"></script>
+<style id="gx-v1">
+.gx-hero{position:relative;overflow:hidden;border-radius:26px;padding:20px 18px 16px;color:#fff;background:linear-gradient(135deg,#0B1226 0%,#1E3A8A 58%,#6D28D9 100%);box-shadow:0 14px 34px rgba(30,58,138,.32)}
+.gx-orb{position:absolute;right:-50px;top:-60px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle,rgba(167,139,250,.55),transparent 68%);pointer-events:none}
+.gx-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:800;letter-spacing:.4px;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22)}
+.gx-h{position:relative;font-size:19px;font-weight:800;margin-top:10px;line-height:1.35}
+.gx-p{position:relative;font-size:12.5px;margin-top:5px;color:rgba(255,255,255,.8);line-height:1.55}
+.gx-flags{position:relative;display:flex;gap:8px;margin-top:13px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.gx-flags::-webkit-scrollbar{display:none}
+.gx-flags span{flex:none;font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:99px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.2)}
+.gx-feats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.gx-feat{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:12px 6px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.gx-feat i{width:36px;height:36px;line-height:36px;border-radius:12px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-size:15px}
+.gx-feat b{display:block;font-size:12px;margin-top:7px}
+.gx-feat small{display:block;font-size:10px;color:var(--fg3);line-height:1.35;margin-top:2px}
+.gx-flow{margin-top:12px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:14px 12px}
+.gx-flow>p{font-size:13px;font-weight:800;margin-bottom:10px}
+.gx-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;position:relative}
+.gx-st{text-align:center;position:relative}
+.gx-st i{display:block;margin:0 auto;width:34px;height:34px;line-height:34px;border-radius:50%;background:var(--accent);color:#fff;font-size:13px;font-style:normal;font-weight:800;position:relative;z-index:1}
+.gx-st:not(:last-child)::after{content:"";position:absolute;top:17px;left:calc(50% + 20px);right:calc(-50% + 20px);border-top:2px dashed var(--border)}
+.gx-st b{display:block;font-size:11px;margin-top:6px}
+.gx-st small{display:block;font-size:9.5px;color:var(--fg3);line-height:1.3;margin-top:1px}
+.gx-co{border-radius:18px;padding:12px 14px;background:var(--card);border:1px solid var(--border);box-shadow:0 3px 12px rgba(0,0,0,.04)}
+.gx-co[open]{border-color:var(--accent)}
+.gx-box{padding:14px;border-radius:22px;background:var(--bg2);border:1.5px solid color-mix(in srgb,var(--accent) 45%,transparent);box-shadow:0 8px 22px rgba(0,0,0,.06)}
+.gx-bh{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px dashed var(--border)}
+.gx-bh i{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:#fff;font-size:16px}
+.gx-bh b{display:block;font-size:14px}.gx-bh small{font-size:11px;color:var(--fg3)}
+.gx-how{background:linear-gradient(135deg,#EFF6FF,#F5F3FF);border:1.5px solid #C7D2FE;border-radius:18px;padding:14px;margin-bottom:10px;color:#1E1B4B}
+.gx-how-t{font-weight:800;font-size:13.5px}
+.gx-how ol{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:7px}
+.gx-how li{display:flex;gap:9px;align-items:flex-start;font-size:12px;line-height:1.45}
+.gx-how li i{flex:none;width:20px;height:20px;border-radius:50%;background:#4F46E5;color:#fff;font-style:normal;font-size:11px;font-weight:800;display:grid;place-items:center}
+.gx-how .gx-n{margin-top:9px;font-size:11.5px;font-weight:700;color:#4338CA}
+.gx-ord{margin:8px 12px 0;border-radius:18px;padding:13px;background:var(--card);border:1.5px solid #C7D2FE}
+.gx-ord .gx-steps{margin:2px 0 12px}
+.gx-ord .gx-st i{width:28px;height:28px;line-height:28px;font-size:11px;background:var(--border);color:var(--fg3)}
+.gx-ord .gx-st:not(:last-child)::after{top:14px;left:calc(50% + 16px);right:calc(-50% + 16px)}
+.gx-ord .gx-st.done i{background:#16A34A;color:#fff}.gx-ord .gx-st.now i{background:var(--accent);color:#fff;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+.gx-ord .gx-st b{font-size:10px}
+.gx-amt{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;border-radius:14px;background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FDBA74;color:#9A3412;font-weight:800;font-size:13px}
+.gx-amt b{font-size:20px}
+.gx-pm{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.gx-pm button{border:1.5px solid var(--border);background:var(--bg2);border-radius:14px;padding:9px 6px;font-weight:800;font-size:12px;color:var(--fg);cursor:pointer}
+.gx-pm button.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.gx-pm small{display:block;font-weight:600;font-size:11px;color:var(--fg3);margin-top:2px;font-family:monospace}
+.gx-go{width:100%;margin-top:10px;border:0;border-radius:14px;padding:12px;font-weight:800;font-size:13.5px;color:#fff;background:var(--accent);cursor:pointer}
+.gx-go:disabled{opacity:.6}
+.gx-msg{font-size:12px;line-height:1.55;padding:10px 12px;border-radius:14px;background:var(--bg2);color:var(--fg2)}
+.gx-ok{background:#F0FDF4;color:#166534;border:1px solid #BBF7D0}
+</style>
+<style id="gx-v2">
+.gx-sec{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;margin:6px 0 -2px;color:var(--fg)}
+.gx-sn{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:11px}
+.gx-box>*+*{margin-top:12px}
+.gx-ph{display:grid;grid-template-columns:42% 1fr;gap:8px}
+.gx-ph select{padding-right:6px;font-size:12.5px}
+.gx-hint{font-size:11px;color:var(--fg3);margin-top:6px;line-height:1.5}
+.gx-note2{display:flex;gap:10px;font-size:11.5px;line-height:1.55;padding:11px 12px;border-radius:14px;background:#EFF6FF;color:#1E3A8A;border:1px solid #BFDBFE}
+.gx-note2 i{margin-top:2px}
+.gx-step{font-size:12px;font-weight:800;margin:12px 0 6px;color:var(--fg)}.gx-step small{font-weight:600;color:var(--fg3)}
+.gx-acc{margin-top:8px;border-radius:14px;padding:10px 12px;background:var(--bg2);border:1px dashed var(--accent);font-size:12px}
+.gx-acc p{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:3px 0}
+.gx-acc em{font-style:normal;color:var(--fg3)}.gx-acc b{color:var(--fg)}.gx-mono{font-family:monospace;font-size:13px;letter-spacing:.3px}
+.gx-cp{border:0;background:var(--accent);color:#fff;border-radius:99px;font-size:10.5px;font-weight:800;padding:3px 10px;cursor:pointer}
+.gx-nt{display:block!important;color:#92400E;font-size:11px;line-height:1.5}
+.gx-up{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:12px;border-radius:14px;border:1.5px dashed var(--border);background:var(--bg2);font-size:12.5px;font-weight:700;color:var(--fg2);cursor:pointer;text-align:center}
+.gx-up.has{border-color:#16A34A;background:#F0FDF4;color:#166534}
+.gx-up img{width:52px;height:52px;border-radius:10px;object-fit:cover}
+.gx-pm button i{margin-right:4px}
+</style>
 </head>
 <style id="dd-v5">
 /* footer: সাদা গ্যাপ বন্ধ + কম ফাঁকা */
@@ -3339,15 +3410,13 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <div x-show="inv.order.dueOnDelivery>0"><span>ডেলিভারিতে বাকি</span><b x-text="'৳'+(inv.order.dueOnDelivery||0).toLocaleString()"></b></div>
       </div>
 
-      <!-- গ্লোবাল অর্ডার: ডেলিভারি চার্জ জানার যোগাযোগ -->
-      <div x-show="inv.order.intlDest&&inv.order.intlDest.chargePending" x-cloak class="gi-note" style="margin:10px 0">
-        <p class="gi-t"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ জানতে যোগাযোগ করুন</p>
-        <p class="gi-s" x-text="(intlCfg&&intlCfg.contact&&intlCfg.contact.text)||'আপনার গ্লোবাল অর্ডারটি গ্রহণ করা হয়েছে। ডেলিভারি চার্জ আমরা কনফার্ম করে আপনাকে জানাবো — অথবা নিচের মাধ্যমে যোগাযোগ করে জেনে নিন।'"></p>
-        <div class="gi-btns"><template x-for="c in intlContacts" :key="'ic'+c.key"><a :href="intlContactUrl(c,inv.order)" target="_blank" rel="noopener noreferrer" class="gi-btn" :style="'background:'+c.color"><i :class="c.icon"></i> <span x-text="c.label"></span></a></template></div>
-        <p class="gi-s" x-show="!intlContacts.length" style="margin-top:6px">অর্ডার আইডি <b x-text="'#'+inv.order.id"></b> উল্লেখ করে আমাদের সাপোর্টে যোগাযোগ করুন।</p>
-      </div>
+      <!-- গ্লোবাল অর্ডার: ডেলিভারি চার্জ স্ট্যাটাস -->
+<div x-show="inv.order.intlDest&&(inv.order.intlDest.chargePending||inv.order.intlDest.chargeStatus)" x-cloak class="gx-msg" style="margin:10px 0" :class="inv.order.intlDest&&inv.order.intlDest.chargeStatus==='paid'?'gx-ok':''">
+<b><i class="fa-solid fa-truck-fast"></i> <span x-text="inv.order.intlDest.chargePending?'ডেলিভারি চার্জ নির্ধারণ হচ্ছে':(inv.order.intlDest.chargeStatus==='paid'?'ডেলিভারি চার্জ পরিশোধিত':(inv.order.intlDest.chargeStatus==='submitted'?'চার্জ পেমেন্ট যাচাই চলছে':'ডেলিভারি চার্জ পরিশোধ বাকি'))"></span></b><br>
+<span x-text="inv.order.intlDest.chargePending?'চার্জ নির্ধারণ হলে \'আমার অর্ডার\' পেজে জানানো হবে এবং সেখান থেকেই পেমেন্ট করতে পারবেন। কাউকে মেসেজ দেওয়ার দরকার নেই।':(inv.order.intlDest.chargeStatus==='due'?'৳'+Number(inv.order.intlDest.charge||0).toLocaleString()+' — \'আমার অর্ডার\' পেজ থেকে পেমেন্ট করুন।':'')"></span>
+</div>
 
-      <!-- ৫) অর্ডার আইডি + QR -->
+<!-- ৫) অর্ডার আইডি + QR -->
       <div class="inv-ft">
         <div style="min-width:0">
           <small>অর্ডার আইডি</small>
@@ -4152,19 +4221,23 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   </div>
   <div class="px-4" x-show="/[?&]dbg=1/.test(location.search)" x-cloak><p class="text-xs" style="background:#111;color:#0f0;padding:6px 8px;border-radius:8px;word-break:break-all" x-text="'intlCats='+intlCats.length+' | active='+intlCatsActive.length+' | top='+intlTopCats.length+' | subs(cur)='+intlCurSubs.length+' | intlProducts='+intlProducts.length+' | allProducts='+fbProducts.length+' | err='+(_icErr||'no')+' | cat='+intlCat+' | sub='+intlSub+' | showAll='+intlShowAll+' | drill='+intlDrill"></p></div>
   <!-- Hero + delivery highlights -->
-  <div class="px-4" x-show="intlCat==='সব'">
-    <div class="rounded-3xl p-4 text-white" style="background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 55%,#7C3AED 100%);box-shadow:0 10px 28px rgba(30,58,138,.3)">
-      <p class="text-sm font-extrabold">বিশ্বের সেরা পণ্য, এক জায়গায়</p>
-      <p class="text-xs mt-1" style="color:rgba(255,255,255,.78)">প্রবাসে স্বজনদের কাছেও পাঠান — দুবাই, আমেরিকা, কাতারসহ ডজনখানেক দেশে ডেলিভারি।</p>
-      <div class="flex gap-2 mt-3 overflow-x-auto grp-row" style="padding-bottom:2px">
-        <template x-for="c in intlCountries" :key="c.code"><span class="flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.14)" x-text="(c.flag||'')+' '+(c.en||c.name)"></span></template>
-      </div>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mt-3">
-      <template x-for="f in intlFeats" :key="f.title"><div class="rounded-2xl p-2.5 text-center" style="background:var(--card);border:1px solid var(--border)"><i class="fa-solid text-lg" :class="f.icon||'fa-box'" style="color:var(--accent)"></i><p class="text-xs font-bold mt-1" x-text="f.title"></p><p class="mt-0.5" style="font-size:10px;color:var(--fg3);line-height:1.3" x-text="f.text"></p></div></template>
-    </div>
-  </div>
-  <!-- Search -->
+<div class="px-4" x-show="intlCat==='সব'">
+<div class="gx-hero"><span class="gx-orb"></span>
+<span class="gx-badge"><i class="fa-solid fa-earth-asia"></i> GLOBAL STORE</span>
+<p class="gx-h">বিশ্বের সেরা পণ্য, এক জায়গায়</p>
+<p class="gx-p">প্রবাসে স্বজনদের কাছেও পাঠান — দুবাই, আমেরিকা, কাতারসহ ডজনখানেক দেশে ডেলিভারি। অর্ডার কনফার্ম থেকে চার্জ পেমেন্ট — সবকিছু এই অ্যাপেই।</p>
+<div class="gx-flags"><template x-for="c in intlCountries" :key="c.code"><span x-text="(c.flag||'')+' '+(c.en||c.name)"></span></template></div>
+</div>
+<div class="gx-feats"><template x-for="f in intlFeats" :key="f.title"><div class="gx-feat"><i class="fa-solid" :class="f.icon||'fa-box'"></i><b x-text="f.title"></b><small x-text="f.text"></small></div></template></div>
+<div class="gx-flow"><p><i class="fa-solid fa-route" style="color:var(--accent)"></i> কীভাবে অর্ডার করবেন</p>
+<div class="gx-steps">
+<div class="gx-st"><i>১</i><b>অর্ডার দিন</b><small>পণ্য ও দেশ বাছুন</small></div>
+<div class="gx-st"><i>২</i><b>চার্জ নির্ধারণ</b><small>আমরা চার্জ জানাবো</small></div>
+<div class="gx-st"><i>৩</i><b>চার্জ পেমেন্ট</b><small>অ্যাপ থেকেই</small></div>
+<div class="gx-st"><i>৪</i><b>ডেলিভারি</b><small>দোরগোড়ায়</small></div>
+</div></div>
+</div>
+<!-- Search -->
   <div class="px-4 mt-4"><div class="search-glass" style="background:var(--bg2)"><i class="fa-solid fa-magnifying-glass text-xs" style="color:var(--fg3)"></i><input x-model="intlQ" type="search" placeholder="ইন্টারন্যাশনাল পণ্য খুঁজুন..." style="color:var(--fg)"/></div></div>
   <!-- Top categories -->
   <div class="px-4 mt-4" x-show="intlTopCats.length>0&&intlQ===''">
@@ -4233,7 +4306,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
     <p class="section-title mb-2"><i class="fa-solid fa-plane-departure" style="color:var(--accent);margin-right:6px"></i>কোন কোন দেশে ডেলিভারি</p>
     <div class="space-y-2">
       <template x-for="c in intlCountries" :key="c.code">
-        <details class="rounded-2xl p-3" style="background:var(--card);border:1px solid var(--border)">
+        <details class="gx-co">
           <summary class="flex items-center gap-2 cursor-pointer" style="list-style:none"><span class="text-xl" x-text="c.flag||'🌍'"></span><span class="text-sm font-bold flex-1" x-text="c.name"></span><span class="text-xs font-bold" style="color:var(--accent)" x-show="!intlLater&&intlFeeOf(c.code)!=null" x-text="'৳'+Number(intlFeeOf(c.code)).toLocaleString('bn-BD')"></span><i class="fa-solid fa-chevron-down text-xs" style="color:var(--fg3)"></i></summary>
           <div class="mt-2 text-xs" style="color:var(--fg2)"><p x-show="c.days"><i class="fa-regular fa-clock"></i> সময়: <b x-text="c.days"></b></p><div class="flex flex-wrap gap-1.5 mt-2"><template x-for="r in c.regions" :key="r"><span class="px-2 py-0.5 rounded-full" style="background:var(--bg2);border:1px solid var(--border)" x-text="r"></span></template></div></div>
         </details>
@@ -4484,7 +4557,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <div class="px-4 py-3.5" style="background:var(--header)"><p class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i>ডেলিভারি তথ্য</p></div>
         <div class="p-4 space-y-3">
           <div><label class="dd-label">পূর্ণ নাম *</label><input class="dd-input" x-model="form.name" placeholder="আপনার সম্পূর্ণ নাম"/></div>
-          <div><label class="dd-label">মোবাইল নম্বর *</label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
+          <div><label class="dd-label" x-text="destAbroad?'বাংলাদেশি মোবাইল নম্বর (অর্ডার ভেরিফিকেশন) *':'মোবাইল নম্বর *'"></label><input class="dd-input" type="tel" x-model="form.phone" placeholder="০১XXXXXXXXX"/></div>
           <div x-show="canAbroad" x-cloak>
             <label class="dd-label">কোথায় ডেলিভারি নেবেন?</label>
             <div class="grid grid-cols-2 gap-2">
@@ -4492,12 +4565,21 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <button type="button" @click="setDest(form.country||(localStorage.getItem('dd_intl_dest')||intlCountries[0].code))" class="py-2.5 rounded-xl text-xs font-bold" :style="destAbroad?'background:var(--accent);color:#fff;border:none':'background:var(--bg2);color:var(--fg2);border:1px solid var(--border)'" style="cursor:pointer">🌍 বিদেশে পাঠান</button>
             </div>
           </div>
-          <div x-show="destAbroad" x-cloak class="space-y-3 p-3 rounded-2xl" style="background:var(--bg2);border:1.5px dashed var(--accent)">
-            <div><label class="dd-label">দেশ বেছে নিন *</label>
+          <div x-show="destAbroad" x-cloak class="gx-box">
+<div class="gx-bh"><i class="fa-solid fa-earth-asia"></i><div><b>গ্লোবাল অর্ডার কনফার্মেশন</b><small>৩টি ধাপে তথ্য দিন — ডেলিভারি চার্জ পরে এই অ্যাপেই জানানো হবে</small></div></div>
+<div class="gx-sec"><span class="gx-sn">১</span>কোন দেশে পাঠাবেন</div>
+<div><label class="dd-label">দেশ বেছে নিন *</label>
               <div class="gc-grid"><template x-for="c in intlCountries.filter(x=>intlOk(x.code))" :key="c.code"><button type="button" class="gc-chip" :class="form.country===c.code?'on':''" @click="setDest(c.code)"><span class="gc-f" x-text="c.flag||'🌍'"></span><span class="gc-n" x-text="c.name"></span></button></template></div>
               <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span x-show="!intlLater"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="intlLater" style="color:#B45309"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ অর্ডারের পর জানানো হবে</span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
             </div>
-            <div class="loc-card" :class="iloc&&iloc.cc===form.country?'ok':''">
+            <div class="gx-sec"><span class="gx-sn">২</span>আপনার পরিচয় ও যোগাযোগ</div>
+<div><label class="dd-label">প্রাপকের নাম <span style="font-weight:500;color:var(--fg3)">(ঐচ্ছিক — খালি রাখলে উপরের নামই যাবে)</span></label><input class="dd-input" x-model="form.recvName" placeholder="যিনি পণ্য রিসিভ করবেন"/></div>
+<div><label class="dd-label">আপনার ব্যক্তিগত নম্বর *</label>
+<div class="gx-ph"><select x-model="form.dial" class="dd-input"><option value="" x-text="'অটো: '+(destCountry?(destCountry.flag||'')+' +'+destCountry.phone:'')"></option><template x-for="d in gxDials" :key="'dl'+d.code"><option :value="d.code" x-text="d.flag+' +'+d.code+' · '+d.name"></option></template></select>
+<input class="dd-input" type="tel" inputmode="tel" x-model="form.recvNum" :placeholder="gxDial==='880'?'1XXXXXXXXX':'XXXXXXXX'"/></div>
+<p class="gx-hint"><i class="fa-solid fa-circle-info"></i> দেশের কোড <b x-text="'+'+gxDial"></b> অটো বসেছে। অন্য দেশের বা বাংলাদেশি (+৮৮০) নম্বর দিলে বাম পাশের কোডটি বদলে নিন।<span x-show="form.recvNum"> · পূর্ণ নম্বর: <b x-text="gxRecvFull()"></b></span></p></div>
+<div class="gx-sec"><span class="gx-sn">৩</span>ঠিকানা ও লোকেশন</div>
+<div class="loc-card" :class="iloc&&iloc.cc===form.country?'ok':''">
             <div class="loc-hd"><div class="loc-pin" :class="ilocBusy?'busy':''"><i class="fa-solid fa-location-dot"></i><span class="loc-ring"></span><span class="loc-ring r2"></span></div>
             <div style="min-width:0"><p class="loc-t">লোকেশন</p><p class="loc-s" x-text="ilocBusy?'GPS থেকে আপনার অবস্থান নেওয়া হচ্ছে…':(iloc&&iloc.cc===form.country?'লোকেশন নেওয়া হয়েছে (±'+iloc.acc+' মি.)':'এক ট্যাপে দেশ, শহর ও ঠিকানা অটো-ফিল')"></p></div></div>
             <div class="loc-bar" x-show="ilocBusy" x-cloak><i style="width:62%"></i></div>
@@ -4509,12 +4591,10 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <div class="relative"><select class="dd-input pr-10 cursor-pointer" x-model="form.city"><option value="">— বেছে নিন —</option><template x-for="r in (destCountry?destCountry.regions:[])" :key="r"><option :value="r" x-text="r"></option></template><option value="__other">অন্য শহর/এলাকা (লিখুন)</option></select><i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none" style="color:var(--fg3)"></i></div>
               <input x-show="form.city==='__other'" x-cloak class="dd-input mt-2" x-model="form.cityOther" placeholder="শহর/এলাকার নাম"/>
             </div>
-            <div><label class="dd-label">প্রাপকের নাম (ঐচ্ছিক)</label><input class="dd-input" x-model="form.recvName" placeholder="খালি রাখলে আপনার নামই যাবে"/></div>
-            <div><label class="dd-label">প্রাপকের ফোন (দেশের কোডসহ) *</label><input class="dd-input" type="tel" x-model="form.recvPhone" :placeholder="'+'+(destCountry?destCountry.phone:'')+' XXXXXXXX'"/></div>
             <div><label class="dd-label">বিস্তারিত ঠিকানা * <span style="font-weight:500;color:var(--fg3)">(নিজে লিখুন বা লোকেশন থেকে নিন)</span></label><textarea class="dd-input resize-none" rows="3" x-model="form.address" placeholder="বিল্ডিং/ফ্ল্যাট নং, রাস্তা, এলাকা, শহর, পোস্টাল কোড — যেখানে আছেন সেটা সম্পূর্ণ লিখুন..."></textarea></div>
-            <p class="text-xs" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> বিদেশে ডেলিভারিতে শুধু প্রি-পেমেন্ট (bKash/Nagad) চলবে; ক্যাশ অন ডেলিভারি প্রযোজ্য নয়। উপরের মোবাইল নম্বরটি আপনার (অর্ডারকারীর) বাংলাদেশি নম্বর দিন।</p>
-          </div>
-          <div x-show="!destAbroad" class="loc-card" :class="form.loc?'ok':''">
+<div class="gx-note2"><i class="fa-solid fa-shield-halved"></i><span>অর্ডার সাবমিট করলেই কনফার্ম। পণ্যের মূল্য এখন bKash/Nagad-এ প্রি-পেমেন্ট; ডেলিভারি চার্জ নির্ধারণ হলে <b>আমার অর্ডার</b> পেজ থেকে ব্যাংক/bKash/Nagad যেকোনো মাধ্যমে দিতে পারবেন (TrxID বা স্ক্রিনশটসহ)। উপরের বাংলাদেশি নম্বরটি শুধু অর্ডার ভেরিফিকেশনের জন্য।</span></div>
+</div>
+<div x-show="!destAbroad" class="loc-card" :class="form.loc?'ok':''">
             <div class="loc-hd">
               <div class="loc-pin" :class="locBusy?'busy':''"><i class="fa-solid fa-location-dot"></i><span class="loc-ring"></span><span class="loc-ring r2"></span></div>
               <div style="min-width:0"><p class="loc-t">ডেলিভারি লোকেশন</p><p class="loc-s" x-text="locBusy?(locStep===1?'GPS থেকে আপনার অবস্থান নেওয়া হচ্ছে…':'বিভাগ, জেলা ও ঠিকানা মেলানো হচ্ছে…'):(form.loc?'লোকেশন নেওয়া হয়েছে (±'+form.loc.acc+' মি.)':'এক ট্যাপে বিভাগ, জেলা ও ঠিকানা অটো-ফিল')"></p></div>
@@ -4599,12 +4679,14 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         </div>
         <p class="text-xs mt-2 font-bold" style="color:#16A34A" x-show="appliedPromo"><i class="fa-solid fa-circle-check mr-1"></i>কোড প্রয়োগ হয়েছে!</p>
       </div>
-      <div x-show="destAbroad&&intlLater&&!cartNeedsConfirm" x-cloak class="gi-note">
-          <p class="gi-t"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ কীভাবে জানবেন?</p>
-          <p class="gi-s" x-text="(intlCfg&&intlCfg.contact&&intlCfg.contact.text)||'অর্ডার কনফার্ম করার পর ডেলিভারি চার্জ আমরা আপনাকে জানাবো। চাইলে আপনিও নিচের মাধ্যমে যোগাযোগ করে জেনে নিতে পারবেন। চার্জ জানার আগে আপনার কাছ থেকে ডেলিভারির টাকা নেওয়া হবে না।'"></p>
-          <div class="gi-btns"><template x-for="c in intlContacts" :key="'gi'+c.key"><span class="gi-chip" :style="'background:'+c.color"><i :class="c.icon"></i> <span x-text="c.label.replace(' জানুন','').replace('-এ','')"></span></span></template></div>
-        </div>
-        <div x-show="cartNeedsConfirm" x-cloak class="text-xs font-bold px-3 py-2.5 rounded-xl mb-2" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A"><i class="fa-brands fa-whatsapp"></i> ডেলিভারি চার্জ: <b>To Be Confirmed</b> — ঠিকানা দিয়ে নিচের বাটনে WhatsApp-এ চার্জ জেনে নিন। চার্জ না জেনে কোনো পেমেন্ট নেওয়া হবে না।</div>
+      <div x-show="destAbroad&&intlLater&&!cartNeedsConfirm" x-cloak class="gx-how">
+<p class="gx-how-t"><i class="fa-solid fa-shield-halved"></i> অর্ডার কনফার্ম করার পর কী হবে?</p>
+<ol><li><i>১</i><span>অর্ডার সাবমিট করলেই কনফার্ম — WhatsApp বা কাউকে মেসেজ দিতে হবে না।</span></li>
+<li><i>২</i><span>আমরা আপনার দেশ ও ঠিকানা দেখে <b>ডেলিভারি চার্জ নির্ধারণ</b> করবো।</span></li>
+<li><i>৩</i><span>নির্ধারণ হলে <b>আমার অর্ডার</b> পেজে নোটিফিকেশন আসবে, সেখান থেকেই bKash/Nagad-এ চার্জ পরিশোধ করুন।</span></li></ol>
+<p class="gx-n"><i class="fa-solid fa-circle-check"></i> চার্জ জানার আগে ডেলিভারির কোনো টাকা নেওয়া হবে না।</p>
+</div>
+<div x-show="cartNeedsConfirm" x-cloak class="text-xs font-bold px-3 py-2.5 rounded-xl mb-2" style="background:#FFFBEB;color:#B45309;border:1px solid #FDE68A"><i class="fa-brands fa-whatsapp"></i> ডেলিভারি চার্জ: <b>To Be Confirmed</b> — ঠিকানা দিয়ে নিচের বাটনে WhatsApp-এ চার্জ জেনে নিন। চার্জ না জেনে কোনো পেমেন্ট নেওয়া হবে না।</div>
       <div class="dp-bar" style="margin:0 -16px">
         <div class="flex-1 flex flex-col justify-center">
           <span class="text-xs" style="color:var(--fg3)">সর্বমোট</span>
@@ -4672,6 +4754,30 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           <button type="button" @click.stop="tl=!tl" class="obm-upd" style="margin-top:8px"><i class="fa-solid fa-list-check"></i><span x-text="tl?'আপডেট লুকান':'আপডেট দেখুন'"></span></button>
         </div>
         <div x-show="open&&o.status!=='বাতিল'" class="ord-hero mx-3 mt-2 rounded-2xl" style="background:var(--bg2)" x-html="trackHero(effStatus(o),true)"></div>
+<div x-show="open&&o.intlDest&&(o.intlDest.chargePending||o.intlDest.chargeStatus)" x-cloak class="gx-ord">
+<p class="text-xs font-bold mb-2" style="color:var(--fg)"><i class="fa-solid fa-earth-asia" style="color:var(--accent)"></i> গ্লোবাল অর্ডার · <span x-text="(o.intlDest&&o.intlDest.countryName)||''"></span></p>
+<div class="gx-steps"><template x-for="(s,k) in ['অর্ডার গৃহীত','চার্জ নির্ধারণ','চার্জ পেমেন্ট','নিশ্চিত']" :key="'gs'+k"><div class="gx-st" :class="k<gxStep(o)?'done':(k===gxStep(o)?'now':'')"><i x-text="k<gxStep(o)?'✓':k+1"></i><b x-text="s"></b></div></template></div>
+<div x-show="o.intlDest.chargePending" class="gx-msg"><i class="fa-solid fa-hourglass-half"></i> আপনার অর্ডার গ্রহণ করা হয়েছে। ডেলিভারি চার্জ নির্ধারণ হলে এখানেই জানানো হবে ও পেমেন্ট অপশন আসবে — কোথাও মেসেজ দেওয়ার দরকার নেই।</div>
+<div x-show="o.intlDest.chargeStatus==='due'">
+<div class="gx-amt"><span>ডেলিভারি চার্জ</span><b x-text="'৳'+Number(o.intlDest.charge||0).toLocaleString('bn-BD')"></b></div>
+<p class="gx-step">১) পেমেন্ট মাধ্যম বেছে নিন</p>
+<div class="gx-pm"><template x-for="m in gxPayOpts" :key="'gp'+m.id"><button type="button" :class="gxPayRef(o).pm===m.id?'on':''" @click="gxPayRef(o).pm=m.id"><i class="fa-solid" :class="m.type==='bank'?'fa-building-columns':'fa-mobile-screen-button'"></i> <span x-text="m.label"></span></button></template></div>
+<div class="gx-acc" x-show="gxSel(o)" x-cloak>
+<p x-show="gxSel(o)&&gxSel(o).bank"><em>ব্যাংক</em><b x-text="gxSel(o)&&(gxSel(o).bank+(gxSel(o).branch?' · '+gxSel(o).branch:''))"></b></p>
+<p x-show="gxSel(o)&&gxSel(o).holder"><em>অ্যাকাউন্ট নাম</em><b x-text="gxSel(o)&&gxSel(o).holder"></b></p>
+<p><em x-text="gxSel(o)&&gxSel(o).type==='bank'?'অ্যাকাউন্ট নং':'নম্বর'"></em><b class="gx-mono" x-text="gxSel(o)&&gxSel(o).number"></b><button type="button" class="gx-cp" @click="copyText(gxSel(o).number).then(()=>showToast('কপি হয়েছে','success'))"><i class="fa-regular fa-copy"></i> কপি</button></p>
+<p x-show="gxSel(o)&&gxSel(o).note" class="gx-nt" x-text="gxSel(o)&&gxSel(o).note"></p>
+</div>
+<p class="gx-step">২) পেমেন্টের প্রমাণ দিন <small>(TrxID অথবা স্ক্রিনশট — যেকোনো একটি)</small></p>
+<input class="dd-input" x-model="gxPayRef(o).trx" placeholder="ট্রানজেকশন ID (TrxID) — থাকলে" autocapitalize="characters"/>
+<label class="gx-up" :class="gxPayRef(o).shot?'has':''"><input type="file" accept="image/*" class="hidden" @change="gxPickShot(o,$event)"/>
+<template x-if="gxPayRef(o).shot"><img :src="gxPayRef(o).shot" alt=""/></template>
+<span><i class="fa-solid" :class="gxPayRef(o).up?'fa-spinner fa-spin':(gxPayRef(o).shot?'fa-circle-check':'fa-image')"></i> <span x-text="gxPayRef(o).up?('আপলোড হচ্ছে '+gxPayRef(o).pct+'%'):(gxPayRef(o).shot?'স্ক্রিনশট যোগ হয়েছে — বদলাতে চাপুন':'পেমেন্টের স্ক্রিনশট আপলোড করুন')"></span></span></label>
+<button type="button" class="gx-go" :disabled="gxPayRef(o).busy||gxPayRef(o).up" @click="gxSubmitCharge(o)"><i class="fa-solid" :class="gxPayRef(o).busy?'fa-spinner fa-spin':'fa-paper-plane'"></i> <span x-text="gxPayRef(o).busy?'জমা হচ্ছে...':'চার্জ পেমেন্ট জমা দিন'"></span></button>
+</div>
+<div x-show="o.intlDest.chargeStatus==='submitted'" class="gx-msg"><i class="fa-solid fa-circle-notch fa-spin"></i> চার্জ পেমেন্ট জমা হয়েছে (<span x-show="o.intlDest.chargeTrx">TrxID: <b x-text="o.intlDest.chargeTrx"></b></span><span x-show="!o.intlDest.chargeTrx&&o.intlDest.chargeShot">স্ক্রিনশট জমা</span>)। যাচাই শেষ হলে এখানে জানানো হবে।</div>
+<div x-show="o.intlDest.chargeStatus==='paid'" class="gx-msg gx-ok"><i class="fa-solid fa-circle-check"></i> ডেলিভারি চার্জ ৳<span x-text="Number(o.intlDest.charge||0).toLocaleString('bn-BD')"></span> পরিশোধিত — আপনার অর্ডার প্রসেসিং-এ আছে।</div>
+</div>
         <div x-show="open&&o.adjustments&&o.adjustments.length" x-cloak class="mx-3 mt-2 rounded-2xl p-2.5" style="background:#FFFBEB;border:1px solid #F59E0B">
           <p class="text-xs font-bold mb-1.5" style="color:#92400E"><i class="fa-solid fa-scale-balanced"></i> অ্যাডমিন মূল্য সমন্বয়</p>
           <template x-for="(e,i) in (o.adjustments||[])" :key="'adj'+i"><div class="flex items-start justify-between gap-2 text-xs py-1" style="border-top:1px dashed #FCD34D"><span style="color:var(--fg)"><b x-text="e.kind==='delivery'?'ডেলিভারি চার্জ':'পণ্যের দাম'"></b><span x-text="e.reason?' — '+e.reason:''"></span></span><b class="font-mono flex-shrink-0" :style="e.amount<0?'color:#16A34A':'color:#DC2626'" x-text="(e.amount<0?'−৳':'+৳')+Math.abs(e.amount).toLocaleString()"></b></div></template>
@@ -6490,7 +6596,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
+  gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -6710,7 +6816,30 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     }else if(this.intlCat!=='সব'){L=L.filter(p=>p.intlCat===this.intlCat)}
     const q=String(this.intlQ||'').trim().toLowerCase();if(q)L=L.filter(p=>String(p.name||'').toLowerCase().includes(q));
     return L},
-  intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
+  gxStep(o){const d=(o&&o.intlDest)||{};if(d.chargePending)return 1;const s=d.chargeStatus;return s==='paid'?4:(s==='submitted'?2:(s==='due'?2:1))},
+gxPayRef(o){const k=String((o&&(o.fbKey||o.id))||'x');if(!this.gxPay[k])this.gxPay[k]={pm:'',trx:'',busy:false};const p=this.gxPay[k];if(!p.pm&&this.payMethods[0])p.pm=this.payMethods[0].id;return p},
+get gxDials(){const m=new Map();this.intlCountries.forEach(c=>{const k=String(c.phone||'').replace(/\D/g,'');if(k&&!m.has(k))m.set(k,{code:k,flag:c.flag||'🌍',name:c.en||c.name})});[['880','🇧🇩','Bangladesh'],['966','🇸🇦','Saudi Arabia'],['971','🇦🇪','UAE'],['974','🇶🇦','Qatar'],['965','🇰🇼','Kuwait'],['968','🇴🇲','Oman'],['973','🇧🇭','Bahrain'],['60','🇲🇾','Malaysia'],['65','🇸🇬','Singapore'],['44','🇬🇧','UK'],['39','🇮🇹','Italy'],['1','🇺🇸','USA / Canada']].forEach(([k,f,n])=>{if(!m.has(k))m.set(k,{code:k,flag:f,name:n})});return [...m.values()]},
+get gxDial(){return String(this.form.dial||(this.destCountry&&this.destCountry.phone)||'').replace(/\D/g,'')},
+gxRecvFull(){let n=this._bnToEn(this.form.recvNum||'').replace(/[^\d]/g,'');const dl=this.gxDial;if(!n||!dl)return'';if(n.startsWith(dl)&&n.length>dl.length+6)n=n.slice(dl.length);n=n.replace(/^0+/,'');return'+'+dl+' '+n},
+get gxPayOpts(){const a=this._arr(this.settings&&this.settings.intlPayMethods).filter(m=>m&&m.label&&m.number&&m.enabled!==false).map((m,i)=>({...m,id:m.id||('x'+i),type:m.type==='bank'?'bank':'mobile'}));if(a.length)return a;return this.payMethods.filter(m=>m.num).map(m=>({id:m.id,label:m.label,number:m.num,type:'mobile',note:'Send Money করুন'}))},
+gxSel(o){const p=this.gxPayRef(o);return this.gxPayOpts.find(m=>m.id===p.pm)||null},
+async gxPickShot(o,ev){const f=ev.target.files&&ev.target.files[0];ev.target.value='';if(!f)return;const p=this.gxPayRef(o);
+if(!/^image\//.test(f.type))return this.showToast('শুধু ছবি (স্ক্রিনশট) দিন','error');
+if(f.size>8*1024*1024)return this.showToast('ছবি ৮MB-এর বেশি','error');
+const cn=this.settings&&this.settings.cloudinaryCloudName,up=this.settings&&this.settings.cloudinaryUploadPreset;
+if(!cn||!up)return this.showToast('স্ক্রিনশট আপলোড এখন চালু নেই — TrxID দিন','error');
+p.up=true;p.pct=0;try{p.shot=await this._cloudinary(f,cn,up,x=>{p.pct=x})}catch(e){this.showToast('আপলোড ব্যর্থ — আবার চেষ্টা করুন','error')}p.up=false},
+async gxSubmitCharge(o){const p=this.gxPayRef(o),d=(o&&o.intlDest)||{};if(p.busy||p.up)return;
+const trx=p.trx?this._trxNorm(p.trx):'',sel=this.gxSel(o);
+if(!sel)return this.showToast('পেমেন্ট মাধ্যম বেছে নিন','error');
+if(!trx&&!p.shot)return this.showToast('TrxID অথবা স্ক্রিনশট — একটি দিন','error');
+if(trx&&!/^[A-Z0-9]{6,32}$/.test(trx))return this.showToast('ট্রানজেকশন ID সঠিক নয় (৬–৩২ অক্ষর/সংখ্যা)','error');
+if(!o.fbKey)return this.showToast('একটু পরে আবার চেষ্টা করুন','error');
+p.busy=true;try{if(trx){const c=await this.claimTrx(p.trx,'order',o.fbKey);if(!c.ok){p.busy=false;return this.showToast(c.msg,'error')}}
+const nd={...d,chargeStatus:'submitted',chargeTrx:trx,chargeMethod:String(sel.label).slice(0,40),chargeShot:p.shot||'',chargePaidAt:Date.now()};
+await this._orderPatch(o.fbKey,{intlDest:nd});o.intlDest=nd;p.busy=false;p.trx='';p.shot='';this.showToast('✅ চার্জ পেমেন্ট জমা হয়েছে — যাচাই চলছে','success')}
+catch(e){p.busy=false;this.showToast('জমা হয়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন','error')}},
+intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
   // ইন্টারন্যাশনাল ডেলিভারি কনফিগ (অ্যাডমিন সেভ করলে আসে; না থাকলে ডিফল্ট শুধু তথ্য হিসেবে দেখায়)
   get intlCfgSaved(){const f=this.intlCfg&&this.intlCfg.fees;return !!(f&&typeof f==='object'&&Object.keys(f).length)},
   get intlCountries(){
@@ -6738,7 +6867,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get destCountry(){return this.form.country?(this.intlCountries.find(c=>c.code===this.form.country)||null):null},
   get destAbroad(){return !!this.destCountry&&this.intlOk(this.form.country)},
   setDest(code){
-    this.form.country=code||'';this.form.city='';this.form.cityOther='';
+    this.form.country=code||'';this.form.dial='';this.form.city='';this.form.cityOther='';
     if(code){try{localStorage.setItem('dd_intl_dest',code)}catch(e){}if(this.form.pay==='cod'){const m=this.payMethods[0];if(m)this.form.pay=m.id}}
   },
   _intlCheck(){
@@ -6746,8 +6875,8 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
     if(!c)return'দেশ বেছে নিন!';
     const city=f.city==='__other'?String(f.cityOther||'').trim():String(f.city||'').trim();
     if(!city)return'শহর/এলাকা দিন!';
-    const ph=String(f.recvPhone||'').replace(/[^\d]/g,'');
-    if(ph.length<7||ph.length>15)return'প্রাপকের সঠিক ফোন নম্বর দিন (দেশের কোডসহ)!';
+    f.recvPhone=this.gxRecvFull();const ph=String(f.recvPhone||'').replace(/[^\d]/g,'');
+    if(ph.length<7||ph.length>15)return'আপনার ব্যক্তিগত নম্বর সঠিকভাবে দিন!';
     if(String(f.address||'').trim().length<6)return'বিস্তারিত ঠিকানা দিন!';
     return'';
   },
@@ -7680,8 +7809,9 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
       const live=this.allProducts.find(p=>(p.fbKey||p.id)===key);
       if(live){
         const size=it.size||null;
-        const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size);
-        if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,qty:it.qty||1,size,color:null,variantImg:it.variantImg||live.images?.[0]||live.img,variantNo:1})}
+        const _vimg=it.variantImg||live.images?.[0]||live.img,_vx=(live.images||[]).indexOf(_vimg),_vno=_vx>=0?_vx+1:(it.variantNo||1);
+const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size&&i.variantImg===_vimg);
+if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,qty:it.qty||1,size,color:null,variantImg:_vimg,variantNo:_vno})}
         added++;
       }else missing++;
     });
