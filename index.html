@@ -7158,7 +7158,7 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get intlNewest(){return this.intlProducts.slice().sort((a,b)=>((Number(b.timestamp)||Number(b.createdAt)||0)-(Number(a.timestamp)||Number(a.createdAt)||0))||((Number(b.productId)||0)-(Number(a.productId)||0)))},
   get intlHome(){return this.intlCat==='সব'&&String(this.intlQ||'').trim()===''},
   get intlShown(){return this.intlHome?this.intlNewest.slice(0,this.intlNewN):this.intlFiltered},
-  get intlDrill(){return this.intlCat!=='সব'&&this.intlCurSubs.length>0&&!this.intlSub&&!this.intlShowAll&&String(this.intlQ||'').trim()===''},
+  get intlDrill(){return false},/* বড় সাব-ক্যাটাগরি গ্রিড বন্ধ: ক্যাটাগরিতে ক্লিক করলে সরাসরি ছোট সাব-ক্যাটাগরি সারি + সব পণ্য দেখায় */
   get resellHeadColor(){const w=this._realSecs.find(s=>this._secGender(s)==='women')||this._realSecs.find(s=>/মেয়ে|মহিলা|লেডিস|women|girl|ladies/i.test(s.name||''));return (w&&w.color)||'#6B7280'},
   get resellFeedCats(){return _ddMemo('rfc',[this.resellableProducts,this.allCategories,this.fbSections,this.resellActiveSec],()=>this._rfc0())},
   _rfc0(){if(this.resellActiveSec){const sec=this.allSections.find(s=>(s.fbKey||s.id)===this.resellActiveSec);if(sec)return this.resellSecCats(sec)}return this.resellCategories},
