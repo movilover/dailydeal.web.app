@@ -4229,13 +4229,6 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <div class="gx-flags"><template x-for="c in intlCountries" :key="c.code"><span x-text="(c.flag||'')+' '+(c.en||c.name)"></span></template></div>
 </div>
 <div class="gx-feats"><template x-for="f in intlFeats" :key="f.title"><div class="gx-feat"><i class="fa-solid" :class="f.icon||'fa-box'"></i><b x-text="f.title"></b><small x-text="f.text"></small></div></template></div>
-<div class="gx-flow"><p><i class="fa-solid fa-route" style="color:var(--accent)"></i> কীভাবে অর্ডার করবেন</p>
-<div class="gx-steps">
-<div class="gx-st"><i>১</i><b>অর্ডার দিন</b><small>পণ্য ও দেশ বাছুন</small></div>
-<div class="gx-st"><i>২</i><b>চার্জ নির্ধারণ</b><small>আমরা চার্জ জানাবো</small></div>
-<div class="gx-st"><i>৩</i><b>চার্জ পেমেন্ট</b><small>অ্যাপ থেকেই</small></div>
-<div class="gx-st"><i>৪</i><b>ডেলিভারি</b><small>দোরগোড়ায়</small></div>
-</div></div>
 </div>
 <!-- Search -->
   <div class="px-4 mt-4"><div class="search-glass" style="background:var(--bg2)"><i class="fa-solid fa-magnifying-glass text-xs" style="color:var(--fg3)"></i><input x-model="intlQ" type="search" placeholder="ইন্টারন্যাশনাল পণ্য খুঁজুন..." style="color:var(--fg)"/></div></div>
@@ -4299,21 +4292,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </template>
     </div>
     <p x-show="intlFiltered.length===0&&intlTopCats.length>0" class="text-center text-sm py-10" style="color:var(--fg3)">এই ক্যাটাগরিতে এখনো কোনো পণ্য নেই — শীঘ্রই আসছে</p>
-          <button type="button" x-show="intlHome&&intlProducts.length>intlNewN" @click="intlNewN+=10" class="gi-more"><i class="fa-solid fa-angles-down"></i> আরও ১০টি পণ্য দেখুন</button>
-  </div>
-  <!-- Countries & delivery -->
-  <div class="px-4 mt-6" x-show="intlCat==='সব'&&intlQ===''" x-cloak>
-    <p class="section-title mb-2"><i class="fa-solid fa-plane-departure" style="color:var(--accent);margin-right:6px"></i>কোন কোন দেশে ডেলিভারি</p>
-    <div class="space-y-2">
-      <template x-for="c in intlCountries" :key="c.code">
-        <details class="gx-co">
-          <summary class="flex items-center gap-2 cursor-pointer" style="list-style:none"><span class="text-xl" x-text="c.flag||'🌍'"></span><span class="text-sm font-bold flex-1" x-text="c.name"></span><span class="text-xs font-bold" style="color:var(--accent)" x-show="!intlLater&&intlFeeOf(c.code)!=null" x-text="'৳'+Number(intlFeeOf(c.code)).toLocaleString('bn-BD')"></span><i class="fa-solid fa-chevron-down text-xs" style="color:var(--fg3)"></i></summary>
-          <div class="mt-2 text-xs" style="color:var(--fg2)"><p x-show="c.days"><i class="fa-regular fa-clock"></i> সময়: <b x-text="c.days"></b></p><div class="flex flex-wrap gap-1.5 mt-2"><template x-for="r in c.regions" :key="r"><span class="px-2 py-0.5 rounded-full" style="background:var(--bg2);border:1px solid var(--border)" x-text="r"></span></template></div></div>
-        </details>
-      </template>
-    </div>
-    <p class="text-xs mt-3" style="color:var(--fg3)" x-show="intlCfg&&intlCfg.notice" x-text="intlCfg&&intlCfg.notice"></p>
-    <p class="text-xs mt-3" style="color:var(--fg3)"><i class="fa-solid fa-circle-info"></i> কার্টে গিয়ে ডেলিভারি জায়গায় "🌍 বিদেশে পাঠান" বেছে নিলে দেশ ও ঠিকানা দিতে পারবেন।</p>
+          <button type="button" x-show="intlHome&&intlProducts.length>intlNewN" @click="intlNewN+=20" class="gi-more"><i class="fa-solid fa-angles-down"></i> আরও ২০টি পণ্য দেখুন</button>
   </div>
 </section>
 
@@ -6596,7 +6575,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:10,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
+  gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:20,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
