@@ -5177,6 +5177,11 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <span class="ic"><i class="fa-solid fa-coins"></i></span>
               <div><b>প্যাসিভ ইনকাম</b><p>অ্যাকাউন্ট অ্যাপ্রুভ হলে আপনার রেফার কোড এখানে চলে আসবে — কপি করে শেয়ার করুন, ৩ জেনারেশন পর্যন্ত কমিশন পান।</p></div>
             </div>
+<div class="rg-home" x-show="intlProducts.length>0" x-cloak role="button" tabindex="0" @click="rgOpen()" @keydown.enter="rgOpen()">
+<span class="rg-ic"><i class="fa-solid fa-earth-asia"></i></span>
+<div class="rg-tx"><b>GLOBAL</b><small><template x-for="c in intlCountries.slice(0,7)" :key="'rgf'+c.code"><span x-text="c.flag||'🌍'"></span></template><em x-text="'· '+intlCountries.length+' দেশে ডেলিভারি'"></em></small></div>
+<span class="rg-go">অর্ডার <i class="fa-solid fa-arrow-right"></i></span>
+</div>
 </section>
 
 <template x-if="offerOn&&settings.offerHtmlReseller!==false"><section class="dd-offer-wrap" style="margin:12px 12px 0"><iframe class="dd-offer-frame" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer" :srcdoc="offerDoc" scrolling="no" title="অফার" style="width:100%;height:160px;border:0;border-radius:16px;display:block;background:transparent"></iframe></section></template>
@@ -5916,6 +5921,123 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
           </div>
         </template>
 
+        <!-- ══ GLOBAL (রিসেলার) — গ্লোবাল পণ্য রিসেলার রেটে অর্ডার ══ -->
+        <template x-if="resellSubTab==='global'">
+          <div class="space-y-3 pb-24">
+            <div class="flex items-center gap-2">
+              <button type="button" @click="rgBack()" class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style="background:var(--card);border:1px solid var(--border);cursor:pointer"><i class="fa-solid fa-arrow-left text-xs"></i></button>
+              <div class="flex-1 min-w-0"><p class="font-bold text-sm truncate" style="color:var(--fg)"><i class="fa-solid fa-earth-asia" style="color:var(--accent)"></i> Global Store · রিসেলার</p>
+                <p class="text-xs truncate" style="color:var(--fg3)"><span x-text="rgCartOpen?'অর্ডার তালিকা':'ইন্টারন্যাশনাল'"></span><template x-if="!rgCartOpen&&rgCat!=='সব'"><span> › <b x-text="rgCat"></b></span></template><template x-if="!rgCartOpen&&rgSubCat"><span> › <b x-text="rgSubCat"></b></span></template></p></div>
+              <button type="button" class="btn-ghost text-xs flex-shrink-0" x-show="rgCart.length>0&&!rgCartOpen" @click="rgCartOpen=true"><i class="fa-solid fa-basket-shopping"></i> <span x-text="rgCartCount"></span></button>
+            </div>
+
+            <!-- ── পণ্য ব্রাউজ ── -->
+            <div x-show="!rgCartOpen" class="space-y-3">
+              <div class="rgp-flags"><template x-for="c in intlCountries" :key="'rgfl'+c.code"><span x-text="(c.flag||'🌍')+' '+(c.en||c.name)"></span></template></div>
+              <div class="search-glass" style="background:var(--bg2)"><i class="fa-solid fa-magnifying-glass text-xs" style="color:var(--fg3)"></i><input x-model="rgQ" type="search" placeholder="গ্লোবাল পণ্য খুঁজুন..." style="color:var(--fg)"/></div>
+
+              <div x-show="rgQ.trim()===''&&rgCat==='সব'&&intlTopCats.length>0">
+                <p class="section-title mb-2">ক্যাটাগরি</p>
+                <div class="grid grid-cols-4 gap-3">
+                  <template x-for="c in intlTopCats" :key="'rgt'+c.fbKey">
+                    <div class="rgp-cat" @click="rgPickCat(c)"><div class="im"><img x-show="c.img" :src="c.img" alt="" loading="lazy" onerror="this.style.display='none'"/><i x-show="!c.img" :class="emoFa(c.emoji,'fa-box-open')"></i><b x-show="intlSubsOf(c).length>0" x-text="intlSubsOf(c).length+' সাব'"></b></div><p x-text="c.name"></p></div>
+                  </template>
+                </div>
+              </div>
+
+              <div x-show="rgQ.trim()===''&&rgCat!=='সব'" class="space-y-2">
+                <div class="flex gap-2 overflow-x-auto grp-row" style="padding-bottom:4px">
+                  <button type="button" class="sub-chip" @click="rgCat='সব';rgSubCat=''">সব ক্যাটাগরি</button>
+                  <template x-for="c in intlTopCats" :key="'rgtc'+c.fbKey"><button type="button" class="sub-chip" :class="rgCat===c.name?'on':''" @click="rgPickCat(c)"><img x-show="c.img" :src="c.img" alt=""/><span x-text="c.name"></span></button></template>
+                </div>
+                <div x-show="rgCurSubs.length>0">
+                  <p class="section-title mb-2">সাব-ক্যাটাগরি</p>
+                  <div class="sub-cat-scroll">
+                    <div class="sub-cat-item" :class="!rgSubCat?'active':''" @click="rgSubCat=''"><div class="sub-cat-img-wrap" :style="!rgSubCat?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><i class="fa-solid fa-border-all"></i></div><span class="sub-cat-name">সব</span></div>
+                    <template x-for="s in rgCurSubs" :key="'rgs'+s.fbKey"><div class="sub-cat-item" :class="rgSubCat===s.name?'active':''" @click="rgSubCat=(rgSubCat===s.name?'':s.name)"><div class="sub-cat-img-wrap" :style="rgSubCat===s.name?'background:var(--accentL);border:2.5px solid var(--accent)':'background:var(--bg2);border:2px solid var(--border)'"><img x-show="s.img" :src="s.img" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none'"/><i x-show="!s.img" :class="emoFa(s.emoji,'fa-box-open')"></i></div><span class="sub-cat-name" x-text="s.name"></span></div></template>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between"><p class="section-title" x-text="rgQ.trim()!==''?'সার্চ রেজাল্ট':(rgSubCat||(rgCat!=='সব'?rgCat:'🆕 নতুন পণ্য'))"></p><span class="text-xs" style="color:var(--fg3)" x-text="rgProds.length+'টি পণ্য'"></span></div>
+              <p class="text-xs text-center py-10" x-show="rgProds.length===0" style="color:var(--fg3)">কোনো পণ্য পাওয়া যায়নি</p>
+              <div class="grid grid-cols-2 gap-3">
+                <template x-for="p in rgProds" :key="'rgp'+(p.fbKey||p.id)">
+                  <div class="rgp-pc">
+                    <div class="ph"><img :src="optImg(p.images?.[0]||p.img||'',380)" alt="" loading="lazy" onerror="this.onerror=null;this.src=DD_PH"/><span><i class="fa-solid fa-earth-asia"></i> Global</span></div>
+                    <div class="bd">
+                      <p class="nm" x-text="p.name"></p>
+                      <div class="pr"><b x-text="'রিসেলার ৳'+rgUnit(p).toLocaleString()"></b><s x-show="Number(p.price)>rgUnit(p)" x-text="'৳'+Number(p.price).toLocaleString()"></s></div>
+                      <span class="pf" x-show="Number(p.price)>rgUnit(p)" x-text="'সম্ভাব্য প্রফিট ৳'+(Number(p.price)-rgUnit(p)).toLocaleString()"></span>
+                      <button type="button" class="btn-primary text-xs" style="justify-content:center;margin-top:auto" @click="rgAdd(p)"><i class="fa-solid fa-cart-plus"></i> যোগ করুন</button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+              <button type="button" class="btn-ghost w-full" style="justify-content:center" x-show="rgMore" @click="rgLimit+=40">আরও দেখুন ▾</button>
+              <div x-show="rgCart.length>0" class="sell-bar" @click="rgCartOpen=true"><span><i class="fa-solid fa-basket-shopping"></i> অর্ডার তালিকা (<b x-text="rgCartCount"></b>টি)</span><span>দেখুন <i class="fa-solid fa-arrow-right"></i></span></div>
+            </div>
+
+            <!-- ── অর্ডার তালিকা + কান্ট্রি + ডিটেইলস ── -->
+            <div x-show="rgCartOpen" class="space-y-3">
+              <div class="text-center py-10" x-show="rgCart.length===0" style="color:var(--fg3)"><i class="fa-solid fa-basket-shopping text-4xl opacity-30 mb-3"></i><p class="text-sm font-semibold">অর্ডার তালিকা খালি</p><button type="button" class="btn-ghost mt-3" @click="rgCartOpen=false">পণ্য বেছে নিন</button></div>
+
+              <div class="rgp-sec" x-show="rgCart.length>0">
+                <h4><i class="fa-solid fa-box-open"></i> পণ্য ও বিক্রয়মূল্য</h4>
+                <template x-for="(it,i) in rgCart" :key="'rgi'+it.key">
+                  <div class="rgp-row">
+                    <img :src="it.img" alt="" onerror="this.style.visibility='hidden'"/>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-xs font-bold" style="color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" x-text="it.name"></p>
+                      <p class="text-xs" style="color:var(--fg3)" x-text="'রিসেলার রেট ৳'+it.resellerPrice.toLocaleString()"></p>
+                      <div class="flex items-center gap-1 mt-1"><span class="text-xs">বিক্রয় ৳</span><input type="number" inputmode="numeric" class="dd-input" style="width:86px;padding:4px 8px" x-model.number="it.sell"/>
+                        <span class="text-xs font-bold" :style="(Number(it.sell)||0)<it.resellerPrice?'color:#DC2626':'color:#15803D'" x-text="(Number(it.sell)||0)<it.resellerPrice?'কম!':'+৳'+(((Number(it.sell)||0)-it.resellerPrice)*it.qty).toLocaleString()"></span></div>
+                    </div>
+                    <div class="flex flex-col items-center gap-1"><button type="button" class="btn-ghost text-xs" style="padding:2px 9px" @click="rgQty(i,1)">+</button><b class="text-xs" x-text="it.qty"></b><button type="button" class="btn-ghost text-xs" style="padding:2px 9px" @click="rgQty(i,-1)">−</button></div>
+                    <button type="button" @click="rgCart.splice(i,1)" style="border:none;background:none;color:#DC2626;cursor:pointer;padding:4px"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
+                </template>
+                <button type="button" class="btn-ghost text-xs" style="justify-content:center" @click="rgCartOpen=false"><i class="fa-solid fa-plus"></i> আরও পণ্য যোগ করুন</button>
+              </div>
+
+              <div class="rgp-sec" x-show="rgCart.length>0">
+                <h4><i class="fa-solid fa-earth-asia"></i> ডেলিভারি দেশ বেছে নিন *</h4>
+                <div class="rgp-ct">
+                  <template x-for="c in intlCountries.filter(x=>intlOk(x.code))" :key="'rgo'+c.code">
+                    <button type="button" :class="rgForm.country===c.code?'on':''" @click="rgForm.country=c.code">
+                      <b x-text="(c.flag||'🌍')+' '+c.name"></b>
+                      <small x-text="rgFeeLabel(c)"></small>
+                      <small x-show="c.days" x-text="'🕒 '+c.days"></small>
+                    </button>
+                  </template>
+                </div>
+              </div>
+
+              <div class="rgp-sec" x-show="rgCart.length>0">
+                <h4><i class="fa-solid fa-user"></i> কাস্টমারের তথ্য</h4>
+                <div><label class="dd-label">কাস্টমারের নাম *</label><input class="dd-input" x-model="rgForm.customerName" placeholder="পুরো নাম"/></div>
+                <div><label class="dd-label">কাস্টমারের মোবাইল *</label>
+                  <div class="flex gap-2 items-center"><span class="text-xs font-bold px-3 py-2 rounded-xl" style="background:var(--bg2);border:1px solid var(--border)" x-text="rgDial?('+'+rgDial):'+কোড'"></span><input class="dd-input" type="tel" inputmode="tel" x-model="rgForm.phone" placeholder="নম্বর (দেশের কোড ছাড়া)"/></div></div>
+                <div><label class="dd-label">শহর / এলাকা *</label><input class="dd-input" x-model="rgForm.city" placeholder="যেমন: Riyadh"/></div>
+                <div><label class="dd-label">বিস্তারিত ঠিকানা *</label><textarea class="dd-input resize-none" rows="3" x-model="rgForm.address" placeholder="বাসা/ভবন, রাস্তা, এলাকা, ল্যান্ডমার্ক..."></textarea></div>
+              </div>
+
+              <div class="rgp-sec" x-show="rgCart.length>0">
+                <h4><i class="fa-solid fa-receipt"></i> অর্ডার সামারি</h4>
+                <div class="rgp-sum">
+                  <div><span>পণ্যের কস্ট (রিসেলার রেট)</span><b x-text="'৳'+rgCost.toLocaleString()"></b></div>
+                  <div><span>কাস্টমারের কাছ থেকে পণ্যের দাম</span><b x-text="'৳'+rgSub.toLocaleString()"></b></div>
+                  <div><span>ডেলিভারি চার্জ <small x-show="rgDest" x-text="rgDest?('· '+rgDest.name):''"></small></span><b x-text="rgShipText"></b></div>
+                  <div><span>আপনার প্রফিট</span><b style="color:#15803D" x-text="'৳'+rgProfit.toLocaleString()"></b></div>
+                  <div class="tot"><span>কাস্টমারের কাছ থেকে মোট নিতে হবে</span><b x-text="'৳'+(rgSub+rgShip).toLocaleString()"></b></div>
+                </div>
+                <p class="text-xs" x-show="rgShipPending" style="color:#B45309">এই দেশের ডেলিভারি চার্জ পরে জানানো হবে।</p>
+                <button type="button" class="btn-primary w-full" style="justify-content:center" :disabled="rgPlacing" @click="rgPlace()"><i class="fa-solid fa-paper-plane mr-2"></i><span x-text="rgPlacing?'অর্ডার হচ্ছে…':'অর্ডার কনফার্ম করুন'"></span></button>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <!-- ══ PRODUCTS (category overview with counts, matches shopbasebd) ══ -->
         <template x-if="((resellSubTab==='products'&&(_rsk.products=1)),!!_rsk.products)">
           <div x-show="resellSubTab==='products'">
@@ -6525,7 +6647,7 @@ function App(){return{
   refLocked:false,refLockCode:'',refState:'',
   // ══ RESELLER / MLM (NEW) ══
   reseller:null,fbMyOrders:[],fbMyResellOrders:[],rsRefreshing:false,fbWithdrawals:[],custReportData:null,
-  resellSubTab:'home',resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
+  resellSubTab:'home',rgCart:[],rgCat:'সব',rgSubCat:'',rgLimit:40,rgQ:'',rgCartOpen:false,rgPlacing:false,rgForm:{customerName:'',phone:'',country:'',city:'',address:''},resellApplyError:'',resellReapplying:false,resellActiveCat:'সব',
   resellPostFilter:'all',resellSearchQuery:'',fbResellerMessages:[],resellMsgOpen:null,
   resellSidebarOpen:false,rxTab:'tools',
   resellOrdersSubTab:'list',rsTeam:{loading:false,err:'',gens:[[],[],[]],at:0,upd:0,has:false},rsTeamGen:0,rsTeamSel:'',rsTeamQ:'',resellOrderStatusF:'সব',resellOrderSearch:'',
@@ -7524,7 +7646,7 @@ intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(t
     if(p.sizes&&p.sizes.length>0){this.openDetailSheet(p);this.showToast('সাইজ বেছে নিন!','error');return;}
     this.addToCart(p,1,{btn:ev&&ev.currentTarget});
   },
-  get mainCategories(){return this.allCategories.filter(c=>!c.parent)},
+  get mainCategories(){const ids=this._realSecs.map(s=>s.fbKey||s.id),rk=c=>{const s=this._catSec(c),i=ids.indexOf(s);return i<0?9999:i};return this.allCategories.filter(c=>!c.parent).map((c,i)=>({c,i,r:rk(c)})).sort((a,b)=>(a.r-b.r)||(((a.c.order??99)-(b.c.order??99)))||(a.i-b.i)).map(x=>x.c)},
   get showAccordion(){return this.q===''&&this.activeCat!=='সব'&&!this.activeSub&&this.subCats.length>0},
   get catGroups(){const a=this.activeCat,ps=this.allProducts;const g=this.subCats.map(c=>({key:c.name,name:c.name,sub:c.name,img:c.img,emoji:c.emoji,items:ps.filter(p=>p.cat===c.name)}));const own=ps.filter(p=>p.cat===a);if(own.length)g.push({key:'__main',name:'অন্যান্য '+a,sub:a,emoji:'✨',items:own});return g.filter(x=>x.items.length)},
   isOpen(g,i){return this.subOpen[g.key]??(i===0)},
@@ -8623,6 +8745,60 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,qty:it.qty||1,size,color
     if(ch)this._sellSave()}catch(e){}},
   sellQty(i,d){const it=this.sellCart[i];if(!it)return;const n=(Number(it.qty)||1)+d;if(n<1||n>99)return;it.qty=n;this._sellSave()},
   clearSellCart(){if(!this.sellCart.length)return;if(!confirm('অর্ডার তালিকার সব পণ্য মুছে ফেলবেন?'))return;this.sellCart=[];this._sellSave();this.showToast('তালিকা খালি করা হয়েছে','success')},
+  // ══ GLOBAL — রিসেলার গ্লোবাল অর্ডার (গ্লোবাল পণ্য, রিসেলার রেট; আলাদা তালিকা) ══
+  rgOpen(){this.rgCartOpen=false;this.resellSubTab='global'},
+  rgUnit(p){const r=Number(p&&p.resellerPrice);return r>0?r:Number(p&&p.price)||0},
+  get rgCurCat(){const n=this._icn(this.rgCat);return this.intlTopCats.find(c=>this._icn(c.name)===n)||null},
+  get rgCurSubs(){return this.intlSubsOf(this.rgCurCat)},
+  rgPickCat(c){this.rgSubCat='';this.rgQ='';this.rgLimit=40;this.rgCat=c.name},
+  rgBack(){if(this.rgCartOpen){this.rgCartOpen=false;return}if(this.rgSubCat){this.rgSubCat='';return}if(this.rgCat!=='সব'){this.rgCat='সব';return}this.resellSubTab='home'},
+  get rgAll(){let L=this.intlProducts;const cc=this.rgCurCat;
+    if(cc){if(this.rgSubCat){const sn=this._icn(this.rgSubCat);L=L.filter(p=>this._icn(p.intlSub)===sn||this._icn(p.intlCat)===sn)}
+      else{const names=new Set([cc.name,...this.rgCurSubs.map(s=>s.name)].map(x=>this._icn(x)));L=L.filter(p=>names.has(this._icn(p.intlCat))||names.has(this._icn(p.intlSub)))}}
+    else if(this.rgCat!=='সব'){L=L.filter(p=>p.intlCat===this.rgCat)}
+    const q=String(this.rgQ||'').trim().toLowerCase();if(q)L=L.filter(p=>String(p.name||'').toLowerCase().includes(q));
+    return L.slice().sort((a,b)=>(Number(b.timestamp)||Number(b.createdAt)||0)-(Number(a.timestamp)||Number(a.createdAt)||0))},
+  get rgProds(){return this.rgAll.slice(0,this.rgLimit)},
+  get rgMore(){return this.rgAll.length>this.rgLimit},
+  get rgDest(){return this.rgForm.country?(this.intlCountries.find(c=>c.code===this.rgForm.country)||null):null},
+  get rgDial(){const c=this.rgDest;return c?String(c.phone||'').replace(/\D/g,''):''},
+  rgFeeLabel(c){const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 'ডেলিভারি ফ্রি';const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return 'ডেলিভারি ৳'+Math.max(...fx).toLocaleString();const f=this.intlFeeOf(c.code);return f==null?'চার্জ পরে জানানো হবে':('ডেলিভারি ৳'+f.toLocaleString())},
+  get rgCartCount(){return this.rgCart.reduce((s,i)=>s+(Number(i.qty)||0),0)},
+  get rgCost(){return this.rgCart.reduce((s,i)=>s+(Number(i.resellerPrice)||0)*i.qty,0)},
+  get rgSub(){return this.rgCart.reduce((s,i)=>s+(Number(i.sell)||0)*i.qty,0)},
+  get rgShip(){const c=this.rgForm.country;if(!c)return 0;const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 0;const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return Math.max(...fx);const f=this.intlFeeOf(c);return f==null?0:f},
+  get rgShipPending(){const c=this.rgForm.country;if(!c)return false;const anyFixed=this.rgCart.some(i=>i.resellerDelivery&&(i.resellerDelivery.mode==='fixed'||i.resellerDelivery.mode==='free'));return !anyFixed&&this.intlFeeOf(c)==null},
+  get rgShipText(){if(!this.rgForm.country)return 'দেশ বেছে নিন';if(this.rgShipPending)return 'পরে জানানো হবে';return this.rgShip>0?('৳'+this.rgShip.toLocaleString()):'ফ্রি'},
+  get rgProfit(){return this.rgSub-this.rgCost},
+  rgAdd(p){const k=p.fbKey||p.id,ex=this.rgCart.find(i=>i.key===k);if(ex){ex.qty++}else{this.rgCart.push({key:k,id:k,name:p.name,img:p.img||(p.images&&p.images[0])||'',images:(p.images||[]).slice(0,8),price:Number(p.price)||0,resellerPrice:this.rgUnit(p),sell:Number(p.price)||this.rgUnit(p),qty:1,productId:p.productId||'',resellerDelivery:p.resellerDelivery||null,genCommission1:p.genCommission1||0,genCommission2:p.genCommission2||0,genCommission3:p.genCommission3||0})}this.showToast('অর্ডার তালিকায় যোগ হয়েছে 🌍','success')},
+  rgQty(i,d){const it=this.rgCart[i];if(!it)return;const n=(Number(it.qty)||1)+d;if(n<1||n>99)return;it.qty=n},
+  async rgPlace(){
+    if(this.rgPlacing)return;const f=this.rgForm,c=this.intlCountries.find(x=>x.code===f.country);
+    if(!this.rgCart.length)return this.showToast('প্রোডাক্ট বেছে নিন!','error');
+    if(!f.customerName.trim())return this.showToast('কাস্টমারের নাম দিন!','error');
+    let ph=this._bnToEn(f.phone||'').replace(/[^\d]/g,'');const dl=this.rgDial;if(dl&&ph&&!ph.startsWith(dl))ph=dl+ph.replace(/^0+/,'');if(ph.length<7||ph.length>15)return this.showToast('কাস্টমারের মোবাইল নম্বর সঠিক দিন!','error');
+    if(!c)return this.showToast('দেশ বেছে নিন!','error');
+    if(!f.city.trim())return this.showToast('শহর/এলাকা দিন!','error');
+    if(f.address.trim().length<6)return this.showToast('বিস্তারিত ঠিকানা দিন!','error');
+    if(this.rgCart.some(i=>!(Number(i.sell)>=Number(i.resellerPrice))))return this.showToast('বিক্রয়মূল্য রিসেলার প্রাইসের চেয়ে কম দেওয়া যাবে না!','error');
+    if(!confirm('অর্ডার কনফার্ম করবেন?'))return;
+    this.rgPlacing=true;const ship=this.rgShip,sub=this.rgSub,bd=/^01\d{9}$/.test(this.otpNormPhone(ph))?this.otpNormPhone(ph):ph;
+    const order={
+      id:Math.floor(10000+Math.random()*90000),
+      date:new Date().toLocaleDateString('bn-BD',{year:'numeric',month:'long',day:'numeric'}),
+      timestamp:new Date().toISOString(),status:'পেন্ডিং',
+      orderType:'reseller',resellerPhone:this.resellSession,resellerShopName:this.reseller?.shopName||this.reseller?.name||'',
+      customerName:f.customerName.trim(),phone:bd,
+      division:'গ্লোবাল',district:c.name,address:(c.name+' · '+f.city.trim()+'\n'+f.address.trim()).slice(0,400),
+      globalOrder:true,globalDest:{country:c.code,countryName:String(c.name).slice(0,60),city:f.city.trim().slice(0,90),shippingPending:this.rgShipPending},
+      payMethod:'গ্লোবাল অর্ডার (রিসেলার)',trxId:'',deliveryAdvance:false,collectAmount:sub+ship,
+      items:this.rgCart.map(i=>({id:i.id,name:i.name,price:i.price,resellerPrice:i.resellerPrice||0,resellerSellPrice:Number(i.sell)||i.price,genCommission1:i.genCommission1||0,genCommission2:i.genCommission2||0,genCommission3:i.genCommission3||0,qty:i.qty,size:'',variantImg:'',variantNo:1,productId:i.productId||'',img:i.img||'',images:i.images||[]})),
+      subtotal:sub,shipping:ship,total:sub+ship,trackingLink:null
+    };
+    try{await window.$db.saveOrder(order,null);this.rgCart=[];this.rgCartOpen=false;this.rgForm={customerName:'',phone:'',country:'',city:'',address:''};this.showInvoice(order);this.showToast('গ্লোবাল অর্ডার সফল! ✅','success')}
+    catch(e){this.showToast('ব্যর্থ! আবার চেষ্টা করুন। '+((e&&e.code)||''),'error')}
+    this.rgPlacing=false;
+  },
   sellPickMore(){this.sellAdded=false;this.sellView=false;this.postView=null;this.resellSubTab='post'},
   sellOpenList(){this.sellAdded=false;this.postView=null;this.resellSubTab='post';this.sellView=true;this._sellSync()},
   async placeSellOrder(force){
@@ -12054,6 +12230,22 @@ nav.bottom-nav .nav-btn.active span{color:var(--accent)}
 .rx-it:not(:has(.rx-ar))::after{content:"\f054";font-family:"Font Awesome 6 Free","Font Awesome 5 Free",sans-serif;font-weight:900;font-size:10px;color:#C4C9D1;flex:none}
 .rx-it.on::after{color:#DC2626}
 @media (prefers-reduced-motion:reduce){.rx-dr,.rx-it{animation:none}.rx-sd{transition:none}.rx-bal i{animation:none}}
+
+.rx-prof .rg-home{display:flex;align-items:center;gap:9px;margin-top:12px;padding:8px 10px;border-radius:14px;cursor:pointer;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#0B1226,#1E3A8A 60%,#4C1D95);border:1px solid rgba(147,197,253,.35);box-shadow:0 4px 12px rgba(30,58,138,.25)}
+.rg-home .rg-ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
+.rg-home .rg-tx{min-width:0;flex:1}.rg-home .rg-tx b{display:block;font-size:13px;letter-spacing:.16em;line-height:1.1}
+.rg-home .rg-tx small{display:flex;align-items:center;gap:3px;font-size:11px;opacity:.92;white-space:nowrap;overflow:hidden;margin-top:2px}.rg-home .rg-tx em{font-style:normal;font-size:10px;margin-left:3px;opacity:.85}
+.rg-home .rg-go{flex:none;font-size:11px;font-weight:800;padding:6px 11px;border-radius:10px;background:linear-gradient(90deg,#F97316,#EA580C)}
+/* রিসেলার গ্লোবাল পেজ */
+.rgp-flags{display:flex;gap:6px;overflow-x:auto;padding:2px 0;-webkit-overflow-scrolling:touch}.rgp-flags span{flex:none;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--border);color:var(--fg2)}
+.rgp-cat{text-align:center;cursor:pointer}.rgp-cat .im{aspect-ratio:1/1;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;background:linear-gradient(160deg,#E0F2FE,#EDE9FE);border:2px solid transparent}.rgp-cat .im img{width:100%;height:100%;object-fit:cover}.rgp-cat .im i{font-size:26px;color:#4F46E5}.rgp-cat .im b{position:absolute;right:4px;bottom:4px;font-size:9px;color:#fff;background:rgba(15,23,42,.7);border-radius:99px;padding:1px 6px}.rgp-cat p{font-size:11px;font-weight:700;margin-top:4px;line-height:1.25;color:var(--fg)}
+.rgp-pc{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.04);display:flex;flex-direction:column}.rgp-pc .ph{position:relative;aspect-ratio:1/1;background:var(--bg2)}.rgp-pc .ph img{width:100%;height:100%;object-fit:cover}.rgp-pc .ph span{position:absolute;left:6px;bottom:6px;font-size:10px;font-weight:700;color:#fff;background:rgba(15,23,42,.7);border-radius:99px;padding:2px 8px}
+.rgp-pc .bd{padding:8px;display:flex;flex-direction:column;gap:5px;flex:1}.rgp-pc .nm{font-size:12px;font-weight:700;color:var(--fg);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.3em}
+.rgp-pc .pr{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.rgp-pc .pr b{font-size:14px;color:#15803D}.rgp-pc .pr s{font-size:11px;color:var(--fg3)}.rgp-pc .pf{font-size:10px;font-weight:700;color:#B45309;background:#FEF3C7;border-radius:8px;padding:2px 7px;align-self:flex-start}
+.rgp-ct{display:grid;grid-template-columns:1fr 1fr;gap:8px}.rgp-ct button{text-align:left;padding:10px;border-radius:14px;background:var(--card);border:1.5px solid var(--border);cursor:pointer;display:flex;flex-direction:column;gap:2px;color:var(--fg)}.rgp-ct button.on{border-color:var(--accent);background:var(--accentL,#FFF1EC);box-shadow:0 0 0 2px rgba(234,88,12,.12)}.rgp-ct b{font-size:13px}.rgp-ct small{font-size:10px;color:var(--fg3)}
+.rgp-sec{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px}.rgp-sec h4{font-size:13px;font-weight:800;color:var(--fg);display:flex;align-items:center;gap:7px}.rgp-sec h4 i{color:var(--accent)}
+.rgp-row{display:flex;gap:10px;align-items:center;padding:8px;border-radius:14px;background:var(--bg2)}.rgp-row img{width:56px;height:56px;border-radius:12px;object-fit:cover;flex:none}
+.rgp-sum{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--fg2)}.rgp-sum div{display:flex;justify-content:space-between;gap:10px}.rgp-sum .tot{border-top:1px dashed var(--border);padding-top:8px;font-size:14px;color:var(--fg);font-weight:800}
 </style>
 </body>
 </html>
