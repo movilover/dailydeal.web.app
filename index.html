@@ -4279,6 +4279,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   <p x-show="!intlTopCats.length" class="text-center text-sm py-12" style="color:var(--fg3)">শীঘ্রই আসছে...</p>
   <!-- Products -->
   <div class="px-4 mt-5" x-show="(intlTopCats.length>0||intlProducts.length>0)&&!intlDrill">
+    <div class="flex items-center gap-2 mb-3" x-show="intlCountries.length"><i class="fa-solid fa-location-dot" style="color:var(--accent)"></i><select x-model="cardDest" @change="saveCardDest($event.target.value)" style="flex:1;max-width:300px;background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:12px;padding:8px 10px;font-size:13px"><option value="">দেশ বেছে নিন — ডেলিভারি চার্জ দেখতে</option><template x-for="c in intlCountries" :key="'cd'+c.code"><option :value="c.code" x-text="(c.flag||'')+' '+(c.en||c.name)"></option></template></select></div>
     <div class="flex items-center justify-between mb-2"><p class="section-title rgs-ttl"><span class="rgs-ti" :class="intlHome?'new':''"><i :class="intlHome?'fa-solid fa-bolt':'fa-solid fa-layer-group'"></i></span><span x-text="intlHome?'নতুন পণ্য':(intlSub||(intlCat!=='সব'?intlCat:'সব পণ্য'))"></span></p><span class="text-xs" style="color:var(--fg3)" x-text="(intlHome?intlShown.length+'/'+intlProducts.length:intlFiltered.length)+'টি পণ্য'"></span></div>
     <div class="grid grid-cols-2 gap-3">
       <template x-for="p in intlShown" :key="p.fbKey">
@@ -6775,7 +6776,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
     supportPhone:'',telegramLink:'',
   },
   banners:[{title:'',sub:'সেরা পণ্য · সেরা দাম · দ্রুত ডেলিভারি',img:'',badge:'হট ডিল'}],
-  gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:20,locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
+  gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:20,cardDest:(()=>{try{return localStorage.getItem('dd_card_dest')||''}catch(e){return ''}})(),locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
@@ -6977,7 +6978,30 @@ get wdMethods(){const m=this._arr((this.rcfg.withdraw||{}).methods).map(x=>Strin
   get womenCategories(){return this.allCategories.filter(c=>c.gender==='women')},
   get allProducts(){return _ddMemo('ap',[this.fbProducts],()=>this.fbProducts.filter(p=>p&&p.name&&p.price>0&&!p.intl))},
   get intlProducts(){return this.fbProducts.filter(p=>p&&p.name&&p.price>0&&p.intl)},
-  get intlCatsActive(){const base=(this.intlCats&&this.intlCats.length)?this.intlCats:this._icFromProds();return base.filter(c=>c&&c.name&&c.active!==false).sort((a,b)=>(a.order??99)-(b.order??99))},
+  get intlCatsActive(){
+    const byOrder=(a,b)=>(a.order??99)-(b.order??99);
+    const db=(this.intlCats&&this.intlCats.length)?this.intlCats:[];
+    const live=c=>c&&c.name&&c.active!==false;
+    if(!db.length)return this._icFromProds().filter(live).sort(byOrder);
+    // তালিকায় (DB) না থাকলেও যেসব মূল/সাব-ক্যাটাগরিতে পণ্য আছে সেগুলো যোগ হবে (পুরনো ক্যাশ/অসম্পূর্ণ তালিকার জন্য)।
+    // admin যে নামগুলো আগে থেকেই তালিকায় রেখেছে (active=false সহ) সেগুলো আবার যোগ হবে না।
+    const out=db.filter(live);
+    const names=new Set(db.map(c=>this._icn(c.name)));
+    const isTop=c=>!(c.parent||c.parentKey||c.parentId);
+    const extra=[];
+    for(const a of this._icFromProds()){
+      if(names.has(this._icn(a.name)))continue;
+      if(isTop(a)){extra.push({...a,order:900+extra.length});names.add(this._icn(a.name));continue}
+      const topName=String(a.parent||'').replace(/^auto:/,'');
+      let topKey=(db.find(c=>isTop(c)&&this._icn(c.name)===this._icn(topName))||{}).fbKey;
+      if(!topKey){
+        topKey=a.parent;
+        if(!names.has(this._icn(topName))){extra.push({fbKey:topKey,name:topName,emoji:'📦',img:'',order:900+extra.length});names.add(this._icn(topName))}
+      }
+      extra.push({...a,parent:topKey,order:900+extra.length});names.add(this._icn(a.name));
+    }
+    return out.concat(extra.filter(live)).sort(byOrder);
+  },
   _icFromProds(){const out=[],seen=new Set();let o=1;for(const p of this.intlProducts){const c=String(p.intlCat||'').trim();if(!c)continue;if(!seen.has('c|'+c)){seen.add('c|'+c);out.push({fbKey:'auto:'+c,name:c,emoji:'📦',img:'',order:o++})}const sb=String(p.intlSub||'').trim();if(sb&&!seen.has('s|'+c+'|'+sb)){seen.add('s|'+c+'|'+sb);out.push({fbKey:'auto:'+c+'|'+sb,name:sb,emoji:'📦',img:'',parent:'auto:'+c,order:o++})}}return out},
   // ইন্টারন্যাশনাল: মূল ক্যাটাগরি (parent নেই) ও সাব-ক্যাটাগরি (parent = মূল ক্যাটাগরির fbKey)
   _icn(v){return String(v==null?'':v).trim().toLowerCase()},
@@ -7539,12 +7563,12 @@ intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(t
     if(!(p.price>0)||!p.name)return;
     this._dlChecked=true;this._dlLink=link;this.openLinkOrder(p,link,l);window.__ddLkReady=true;
   },
-  _icSet(a){if(!Array.isArray(a))return;this.intlCats=a;try{if(a.length)localStorage.setItem('dd_c_icats',JSON.stringify(a))}catch(e){}},
+  _icSet(a){if(!Array.isArray(a))return;this.intlCats=a;try{if(a.length)localStorage.setItem('dd_c_icats',JSON.stringify(a));else localStorage.removeItem('dd_c_icats')}catch(e){}},
   async _loadIntlCats(){if(this._icOn)return;this._icOn=true;
     try{const c=JSON.parse(localStorage.getItem('dd_c_icats')||'[]');if(c.length&&!this.intlCats.length)this.intlCats=c}catch(e){}
     try{await this._dbReady()}catch(e){}
     try{window.$db.listenIntlCats(c=>{this._icErr='';this._icSet(c)},e=>{this._icErr=String((e&&(e.code||e.message))||'error')})}catch(e){this._icErr=String(e&&e.message||e)}
-    try{const a=await window.$db.getIntlCatsOnce();if(a&&a.length&&!this.intlCats.length)this._icSet(a)}catch(e){}},
+    try{const a=await window.$db.getIntlCatsOnce();if(Array.isArray(a))this._icSet(a)}catch(e){}},
   async _icRefresh(){try{await this._dbReady();const a=await window.$db.getIntlCatsOnce();if(a)this._icSet(a)}catch(e){}},
   boot(){try{this._earlyLink()}catch(e){}try{this._loadIntlCats()}catch(e){}
     try{
@@ -7912,7 +7936,7 @@ intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(t
     if(p.sizes&&p.sizes.length>0&&!size){this.showToast('সাইজ বেছে নিন!','error');return}
     const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size&&i.variantImg===vimg);
     if(fx&&fx.btn)this.fxHold+=(qty||1);
-    if(ex){ex.qty+=(qty||1)}else{this.cart.push({...p,qty:qty||1,size,color:null,variantImg:vimg,variantNo:vi+1})}
+    if(ex){ex.qty+=(qty||1)}else{this.cart.push({...p,delivery:this.normDelOf(p)||p.delivery,qty:qty||1,size,color:null,variantImg:vimg,variantNo:vi+1})}
     this.syncCart();
     if(fx&&fx.btn)this.cartFx(fx.btn,qty||1,fx);else this.showToast('কার্টে যোগ হয়েছে','success');
   },
@@ -7990,7 +8014,7 @@ intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(t
         const size=it.size||null;
         const _vimg=it.variantImg||live.images?.[0]||live.img,_vx=(live.images||[]).indexOf(_vimg),_vno=_vx>=0?_vx+1:(it.variantNo||1);
 const ex=this.cart.find(i=>(i.fbKey||i.id)===key&&i.size===size&&i.variantImg===_vimg);
-if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,qty:it.qty||1,size,color:null,variantImg:_vimg,variantNo:_vno})}
+if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(live)||live.delivery,qty:it.qty||1,size,color:null,variantImg:_vimg,variantNo:_vno})}
         added++;
       }else missing++;
     });
@@ -8815,10 +8839,16 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,qty:it.qty||1,size,color
   // ══ GLOBAL — রিসেলার গ্লোবাল অর্ডার (গ্লোবাল পণ্য, রিসেলার রেট; আলাদা তালিকা) ══
   rgOpen(){this.rgCartOpen=false;this.rgSel=null;this._rgFrom='';this.rgLimit=20;this.resellSubTab='global'},
   rgCatDel(p){const L=this.intlCatsActive,n=x=>this._icn(x),ok=c=>c&&c.delivery!=null&&c.delivery!==''&&!isNaN(Number(c.delivery));const sub=p&&p.intlSub?L.find(x=>this._icParent(x,L)&&n(x.name)===n(p.intlSub)):null;const top=p?L.find(x=>!this._icParent(x,L)&&n(x.name)===n(p.intlCat)):null;const c=ok(sub)?sub:(ok(top)?top:null);return c?Math.max(0,Number(c.delivery)):null},
+  /* একক রিজল্ভার: পণ্যের নিজের ডেলিভারি (fixed/free/confirm) → ক্যাটাগরির ডেলিভারি চার্জ → না থাকলে দেশ অনুযায়ী চার্জ (null) */
+  normDelOf(p){if(!p)return null;if(!p.intl)return(p.delivery&&p.delivery.mode&&p.delivery.mode!=='default')?p.delivery:null;
+    if(p.delivery&&(p.delivery.mode==='fixed'||p.delivery.mode==='free'||p.delivery.mode==='confirm'))return p.delivery;
+    const f=this.rgCatDel(p);if(f!=null)return f===0?{mode:'free',fee:0}:{mode:'fixed',fee:f};return null},
+  saveCardDest(v){try{localStorage.setItem('dd_card_dest',v||'')}catch(e){}},
   rgDelOf(p){if(p&&p.resellerDelivery&&(p.resellerDelivery.mode==='fixed'||p.resellerDelivery.mode==='free'))return p.resellerDelivery;const f=this.rgCatDel(p);return f==null?null:(f===0?{mode:'free',fee:0}:{mode:'fixed',fee:f})},
   _delRange(){const f=this.intlCountries.map(c=>this.intlFeeOf(c.code)).filter(x=>x!=null);if(!f.length)return '';const a=Math.min(...f),b=Math.max(...f);return a===b?'ডেলিভারি ৳'+a.toLocaleString():'ডেলিভারি ৳'+a.toLocaleString()+'–৳'+b.toLocaleString()+' (দেশ অনুযায়ী)'},
   rgDelText(p){const d=this.rgDelOf(p);if(d)return d.mode==='free'?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString();return this._delRange()},
-  intlDelText(p){const f=this.rgCatDel(p);if(f!=null)return f===0?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
+  intlDelText(p){const d=this.normDelOf(p);if(d){if(d.mode==='free')return 'ডেলিভারি ফ্রি';if(d.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';return 'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString()}
+    const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
   rgGoOrder(p){this.rgOpen();this._rgFrom='post';this.rgOpenSel(p)},
   get rgCountries(){const L=this.intlCountries.slice();if(!L.some(c=>c.code==='BD'))L.push({code:'BD',name:'বাংলাদেশ',en:'Bangladesh',flag:'🇧🇩',phone:'880',days:'৩–৫ দিন',regions:[],active:true,order:999});return L},
   rgOk(code){return code==='BD'||this.intlOk(code)},
@@ -10935,6 +10965,77 @@ main.dd-nopad{padding-bottom:0!important}
     </div>
   </div>
 </div>
+<style id="dd-rp-css">
+#ddRP{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);opacity:0;transition:opacity .25s ease}
+#ddRP.show{display:flex}
+#ddRP.go{opacity:1}
+#ddRP .rp-card{position:relative;width:100%;max-width:440px;max-height:90vh;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.35);transform:translateY(16px) scale(.98);transition:transform .3s ease}
+#ddRP.go .rp-card{transform:none}
+#ddRP .rp-x{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+#ddRP .rp-scroll{max-height:90vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#ddRP iframe{display:block;width:100%;height:320px;border:0;background:transparent}
+</style>
+<div id="ddRP" role="dialog" aria-modal="true" aria-label="অফার ব্যানার">
+  <div class="rp-card">
+    <button type="button" class="rp-x" id="ddRPx" aria-label="বন্ধ করুন"><i class="fa-solid fa-xmark"></i></button>
+    <div class="rp-scroll"><iframe id="ddRPf" title="অফার" sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox" referrerpolicy="no-referrer"></iframe></div>
+  </div>
+</div>
+<script id="dd-rp-js">
+(function(){
+  if(window.__ddRP)return;window.__ddRP=1;
+  /* রিসেলার পপআপ ব্যানার — অ্যাডমিন → ব্যানার → "রিসেলার পপআপ ব্যানার (HTML)"। শুধু রিসেলিং সাইটে, এক সেশনে একবার।
+     ওয়েলকাম ব্যানার চালু থাকলে সেটা বন্ধ হওয়ার পরে এটা আসবে। */
+  var KEY='ddResellPopup',OI_KEY='ddOwnerIntro',el=document.getElementById('ddRP'),fr=document.getElementById('ddRPf'),xb=document.getElementById('ddRPx');
+  if(!el||!fr||!xb)return;
+  var opened=false,lastFocus=null,wasIn=false,pend=false;
+  function wrap(c){return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent}body{overflow-x:hidden}</style></head><body>'+c+'<script>(function(){function h(){var b=document.body,d=document.documentElement,v=Math.max(b.scrollHeight,d.scrollHeight,b.offsetHeight);try{parent.postMessage({ddRPH:v},"*")}catch(e){}}window.addEventListener("load",h);window.addEventListener("resize",h);try{new ResizeObserver(h).observe(document.body)}catch(e){}setInterval(h,1500);h()})();<\/script></body></html>'}
+  window.addEventListener('message',function(e){var d=e.data;if(!d||typeof d.ddRPH!=='number')return;if(e.source!==fr.contentWindow)return;fr.style.height=Math.min(Math.max(Math.ceil(d.ddRPH),120),Math.round(window.innerHeight*0.9))+'px'});
+  function open(html){
+    if(opened)return;opened=true;
+    try{sessionStorage.setItem(KEY,'1')}catch(e){}
+    lastFocus=document.activeElement;
+    fr.srcdoc=wrap(html);
+    el.classList.add('show');void el.offsetWidth;el.classList.add('go');
+    document.addEventListener('keydown',onKey,true);
+    try{xb.focus({preventScroll:true})}catch(e){}
+  }
+  function close(){
+    if(!opened)return;opened=false;
+    el.classList.remove('go');
+    document.removeEventListener('keydown',onKey,true);
+    setTimeout(function(){if(!opened){el.classList.remove('show');fr.removeAttribute('srcdoc')}},250);
+    try{lastFocus&&lastFocus.focus&&lastFocus.focus()}catch(e){}
+  }
+  function onKey(e){if(e.key==='Escape'){e.stopPropagation();close()}}
+  xb.addEventListener('click',close);
+  el.addEventListener('click',function(e){if(e.target===el)close()});
+  function htmlOf(D){var st=(D&&D.settings)||{};return (st.resellPopupOn===true&&String(st.resellPopupHtml||'').trim())?String(st.resellPopupHtml):''}
+  function okNow(D){
+    if(!D||D.loading!==false||window.__ddSplashActive)return false;
+    if(D.activeTab!=='resell')return false;
+    if(!(D.resellSession&&D.resellRecLoaded&&D.resellStatus==='approved'&&D.resellSubTab==='home'&&!D.resellSidebarOpen))return false;
+    var oi=document.getElementById('ddOI');
+    var welcomeOn=!(D.settings&&D.settings.ownerIntroReseller===false);
+    if(welcomeOn){
+      if(oi&&oi.classList.contains('show'))return false;
+      try{if(!sessionStorage.getItem(OI_KEY))return false}catch(e){}
+    }
+    return true;
+  }
+  setInterval(function(){
+    var D=null;try{D=window.Alpine&&Alpine.$data&&Alpine.$data(document.documentElement)}catch(e){}
+    if(!D)return;
+    var inRes=!!D.resellSession;
+    if(wasIn&&!inRes){try{sessionStorage.removeItem(KEY)}catch(e){}}
+    wasIn=inRes;
+    if(opened||pend)return;
+    if(!htmlOf(D))return;
+    try{if(sessionStorage.getItem(KEY))return}catch(e){}
+    if(okNow(D)){pend=true;setTimeout(function(){pend=false;var D2=null;try{D2=Alpine.$data(document.documentElement)}catch(e){}var h=htmlOf(D2);if(!opened&&h&&okNow(D2))open(h)},800)}
+  },400);
+})();
+</script>
 <script id="dd-offer-h">
 window.addEventListener('message',function(e){var d=e.data;if(!d||typeof d.ddOfferH!=='number')return;document.querySelectorAll('iframe.dd-offer-frame').forEach(function(f){if(f.contentWindow===e.source){f.style.height=Math.min(Math.max(Math.ceil(d.ddOfferH),40),3000)+'px'}})});
 </script>
@@ -10970,7 +11071,7 @@ window.addEventListener('message',function(e){var d=e.data;if(!d||typeof d.ddOff
   var wasIn=false,pend=false;
   function okNow(D){
     if(!D||D.loading!==false||window.__ddSplashActive)return false;
-    if(D.activeTab==='home')return !D.resellSession&&!document.documentElement.hasAttribute('data-dd-app')&&!(D.settings&&D.settings.ownerIntroUser===false);
+    if(D.activeTab==='home')return false; /* ইউজার (নরমাল) সাইটে ওয়েলকাম ব্যানার আসবে না — শুধু রিসেলিং সাইটে */
     if(D.activeTab!=='resell')return false;
     return !!(D.resellSession&&D.resellRecLoaded&&D.resellStatus==='approved'&&D.resellSubTab==='home'&&!D.resellSidebarOpen&&!(D.settings&&D.settings.ownerIntroReseller===false));
   }
