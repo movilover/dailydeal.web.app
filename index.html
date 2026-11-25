@@ -8844,9 +8844,9 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(
     if(p.delivery&&(p.delivery.mode==='fixed'||p.delivery.mode==='free'||p.delivery.mode==='confirm'))return p.delivery;
     const f=this.rgCatDel(p);if(f!=null)return f===0?{mode:'free',fee:0}:{mode:'fixed',fee:f};return null},
   saveCardDest(v){try{localStorage.setItem('dd_card_dest',v||'')}catch(e){}},
-  rgDelOf(p){if(p&&p.resellerDelivery&&(p.resellerDelivery.mode==='fixed'||p.resellerDelivery.mode==='free'))return p.resellerDelivery;const f=this.rgCatDel(p);return f==null?null:(f===0?{mode:'free',fee:0}:{mode:'fixed',fee:f})},
+  rgDelOf(p){const d=this.normDelOf(p);return(d&&(d.mode==='fixed'||d.mode==='free'))?d:null}, /* রিসেলার সাইট: পণ্যের অরিজিনাল ডেলিভারি চার্জই দেখাবে (নতুন ও পুরাতন দুটোতেই) */
   _delRange(){const f=this.intlCountries.map(c=>this.intlFeeOf(c.code)).filter(x=>x!=null);if(!f.length)return '';const a=Math.min(...f),b=Math.max(...f);return a===b?'ডেলিভারি ৳'+a.toLocaleString():'ডেলিভারি ৳'+a.toLocaleString()+'–৳'+b.toLocaleString()+' (দেশ অনুযায়ী)'},
-  rgDelText(p){const d=this.rgDelOf(p);if(d)return d.mode==='free'?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString();return this._delRange()},
+  rgDelText(p){const d=this.rgDelOf(p);if(d)return d.mode==='free'?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString();const n=this.normDelOf(p);if(n&&n.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
   intlDelText(p){const d=this.normDelOf(p);if(d){if(d.mode==='free')return 'ডেলিভারি ফ্রি';if(d.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';return 'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString()}
     const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
   rgGoOrder(p){this.rgOpen();this._rgFrom='post';this.rgOpenSel(p)},
