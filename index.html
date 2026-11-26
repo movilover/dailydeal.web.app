@@ -2798,6 +2798,45 @@ html.dd-lkp #dd-lkpre{position:fixed;inset:0;z-index:2147483001;display:flex;ali
 .tm-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
 .tm-card-stats>div{background:var(--bg2);border-radius:12px;padding:7px 2px;text-align:center}
 .tm-card-stats p{font-size:10px;color:var(--fg3)}.tm-card-stats b{display:block;font-size:14px;font-weight:800;margin-top:1px}
+/* ══ টিম ইনকাম: প্রফেশনাল কার্ড লেআউট ══ */
+.ti-hero{border-radius:20px;padding:16px;color:#fff;background:linear-gradient(135deg,#0F172A 0%,#1E293B 55%,#334155 100%);box-shadow:0 8px 22px rgba(15,23,42,.22);position:relative;overflow:hidden}
+.ti-hero::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,210,122,.35),transparent 70%)}
+.ti-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative;z-index:1}
+.ti-hero-lbl{font-size:12.5px;font-weight:700;opacity:.9}.ti-hero-lbl i{color:#F5D27A;margin-right:5px}.ti-hero-lbl span{font-weight:600;opacity:.65;font-size:11px}
+.ti-hero-amt{font-size:32px;font-weight:800;line-height:1.15;margin-top:4px;color:#F5D27A}
+.ti-hero-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14);white-space:nowrap}.ti-hero-badge i{color:#4ADE80;margin-right:3px}
+.ti-hero-sub{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;position:relative;z-index:1}
+.ti-hero-sub>div{background:rgba(255,255,255,.1);border-radius:12px;padding:8px 10px}
+.ti-hero-sub p{font-size:10.5px;opacity:.75}.ti-hero-sub b{display:block;font-size:15px;font-weight:800;margin-top:1px}
+.ti-gens{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ti-gen{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 6px;text-align:center;box-shadow:0 2px 10px var(--shadow);border-top:3px solid var(--accent)}
+.ti-gen.g2{border-top-color:#2563EB}.ti-gen.g3{border-top-color:#16A34A}
+.ti-gen-n{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:24px;padding:0 8px;border-radius:99px;background:var(--accentL);color:var(--accent);font-size:12px;font-weight:800}
+.ti-gen.g2 .ti-gen-n{background:#DBEAFE;color:#1D4ED8}.ti-gen.g3 .ti-gen-n{background:#DCFCE7;color:#15803D}
+.ti-gen-l{font-size:10.5px;color:var(--fg3);margin-top:4px}
+.ti-gen-a{font-size:15px;font-weight:800;color:var(--fg);margin-top:2px}
+.ti-gen-c{font-size:10px;color:var(--fg3);margin-top:1px}
+.ti-help{font-size:11px;line-height:1.55;color:var(--fg2);background:var(--bg2);border-radius:12px;padding:9px 11px}.ti-help i{color:var(--accent);margin-right:4px}
+.ti-sec{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 0}
+.ti-sec-t{font-size:13.5px;font-weight:800;color:var(--fg)}.ti-sec-t i{color:var(--accent);margin-right:6px}
+.ti-sec-n{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--accentL);color:var(--accent)}
+.ti-empty{text-align:center;padding:26px 12px;border-radius:18px;background:var(--card);border:1px dashed var(--border);color:var(--fg3)}
+.ti-empty i{font-size:32px;opacity:.3;margin-bottom:8px;display:block}.ti-empty p{font-size:13px;font-weight:700}.ti-empty small{font-size:11px}
+.ti-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 2px 10px var(--shadow)}
+.ti-card-top{display:flex;align-items:center;gap:10px}
+.ti-rank{width:20px;height:20px;border-radius:7px;background:var(--bg2);color:var(--fg3);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ti-name{font-size:14px;font-weight:800;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti-ph{font-size:11px;color:var(--fg3);font-family:ui-monospace,monospace;margin-top:1px}.ti-ph i{font-size:9px;margin-right:2px}
+.ti-amt{text-align:right;flex-shrink:0}.ti-amt small{display:block;font-size:9.5px;color:var(--fg3)}.ti-amt b{font-size:16px;font-weight:800;color:#16A34A}
+.ti-card-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.ti-card-stats>div{background:var(--bg2);border-radius:12px;padding:7px 2px;text-align:center}
+.ti-card-stats p{font-size:10px;color:var(--fg3)}.ti-card-stats b{display:block;font-size:12.5px;font-weight:800;margin-top:1px;color:var(--fg3)}.ti-card-stats b.on{color:var(--fg)}
+.ti-recent{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:4px 12px;box-shadow:0 2px 10px var(--shadow);margin-top:8px}
+.ti-rrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)}.ti-rrow:first-child{border-top:0}
+.ti-rico{width:32px;height:32px;border-radius:10px;background:#DCFCE7;color:#15803D;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.ti-rnote{font-size:12.5px;font-weight:700;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti-rdate{font-size:10.5px;color:var(--fg3);margin-top:1px}
+.ti-ramt{font-size:13.5px;font-weight:800;color:#16A34A;flex-shrink:0}
 .tm-view{width:100%;margin-top:10px;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,#000));cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .tm-st6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tm-st6>div{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 4px;text-align:center}
@@ -5668,44 +5707,75 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                   <div class="dd-card p-3 text-center"><p class="font-mono text-base font-bold" style="color:#B45309" x-text="'৳'+rsStats.profitPending.toLocaleString()"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">চলমান অর্ডারের প্রফিট</p></div>
                 </div>
 
-                <div class="dd-card p-4">
-                  <div class="flex items-center justify-between mb-3">
-                    <p class="font-bold text-sm" style="color:var(--fg)"><i class="fa-solid fa-sitemap mr-1.5" style="color:var(--accent)"></i>টিম ইনকাম <span class="text-xs font-semibold" style="color:var(--fg3)">(৩ জেনারেশন)</span></p>
-                    <p class="font-display text-xl" style="color:#16A34A" x-text="'৳'+rsIncome.total.toLocaleString()"></p>
+                <!-- ══ টিম ইনকাম (নতুন ডিজাইন) ══ -->
+                <div class="ti-hero">
+                  <div class="ti-hero-top">
+                    <div>
+                      <p class="ti-hero-lbl"><i class="fa-solid fa-sitemap"></i> টিম ইনকাম <span>(৩ জেনারেশন)</span></p>
+                      <p class="ti-hero-amt" x-text="'৳'+rsIncome.total.toLocaleString()"></p>
+                    </div>
+                    <span class="ti-hero-badge"><i class="fa-solid fa-circle-check"></i> মোট কমিশন</span>
                   </div>
-                  <div class="grid grid-cols-3 gap-2">
-                    <template x-for="g in rsIncome.gens" :key="g.g">
-                      <div class="rounded-xl p-2.5 text-center" style="background:var(--bg2)"><p class="text-xs" style="color:var(--fg3)" x-text="g.label+' জেনারেশন'"></p><p class="font-mono text-sm font-bold mt-0.5" style="color:var(--fg)" x-text="'৳'+g.amount.toLocaleString()"></p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="g.count+'টি'"></p></div>
-                    </template>
+                  <div class="ti-hero-sub">
+                    <div><p>নিজের বিক্রয় থেকে প্রফিট</p><b x-text="'৳'+rsIncome.profitCredited.toLocaleString()"></b></div>
+                    <div><p>আজকের কমিশন</p><b x-text="'৳'+rsToday.commission.toLocaleString()"></b></div>
                   </div>
-                  <p class="text-xs mt-3" style="color:var(--fg3)">নিজের বিক্রয় থেকে ওয়ালেটে জমা হওয়া প্রফিট: <b style="color:#16A34A" x-text="'৳'+rsIncome.profitCredited.toLocaleString()"></b></p>
                 </div>
 
-                <div class="dd-card p-4">
-                  <p class="font-bold text-sm mb-2" style="color:var(--fg)"><i class="fa-solid fa-users mr-1.5" style="color:var(--accent)"></i>কার কত ইনকাম হয়েছে</p>
-                  <div x-show="rsIncome.members.length===0" class="text-center py-6" style="color:var(--fg3)"><i class="fa-solid fa-users text-3xl mb-2 opacity-25"></i><p class="text-xs">এখনো টিম থেকে কোনো কমিশন আসেনি</p></div>
-                  <template x-for="m in rsIncome.members" :key="m.key">
-                    <div class="rs-mem">
+                <div class="ti-gens">
+                  <template x-for="g in rsIncome.gens" :key="g.g">
+                    <div class="ti-gen" :class="'g'+g.g">
+                      <span class="ti-gen-n" x-text="g.label"></span>
+                      <p class="ti-gen-l">জেনারেশন</p>
+                      <p class="ti-gen-a" x-text="'৳'+g.amount.toLocaleString()"></p>
+                      <p class="ti-gen-c" x-text="g.count+'টি কমিশন'"></p>
+                    </div>
+                  </template>
+                </div>
+                <p class="ti-help"><i class="fa-solid fa-circle-info"></i> ১ম জেনারেশন = আপনার সরাসরি রেফার করা সদস্য, ২য় = তাদের রেফার করা সদস্য, ৩য় = তার পরের সদস্য। তাদের প্রতিটি ডেলিভার্ড অর্ডারে আপনি কমিশন পান।</p>
+
+                <div class="ti-sec">
+                  <p class="ti-sec-t"><i class="fa-solid fa-users"></i> কার কত ইনকাম হয়েছে</p>
+                  <span class="ti-sec-n" x-show="rsIncome.members.length>0" x-text="rsIncome.members.length+' জন'"></span>
+                </div>
+                <div x-show="rsIncome.members.length===0" class="ti-empty"><i class="fa-solid fa-users"></i><p>এখনো টিম থেকে কোনো কমিশন আসেনি</p><small>আপনার রেফার কোড শেয়ার করে টিম বাড়ান</small></div>
+                <template x-for="(m,i) in rsIncome.members" :key="m.key">
+                  <div class="ti-card">
+                    <div class="ti-card-top">
+                      <span class="ti-rank" x-text="i+1"></span>
                       <span class="rs-av" x-text="m.old?'?':String(m.name||'র').trim().charAt(0).toUpperCase()"></span>
                       <div class="flex-1 min-w-0">
-                        <p class="text-sm font-bold truncate" style="color:var(--fg)" x-text="m.name"></p>
-                        <p class="text-xs" style="color:var(--fg3)"><span x-show="m.phone" x-text="maskPh(m.phone)+' · '"></span><span x-text="m.count+'টি অর্ডার'"></span><span x-show="m.g[0]>0" x-text="' · ১ম ৳'+m.g[0]"></span><span x-show="m.g[1]>0" x-text="' · ২য় ৳'+m.g[1]"></span><span x-show="m.g[2]>0" x-text="' · ৩য় ৳'+m.g[2]"></span></p>
+                        <p class="ti-name" x-text="m.name"></p>
+                        <p class="ti-ph"><i class="fa-solid fa-phone" x-show="m.phone"></i> <span x-show="m.phone" x-text="maskPh(m.phone)"></span></p>
                       </div>
-                      <p class="font-mono text-sm font-bold flex-shrink-0" style="color:#16A34A" x-text="'+৳'+m.amount.toLocaleString()"></p>
+                      <div class="ti-amt"><small>আপনার কমিশন</small><b x-text="'+৳'+m.amount.toLocaleString()"></b></div>
                     </div>
-                  </template>
-                  <p x-show="rsIncome.hasOld" class="text-xs mt-2" style="color:var(--fg3)">আগের কিছু কমিশনে সদস্যের নাম সংরক্ষিত ছিল না — নতুন কমিশন থেকে নামসহ দেখাবে।</p>
-                </div>
+                    <div class="ti-card-stats">
+                      <div><p>অর্ডার</p><b x-text="m.count+'টি'"></b></div>
+                      <div><p>১ম জেনা.</p><b :class="m.g[0]>0?'on':''" x-text="'৳'+m.g[0].toLocaleString()"></b></div>
+                      <div><p>২য় জেনা.</p><b :class="m.g[1]>0?'on':''" x-text="'৳'+m.g[1].toLocaleString()"></b></div>
+                      <div><p>৩য় জেনা.</p><b :class="m.g[2]>0?'on':''" x-text="'৳'+m.g[2].toLocaleString()"></b></div>
+                    </div>
+                  </div>
+                </template>
+                <p x-show="rsIncome.hasOld" class="ti-help"><i class="fa-solid fa-circle-info"></i> আগের কিছু কমিশনে সদস্যের নাম সংরক্ষিত ছিল না — নতুন কমিশন থেকে নামসহ দেখাবে।</p>
 
-                <div class="dd-card p-4" x-show="rsIncome.recent.length>0">
-                  <p class="font-bold text-sm mb-2" style="color:var(--fg)"><i class="fa-solid fa-clock-rotate-left mr-1.5" style="color:var(--accent)"></i>সাম্প্রতিক কমিশন</p>
-                  <template x-for="t in rsIncome.recent" :key="t.fbKey">
-                    <div class="flex items-center justify-between gap-2 py-1.5" style="border-top:1px solid var(--border)">
-                      <div class="min-w-0"><p class="text-xs font-semibold truncate" style="color:var(--fg)" x-text="t.note||'কমিশন'"></p><p class="text-xs" style="color:var(--fg3)" x-text="rsDate(t.timestamp)"></p></div>
-                      <p class="font-mono text-xs font-bold flex-shrink-0" style="color:#16A34A" x-text="'+৳'+(Number(t.amount)||0).toLocaleString()"></p>
+                <template x-if="rsIncome.recent.length>0">
+                  <div>
+                    <div class="ti-sec">
+                      <p class="ti-sec-t"><i class="fa-solid fa-clock-rotate-left"></i> সাম্প্রতিক কমিশন</p>
                     </div>
-                  </template>
-                </div>
+                    <div class="ti-recent">
+                      <template x-for="t in rsIncome.recent" :key="t.fbKey">
+                        <div class="ti-rrow">
+                          <span class="ti-rico"><i class="fa-solid fa-arrow-down"></i></span>
+                          <div class="flex-1 min-w-0"><p class="ti-rnote" x-text="t.note||'কমিশন'"></p><p class="ti-rdate" x-text="rsDate(t.timestamp)"></p></div>
+                          <p class="ti-ramt" x-text="'+৳'+(Number(t.amount)||0).toLocaleString()"></p>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </template>
 
                 <button @click="resellOrdersSubTab='list'" class="w-full text-sm font-bold py-3 rounded-2xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-file-invoice mr-1.5"></i>সব অর্ডার ও ইনভয়েস দেখুন</button>
                 <p class="text-xs text-center" style="color:var(--fg3)"><i class="fa-solid fa-lock mr-1"></i>এই তথ্য শুধু আপনি লগইন থাকা অবস্থায় দেখতে পারবেন</p>
@@ -12449,6 +12519,67 @@ nav.bottom-nav .nav-btn.active span{color:var(--accent)}
 .rx-it:not(:has(.rx-ar))::after{content:"\f054";font-family:"Font Awesome 6 Free","Font Awesome 5 Free",sans-serif;font-weight:900;font-size:10px;color:#C4C9D1;flex:none}
 .rx-it.on::after{color:#DC2626}
 @media (prefers-reduced-motion:reduce){.rx-dr,.rx-it{animation:none}.rx-sd{transition:none}.rx-bal i{animation:none}}
+/* ══ সাইডবার v6: হোম বাটনের মতো ক্রিম কার্ড + কালারফুল গ্লসি আইকন, কম গ্যাপ ══ */
+.rx-dr{background:#F7F4EF}
+.rx-dh{padding:20px 18px 16px}
+.rx-av{width:44px;height:44px;border-radius:14px;font-size:18px;box-shadow:0 4px 12px rgba(220,38,38,.4)}
+.rx-dn{padding:10px 10px 14px;gap:8px;justify-content:flex-start;background:linear-gradient(180deg,#F9F7F3,#F1ECE4)}
+.rx-gg{gap:5px}
+.rx-gl{margin:0 0 1px!important;padding:0 4px;font-size:11px;font-weight:700;color:#7A6F63}
+.rx-gl::before{width:3px;height:12px}
+.rx-it{min-height:46px;padding:6px 10px!important;gap:11px;border:0!important;border-radius:14px;font-size:14px;font-weight:600;color:#3F3A34;background:linear-gradient(180deg,#FBF9F6,#EDE7DF)!important;box-shadow:0 3px 8px rgba(60,40,20,.1),inset 0 1px 0 rgba(255,255,255,.9)!important}
+.rx-it:hover{background:linear-gradient(180deg,#FFFFFF,#F0EAE2)!important;box-shadow:0 5px 12px rgba(60,40,20,.16),inset 0 1px 0 #fff!important;border-color:transparent}
+.rx-it.on{background:linear-gradient(135deg,#FEF2F2,#FFE9D6)!important;box-shadow:0 5px 14px rgba(220,38,38,.22),inset 0 0 0 1.5px #FCA5A5!important;color:#DC2626}
+.rx-ii{width:34px;height:34px;border-radius:12px;font-size:14px;color:#fff!important;background-image:linear-gradient(145deg,rgba(255,255,255,.35),rgba(255,255,255,0) 65%)!important;box-shadow:0 3px 8px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.3)}
+.rx-it.on .rx-ii{background-color:#DC2626!important}
+.rx-sc-s0 .rx-ii{background-color:#DC2626}
+.rx-sc-s1 .rx-ii{background-color:#64748B}
+.rx-sc-s5 .rx-ii{background-color:#E11D48}
+.rx-sc-s6 .rx-ii{background-color:#DB2777}
+.rx-sc-s7 .rx-ii{background-color:#F59E0B}
+.rx-sc-s2 .rx-ii{background-color:#2563EB}
+.rx-sc-s10 .rx-ii{background-color:#EA580C}
+.rx-sc-s13 .rx-ii{background-color:#4F46E5}
+.rx-sc-s14 .rx-ii{background-color:#059669}
+.rx-sc-s16 .rx-ii{background-color:#0891B2}
+.rx-sc-s17 .rx-ii{background-color:#9333EA}
+.rx-it:not([class*="rx-sc-s"]) .rx-ii,.rx-it[class*="rx-sc-c_"] .rx-ii{background-color:#0D9488}
+.rx-it em{background:#E11D48;color:#fff;padding:2px 8px;box-shadow:0 2px 6px rgba(225,29,72,.35)}
+.rx-it::after{color:#B8AD9F}
+/* ══ v7: সাইডবার প্রফেশনাল কালার, অ্যাপ বাটন স্লিম, রেফারেল ওয়ালেট আইকন ══ */
+.rx-ii{background-image:linear-gradient(145deg,rgba(255,255,255,.22),rgba(0,0,0,.14))!important;box-shadow:0 2px 6px rgba(15,23,42,.22),inset 0 0 0 1px rgba(255,255,255,.18)}
+.rx-sc-s0 .rx-ii,.rx-it.on .rx-ii{background-color:#B91C1C!important}
+.rx-sc-s1 .rx-ii{background-color:#475569}
+.rx-sc-s5 .rx-ii{background-color:#BE123C}
+.rx-sc-s6 .rx-ii{background-color:#9D174D}
+.rx-sc-s7 .rx-ii{background-color:#B45309}
+.rx-sc-s2 .rx-ii{background-color:#1D4ED8}
+.rx-sc-s10 .rx-ii{background-color:#C2410C}
+.rx-sc-s13 .rx-ii{background-color:#4338CA}
+.rx-sc-s14 .rx-ii{background-color:#047857}
+.rx-sc-s16 .rx-ii{background-color:#0E7490}
+.rx-sc-s17 .rx-ii{background-color:#6D28D9}
+.rx-it:not([class*="rx-sc-s"]) .rx-ii{background-color:#0F766E}
+.rx-it em{background:#BE123C;box-shadow:0 2px 6px rgba(190,18,60,.3)}
+.rx button.rx-app{height:38px;max-width:144px;padding:3px 11px 3px 3px;gap:8px;border-radius:13px}
+.rx-app-ic{width:30px;height:30px;border-radius:9px;font-size:14px}
+.rx-app-tx{gap:2px}.rx-app-tx b{font-size:11px}.rx-app-tx small{font-size:8px}
+.rx-w1,.rx-w2{gap:12px;padding:10px 10px 10px 8px}
+.rx-wi{width:36px;height:36px;border-radius:11px;font-size:13px;letter-spacing:1.5px;padding-left:1px;box-shadow:0 3px 8px rgba(0,0,0,.12),inset 0 0 0 1px rgba(255,255,255,.35)}
+.rx-w1 .rx-wi{background:linear-gradient(145deg,#FCD34D,#F59E0B)!important;color:#fff!important}
+.rx-w2 .rx-wi{background:linear-gradient(145deg,#A78BFA,#7C3AED)!important;color:#fff!important}
+.rx-w2 .rx-wi i{font-size:14px;transform:scaleX(1.04)}
+/* v8: রেফারেল ওয়ালেট কার্ডের প্যাডিং ফিক্স (.rx button{padding:0} ওভাররাইড হচ্ছিল) + আরও স্লিম অ্যাপ বাটন */
+.rx .rx-w1,.rx .rx-w2,.rx button.rx-w2{padding:9px 10px 9px 10px!important;gap:10px!important}
+.rx .rx-wi{width:32px!important;height:32px!important;border-radius:10px!important;font-size:12px!important;letter-spacing:1px!important;padding:0!important;margin:0!important}
+.rx .rx-w2 .rx-wi i{font-size:12.5px!important;transform:none!important}
+.rx .rx-w2>div,.rx .rx-w1>div{min-width:0;flex:1}
+.rx-wl{gap:8px}
+.rx button.rx-app{height:32px!important;max-width:124px!important;padding:2px 10px 2px 2px!important;gap:7px!important;border-radius:11px!important}
+.rx button.rx-app .rx-app-ic{width:26px!important;height:26px!important;border-radius:8px!important;font-size:12px!important}
+.rx button.rx-app .rx-app-tx b{font-size:10.5px!important}
+.rx button.rx-app .rx-app-tx small{font-size:7.5px!important}
+.rx-pf{width:34px;height:34px;font-size:14px}
 
 .rx-prof .rg-home{display:flex;align-items:center;gap:9px;margin-top:12px;padding:8px 10px;border-radius:14px;cursor:pointer;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#0B1226,#1E3A8A 60%,#4C1D95);border:1px solid rgba(147,197,253,.35);box-shadow:0 4px 12px rgba(30,58,138,.25)}
 .rg-home .rg-ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
