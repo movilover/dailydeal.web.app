@@ -5163,7 +5163,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <template x-if="resellSubTab==='home'">
 <div class="rx">
 <div class="rx-mr"><div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(rhMarquee)"></p></div>
-<button type="button" class="rx-app rx-tap" data-dd-apk aria-label="Daily Deal অ্যাপ ডাউনলোড করুন" title="অ্যাপ ডাউনলোড"><span class="rx-app-ic"><i class="fa-brands fa-android"></i></span><span class="rx-app-tx">অ্যাপ</span></button><button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
+<button type="button" class="rx-app rx-tap" data-dd-apk aria-label="Daily Deal অ্যাপ ডাউনলোড করুন" title="ডাউনলোড নাও — অ্যান্ড্রয়েড অ্যাপ"><span class="rx-app-ic"><img x-show="window.DD_LOGO" :src="window.DD_LOGO||''" alt=""/><i class="fa-solid fa-bag-shopping" x-show="!window.DD_LOGO"></i></span><span class="rx-app-tx"><b>ডাউনলোড নাও</b><small><i class="fa-brands fa-android"></i>অ্যান্ড্রয়েড অ্যাপ</small></span></button><button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
             <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" @click="resellSubTab='shop'" class="text-xs font-bold mt-2 px-3 py-1.5 rounded-lg" style="background:#B45309;color:#fff;border:0;cursor:pointer">পিন বদলান</button></div></div>
 
             
@@ -8799,8 +8799,7 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(
   // ══════════ RESELLER — SELL TO CUSTOMER (NEW) ══════════
   get feedList(){if(this.resellSearchQuery||(this.resellSearchMode==='image'&&this.imgSearch.done))return this.resellSearchResults;const base=this.resellFeedBase;
     if(this.resellFeedMode!=='all'||this.resellActiveCat!=='সব'||this.resellActiveSec)return base;
-    return _ddMemo('rgfeed',[base,this.fbProducts],()=>{const T=p=>Number(p.createdAt)||Number(p.timestamp)||0;const G=this.intlProducts.slice().sort((a,b)=>T(b)-T(a));if(!G.length)return base;const out=base.slice();let from=0;
-      G.forEach(g=>{const t=T(g);let i=from;while(i<out.length&&T(out[i])>=t)i++;out.splice(i,0,g);from=i+1});return out})},
+    return _ddMemo('rgfeed',[base],()=>base.filter(p=>p&&!p.intl))},
   async checkCustReport(){
     this.custChecked=true;this.custReportData=null;
     const ph=String(this.sellForm.phone||'').replace(/\D/g,'').slice(-11);if(ph.length<11)return;
@@ -12497,9 +12496,13 @@ nav.bottom-nav .nav-btn.active span{color:var(--accent)}
 .help-fab.hf-rx{bottom:calc(20px + env(safe-area-inset-bottom,0px))!important}
 .help-fab.hf-nav{bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}
 /* রিসেলার অ্যাপ বাটন: বর্গাকার ট্যাইল, লেবেল আইকনের ভিতরে */
-.rx-app{width:40px;height:40px;padding:0;gap:0;border-radius:13px;flex-direction:column;justify-content:center;background:linear-gradient(145deg,#111827,#1F2937);border:1px solid rgba(255,255,255,.1);box-shadow:0 4px 12px rgba(15,23,42,.3),inset 0 1px 0 rgba(255,255,255,.12)}
-.rx-app-ic{width:auto;height:auto;background:none;font-size:16px;color:#3DDC84;line-height:1}
-.rx-app-tx{align-items:center;text-align:center;font-size:8.5px;font-weight:800;color:#fff;line-height:1;margin-top:3px;white-space:nowrap}
+.rx button.rx-app{height:44px;width:auto;min-width:0;max-width:158px;flex:none;padding:4px 12px 4px 4px;gap:9px;border-radius:15px;flex-direction:row;justify-content:flex-start;background:linear-gradient(135deg,#111827,#1F2937);border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 16px -6px rgba(15,23,42,.55),inset 0 1px 0 rgba(255,255,255,.12);color:#fff}
+.rx-app-ic{width:34px;height:34px;border-radius:10px;overflow:hidden;background:linear-gradient(135deg,#E8320A,#FF7A18);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none;box-shadow:0 3px 8px rgba(232,50,10,.45)}
+.rx-app-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.rx-app-tx{display:flex;flex-direction:column;align-items:flex-start;text-align:left;line-height:1.1;gap:3px;white-space:nowrap;margin:0;color:#fff}
+.rx-app-tx b{font-size:11.5px;font-weight:800;letter-spacing:.1px;color:#fff}
+.rx-app-tx small{font-size:8.5px;font-weight:600;color:#A7F3D0;display:flex;align-items:center;gap:4px;line-height:1}
+.rx-app-tx small i{font-size:9px;color:#3DDC84}
 </style>
 </body>
 </html>
