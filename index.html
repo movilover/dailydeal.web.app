@@ -2798,45 +2798,6 @@ html.dd-lkp #dd-lkpre{position:fixed;inset:0;z-index:2147483001;display:flex;ali
 .tm-card-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
 .tm-card-stats>div{background:var(--bg2);border-radius:12px;padding:7px 2px;text-align:center}
 .tm-card-stats p{font-size:10px;color:var(--fg3)}.tm-card-stats b{display:block;font-size:14px;font-weight:800;margin-top:1px}
-/* ══ টিম ইনকাম: প্রফেশনাল কার্ড লেআউট ══ */
-.ti-hero{border-radius:20px;padding:16px;color:#fff;background:linear-gradient(135deg,#0F172A 0%,#1E293B 55%,#334155 100%);box-shadow:0 8px 22px rgba(15,23,42,.22);position:relative;overflow:hidden}
-.ti-hero::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(245,210,122,.35),transparent 70%)}
-.ti-hero-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative;z-index:1}
-.ti-hero-lbl{font-size:12.5px;font-weight:700;opacity:.9}.ti-hero-lbl i{color:#F5D27A;margin-right:5px}.ti-hero-lbl span{font-weight:600;opacity:.65;font-size:11px}
-.ti-hero-amt{font-size:32px;font-weight:800;line-height:1.15;margin-top:4px;color:#F5D27A}
-.ti-hero-badge{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14);white-space:nowrap}.ti-hero-badge i{color:#4ADE80;margin-right:3px}
-.ti-hero-sub{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;position:relative;z-index:1}
-.ti-hero-sub>div{background:rgba(255,255,255,.1);border-radius:12px;padding:8px 10px}
-.ti-hero-sub p{font-size:10.5px;opacity:.75}.ti-hero-sub b{display:block;font-size:15px;font-weight:800;margin-top:1px}
-.ti-gens{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.ti-gen{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:10px 6px;text-align:center;box-shadow:0 2px 10px var(--shadow);border-top:3px solid var(--accent)}
-.ti-gen.g2{border-top-color:#2563EB}.ti-gen.g3{border-top-color:#16A34A}
-.ti-gen-n{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:24px;padding:0 8px;border-radius:99px;background:var(--accentL);color:var(--accent);font-size:12px;font-weight:800}
-.ti-gen.g2 .ti-gen-n{background:#DBEAFE;color:#1D4ED8}.ti-gen.g3 .ti-gen-n{background:#DCFCE7;color:#15803D}
-.ti-gen-l{font-size:10.5px;color:var(--fg3);margin-top:4px}
-.ti-gen-a{font-size:15px;font-weight:800;color:var(--fg);margin-top:2px}
-.ti-gen-c{font-size:10px;color:var(--fg3);margin-top:1px}
-.ti-help{font-size:11px;line-height:1.55;color:var(--fg2);background:var(--bg2);border-radius:12px;padding:9px 11px}.ti-help i{color:var(--accent);margin-right:4px}
-.ti-sec{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 0}
-.ti-sec-t{font-size:13.5px;font-weight:800;color:var(--fg)}.ti-sec-t i{color:var(--accent);margin-right:6px}
-.ti-sec-n{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:var(--accentL);color:var(--accent)}
-.ti-empty{text-align:center;padding:26px 12px;border-radius:18px;background:var(--card);border:1px dashed var(--border);color:var(--fg3)}
-.ti-empty i{font-size:32px;opacity:.3;margin-bottom:8px;display:block}.ti-empty p{font-size:13px;font-weight:700}.ti-empty small{font-size:11px}
-.ti-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:12px;box-shadow:0 2px 10px var(--shadow)}
-.ti-card-top{display:flex;align-items:center;gap:10px}
-.ti-rank{width:20px;height:20px;border-radius:7px;background:var(--bg2);color:var(--fg3);font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.ti-name{font-size:14px;font-weight:800;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ti-ph{font-size:11px;color:var(--fg3);font-family:ui-monospace,monospace;margin-top:1px}.ti-ph i{font-size:9px;margin-right:2px}
-.ti-amt{text-align:right;flex-shrink:0}.ti-amt small{display:block;font-size:9.5px;color:var(--fg3)}.ti-amt b{font-size:16px;font-weight:800;color:#16A34A}
-.ti-card-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
-.ti-card-stats>div{background:var(--bg2);border-radius:12px;padding:7px 2px;text-align:center}
-.ti-card-stats p{font-size:10px;color:var(--fg3)}.ti-card-stats b{display:block;font-size:12.5px;font-weight:800;margin-top:1px;color:var(--fg3)}.ti-card-stats b.on{color:var(--fg)}
-.ti-recent{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:4px 12px;box-shadow:0 2px 10px var(--shadow);margin-top:8px}
-.ti-rrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--border)}.ti-rrow:first-child{border-top:0}
-.ti-rico{width:32px;height:32px;border-radius:10px;background:#DCFCE7;color:#15803D;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
-.ti-rnote{font-size:12.5px;font-weight:700;color:var(--fg);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ti-rdate{font-size:10.5px;color:var(--fg3);margin-top:1px}
-.ti-ramt{font-size:13.5px;font-weight:800;color:#16A34A;flex-shrink:0}
 .tm-view{width:100%;margin-top:10px;border:none;border-radius:12px;padding:9px;font-size:12px;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 75%,#000));cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
 .tm-st6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tm-st6>div{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:9px 4px;text-align:center}
@@ -3649,6 +3610,20 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
   </div>
 </div>
 
+<!-- ═══ PRODUCT VIDEO PLAYER (রিসেলার ▶ ভিডিও) ═══ -->
+<div class="yt-ov" x-show="ytV" x-cloak @click.self="ytClose()" @keydown.escape.window="ytClose()">
+  <div class="yt-card" role="dialog" aria-modal="true" aria-label="প্রোডাক্ট ভিডিও">
+    <div class="yt-top">
+      <div class="yt-tt"><span class="yt-tic"><i class="fa-brands fa-youtube"></i></span><div style="min-width:0"><p x-text="ytV?ytV.name:''"></p><small>প্রোডাক্ট ভিডিও</small></div></div>
+      <button type="button" class="yt-x" @click="ytClose()" aria-label="বন্ধ করুন"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="yt-frame"><iframe x-show="ytV" :src="ytV?('https://www.youtube-nocookie.com/embed/'+ytV.id+'?autoplay=1&rel=0&modestbranding=1&playsinline=1'):''" title="প্রোডাক্ট ভিডিও" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></div>
+    <div class="yt-act">
+      <button type="button" @click="ytCopy()"><i class="fa-regular fa-copy"></i> <span x-text="ytCopied?'কপি হয়েছে ✓':'লিংক কপি'"></span></button>
+      <button type="button" class="yt-pri" @click="ytShare()"><i class="fa-solid fa-share-nodes"></i> শেয়ার করুন</button>
+    </div>
+  </div>
+</div>
 <!-- ═══ IMAGE LIGHTBOX (review photos) ═══ -->
 <div x-show="lightbox" x-cloak @click="lightbox=''" style="z-index:340;position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:24px">
   <img :src="lightbox" style="max-width:100%;max-height:90vh;border-radius:12px;object-fit:contain"/>
@@ -3838,15 +3813,16 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 .dd-gl-btn:active{transform:scale(.97)}
 </style>
 <style id="dd-topnav-v1">@media(min-width:768px){.dd-hdr-mob{display:none!important}}</style>
-<header class="sticky top-0 z-50" style="background:var(--header);box-shadow:0 4px 24px rgba(0,0,0,.36)">
+<header class="sticky top-0 z-50" :class="activeTab==='resell'?'rx-slim':''" style="background:var(--header);box-shadow:0 4px 24px rgba(0,0,0,.36)">
   <div class="flex items-center justify-between px-4 py-3.5">
     <div class="flex items-center gap-2.5" @click="activeTab='home'" style="cursor:pointer" role="link" aria-label="হোম">
-      <span class="brand-mark"><i class="fa-solid fa-bag-shopping"></i></span>
+      <span class="brand-mark"><img class="rx-logo-img" x-show="activeTab==='resell'&&window.DD_LOGO" :src="window.DD_LOGO||''" alt=""/><i class="fa-solid fa-bag-shopping" x-show="!(activeTab==='resell'&&window.DD_LOGO)"></i></span>
       <div>
         <p class="brand-name"><span x-text="(settings.siteName||'Daily Deal').split(' ')[0]"></span><span style="color:var(--accent)" x-text="' '+(settings.siteName||'Daily Deal').split(' ').slice(1).join(' ')"></span></p>
         <p class="text-[10px] tracking-widest uppercase mt-1" style="color:rgba(255,255,255,.4)" x-text="settings.tagline||'অনলাইন শপিং'"></p>
       </div>
     </div>
+    <div class="rx-hr" x-show="activeTab==='resell'" x-cloak><button type="button" class="rx-app rx-tap" data-dd-apk aria-label="Daily Deal অ্যাপ ডাউনলোড করুন" title="ডাউনলোড নাও — অ্যান্ড্রয়েড অ্যাপ"><span class="rx-app-ic"><img x-show="window.DD_LOGO" :src="window.DD_LOGO||''" alt=""/><i class="fa-solid fa-bag-shopping" x-show="!window.DD_LOGO"></i></span><span class="rx-app-tx"><b>ডাউনলোড নাও</b><small><i class="fa-brands fa-android"></i>অ্যান্ড্রয়েড অ্যাপ</small></span></button><button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
     <div class="flex items-center gap-2" x-show="activeTab!=='resell'">
       <button @click="notifOpen=true;unreadNotifs=0" class="relative w-9 h-9 flex items-center justify-center rounded-xl" style="background:rgba(255,255,255,.09);color:rgba(255,255,255,.7);border:none;cursor:pointer">
         <i class="fa-regular fa-bell text-lg"></i>
@@ -3877,7 +3853,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
       </div>
     </div>
   </div>
-  <div class="ticker-outer py-1.5" style="background:var(--accent)">
+  <div class="ticker-outer py-1.5" style="background:var(--accent)" x-show="activeTab!=='resell'">
     <div class="ticker-track">
       <template x-for="(t,i) in [...tickers,...tickers]" :key="i">
         <span class="mx-8 text-white text-xs font-bold tracking-wide"><i class="fa-solid mr-1.5" :class="emoFa(t,'fa-bolt')"></i><span x-text="emoTx(t)"></span></span>
@@ -5201,13 +5177,13 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <!-- ══ HOME (button grid, matches shopbasebd) ══ -->
         <template x-if="resellSubTab==='home'">
 <div class="rx">
-<div class="rx-mr"><div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(rhMarquee)"></p></div>
-<button type="button" class="rx-app rx-tap" data-dd-apk aria-label="Daily Deal অ্যাপ ডাউনলোড করুন" title="ডাউনলোড নাও — অ্যান্ড্রয়েড অ্যাপ"><span class="rx-app-ic"><img x-show="window.DD_LOGO" :src="window.DD_LOGO||''" alt=""/><i class="fa-solid fa-bag-shopping" x-show="!window.DD_LOGO"></i></span><span class="rx-app-tx"><b>ডাউনলোড নাও</b><small><i class="fa-brands fa-android"></i>অ্যান্ড্রয়েড অ্যাপ</small></span></button><button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
-            <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" @click="resellSubTab='shop'" class="text-xs font-bold mt-2 px-3 py-1.5 rounded-lg" style="background:#B45309;color:#fff;border:0;cursor:pointer">পিন বদলান</button></div></div>
+<div class="rx-mr rx-glow"><button type="button" class="rx-mb rx-tap rx-menu" @click="resellSidebarOpen=true" aria-label="মেনু" title="মেনু"><i class="fa-solid fa-ellipsis-vertical"></i></button><button type="button" class="rx-mb rx-tap rx-bell" @click="notifOpen=true;unreadNotifs=0" aria-label="নোটিফিকেশন" title="নোটিফিকেশন"><i class="fa-regular fa-bell"></i><span x-show="unreadNotifs>0" class="rx-bdot"></span></button><div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><div class="rh-clip"><span class="rh-run" x-text="emoTx(rhMarquee)"></span></div></div>
+</div>
+            <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" class="rx-pinbtn rx-tap" @click="resellSubTab='shop';setTimeout(()=>{const e=document.getElementById('rs-pin-form');e&&e.scrollIntoView({behavior:'smooth',block:'center'})},150)"><i class="fa-solid fa-key"></i> নতুন শক্ত পিন দিন</button></div></div>
 
             
-<section class="rx-card rx-prof">
-<div class="rx-pr"><div class="rx-pl"><button type="button" class="rx-mb rx-tap" @click="resellSidebarOpen=true" aria-label="মেনু"><i class="fa-solid fa-bars"></i></button>
+<section class="rx-card rx-prof rx-glow">
+<div class="rx-pr"><div class="rx-pl">
 <div class="min-w-0"><h2 x-text="reseller?.name||reseller?.shopName"></h2><span class="rx-tg"><i class="fa-solid fa-store"></i><span>রিসেলার প্যানেল • <span x-text="reseller?.shopName||'Shop'"></span></span></span></div></div>
 <div class="rx-pa"><button type="button" class="rx-wd rx-tap" @click="resellSubTab='withdraw'">উইথড্র</button><button type="button" class="rx-lo rx-tap" @click="resellMenuClick({action:'exitToSite'})" title="ইউজার সাইটে ফিরে যান" aria-label="ইউজার সাইটে ফিরে যান"><i class="fa-solid fa-arrow-right-from-bracket"></i></button></div></div>
 <div class="rx-wl">
@@ -5268,8 +5244,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 </template></div></div></template>
 </section>
 
-<section class="rx-nt"><div><span><i class="fa-solid fa-store"></i></span><div><h4>জরুরী নোটিশ</h4><p>কাস্টমারকে পাঠানো ইনভয়েসে আপনার শপের নাম দেখানো হয় — তথ্য ঠিক আছে কিনা যাচাই করে নিন।</p></div></div>
-<button type="button" class="rx-tap" @click="resellSubTab='shop'"><i class="fa-solid fa-user-pen"></i> এডিট</button></section>
+<section class="rx-ft"><div class="rx-ft-b"><img x-show="window.DD_LOGO" :src="window.DD_LOGO||''" alt=""/><div><b x-text="settings.siteName||'Daily Deal'"></b><small>রিসেলার প্যানেল · নিরাপদ লেনদেন</small></div></div><button type="button" class="rx-tap rx-ft-s" @click="resellSubTab='support'"><i class="fa-solid fa-headset"></i> সাপোর্ট</button></section>
 </div>
 </template>
 
@@ -5707,75 +5682,44 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                   <div class="dd-card p-3 text-center"><p class="font-mono text-base font-bold" style="color:#B45309" x-text="'৳'+rsStats.profitPending.toLocaleString()"></p><p class="text-xs mt-0.5" style="color:var(--fg3)">চলমান অর্ডারের প্রফিট</p></div>
                 </div>
 
-                <!-- ══ টিম ইনকাম (নতুন ডিজাইন) ══ -->
-                <div class="ti-hero">
-                  <div class="ti-hero-top">
-                    <div>
-                      <p class="ti-hero-lbl"><i class="fa-solid fa-sitemap"></i> টিম ইনকাম <span>(৩ জেনারেশন)</span></p>
-                      <p class="ti-hero-amt" x-text="'৳'+rsIncome.total.toLocaleString()"></p>
-                    </div>
-                    <span class="ti-hero-badge"><i class="fa-solid fa-circle-check"></i> মোট কমিশন</span>
+                <div class="dd-card p-4">
+                  <div class="flex items-center justify-between mb-3">
+                    <p class="font-bold text-sm" style="color:var(--fg)"><i class="fa-solid fa-sitemap mr-1.5" style="color:var(--accent)"></i>টিম ইনকাম <span class="text-xs font-semibold" style="color:var(--fg3)">(৩ জেনারেশন)</span></p>
+                    <p class="font-display text-xl" style="color:#16A34A" x-text="'৳'+rsIncome.total.toLocaleString()"></p>
                   </div>
-                  <div class="ti-hero-sub">
-                    <div><p>নিজের বিক্রয় থেকে প্রফিট</p><b x-text="'৳'+rsIncome.profitCredited.toLocaleString()"></b></div>
-                    <div><p>আজকের কমিশন</p><b x-text="'৳'+rsToday.commission.toLocaleString()"></b></div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <template x-for="g in rsIncome.gens" :key="g.g">
+                      <div class="rounded-xl p-2.5 text-center" style="background:var(--bg2)"><p class="text-xs" style="color:var(--fg3)" x-text="g.label+' জেনারেশন'"></p><p class="font-mono text-sm font-bold mt-0.5" style="color:var(--fg)" x-text="'৳'+g.amount.toLocaleString()"></p><p class="text-xs mt-0.5" style="color:var(--fg3)" x-text="g.count+'টি'"></p></div>
+                    </template>
                   </div>
+                  <p class="text-xs mt-3" style="color:var(--fg3)">নিজের বিক্রয় থেকে ওয়ালেটে জমা হওয়া প্রফিট: <b style="color:#16A34A" x-text="'৳'+rsIncome.profitCredited.toLocaleString()"></b></p>
                 </div>
 
-                <div class="ti-gens">
-                  <template x-for="g in rsIncome.gens" :key="g.g">
-                    <div class="ti-gen" :class="'g'+g.g">
-                      <span class="ti-gen-n" x-text="g.label"></span>
-                      <p class="ti-gen-l">জেনারেশন</p>
-                      <p class="ti-gen-a" x-text="'৳'+g.amount.toLocaleString()"></p>
-                      <p class="ti-gen-c" x-text="g.count+'টি কমিশন'"></p>
+                <div class="dd-card p-4">
+                  <p class="font-bold text-sm mb-2" style="color:var(--fg)"><i class="fa-solid fa-users mr-1.5" style="color:var(--accent)"></i>কার কত ইনকাম হয়েছে</p>
+                  <div x-show="rsIncome.members.length===0" class="text-center py-6" style="color:var(--fg3)"><i class="fa-solid fa-users text-3xl mb-2 opacity-25"></i><p class="text-xs">এখনো টিম থেকে কোনো কমিশন আসেনি</p></div>
+                  <template x-for="m in rsIncome.members" :key="m.key">
+                    <div class="rs-mem">
+                      <span class="rs-av" x-text="m.old?'?':String(m.name||'র').trim().charAt(0).toUpperCase()"></span>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-bold truncate" style="color:var(--fg)" x-text="m.name"></p>
+                        <p class="text-xs" style="color:var(--fg3)"><span x-show="m.phone" x-text="maskPh(m.phone)+' · '"></span><span x-text="m.count+'টি অর্ডার'"></span><span x-show="m.g[0]>0" x-text="' · ১ম ৳'+m.g[0]"></span><span x-show="m.g[1]>0" x-text="' · ২য় ৳'+m.g[1]"></span><span x-show="m.g[2]>0" x-text="' · ৩য় ৳'+m.g[2]"></span></p>
+                      </div>
+                      <p class="font-mono text-sm font-bold flex-shrink-0" style="color:#16A34A" x-text="'+৳'+m.amount.toLocaleString()"></p>
+                    </div>
+                  </template>
+                  <p x-show="rsIncome.hasOld" class="text-xs mt-2" style="color:var(--fg3)">আগের কিছু কমিশনে সদস্যের নাম সংরক্ষিত ছিল না — নতুন কমিশন থেকে নামসহ দেখাবে।</p>
+                </div>
+
+                <div class="dd-card p-4" x-show="rsIncome.recent.length>0">
+                  <p class="font-bold text-sm mb-2" style="color:var(--fg)"><i class="fa-solid fa-clock-rotate-left mr-1.5" style="color:var(--accent)"></i>সাম্প্রতিক কমিশন</p>
+                  <template x-for="t in rsIncome.recent" :key="t.fbKey">
+                    <div class="flex items-center justify-between gap-2 py-1.5" style="border-top:1px solid var(--border)">
+                      <div class="min-w-0"><p class="text-xs font-semibold truncate" style="color:var(--fg)" x-text="t.note||'কমিশন'"></p><p class="text-xs" style="color:var(--fg3)" x-text="rsDate(t.timestamp)"></p></div>
+                      <p class="font-mono text-xs font-bold flex-shrink-0" style="color:#16A34A" x-text="'+৳'+(Number(t.amount)||0).toLocaleString()"></p>
                     </div>
                   </template>
                 </div>
-                <p class="ti-help"><i class="fa-solid fa-circle-info"></i> ১ম জেনারেশন = আপনার সরাসরি রেফার করা সদস্য, ২য় = তাদের রেফার করা সদস্য, ৩য় = তার পরের সদস্য। তাদের প্রতিটি ডেলিভার্ড অর্ডারে আপনি কমিশন পান।</p>
-
-                <div class="ti-sec">
-                  <p class="ti-sec-t"><i class="fa-solid fa-users"></i> কার কত ইনকাম হয়েছে</p>
-                  <span class="ti-sec-n" x-show="rsIncome.members.length>0" x-text="rsIncome.members.length+' জন'"></span>
-                </div>
-                <div x-show="rsIncome.members.length===0" class="ti-empty"><i class="fa-solid fa-users"></i><p>এখনো টিম থেকে কোনো কমিশন আসেনি</p><small>আপনার রেফার কোড শেয়ার করে টিম বাড়ান</small></div>
-                <template x-for="(m,i) in rsIncome.members" :key="m.key">
-                  <div class="ti-card">
-                    <div class="ti-card-top">
-                      <span class="ti-rank" x-text="i+1"></span>
-                      <span class="rs-av" x-text="m.old?'?':String(m.name||'র').trim().charAt(0).toUpperCase()"></span>
-                      <div class="flex-1 min-w-0">
-                        <p class="ti-name" x-text="m.name"></p>
-                        <p class="ti-ph"><i class="fa-solid fa-phone" x-show="m.phone"></i> <span x-show="m.phone" x-text="maskPh(m.phone)"></span></p>
-                      </div>
-                      <div class="ti-amt"><small>আপনার কমিশন</small><b x-text="'+৳'+m.amount.toLocaleString()"></b></div>
-                    </div>
-                    <div class="ti-card-stats">
-                      <div><p>অর্ডার</p><b x-text="m.count+'টি'"></b></div>
-                      <div><p>১ম জেনা.</p><b :class="m.g[0]>0?'on':''" x-text="'৳'+m.g[0].toLocaleString()"></b></div>
-                      <div><p>২য় জেনা.</p><b :class="m.g[1]>0?'on':''" x-text="'৳'+m.g[1].toLocaleString()"></b></div>
-                      <div><p>৩য় জেনা.</p><b :class="m.g[2]>0?'on':''" x-text="'৳'+m.g[2].toLocaleString()"></b></div>
-                    </div>
-                  </div>
-                </template>
-                <p x-show="rsIncome.hasOld" class="ti-help"><i class="fa-solid fa-circle-info"></i> আগের কিছু কমিশনে সদস্যের নাম সংরক্ষিত ছিল না — নতুন কমিশন থেকে নামসহ দেখাবে।</p>
-
-                <template x-if="rsIncome.recent.length>0">
-                  <div>
-                    <div class="ti-sec">
-                      <p class="ti-sec-t"><i class="fa-solid fa-clock-rotate-left"></i> সাম্প্রতিক কমিশন</p>
-                    </div>
-                    <div class="ti-recent">
-                      <template x-for="t in rsIncome.recent" :key="t.fbKey">
-                        <div class="ti-rrow">
-                          <span class="ti-rico"><i class="fa-solid fa-arrow-down"></i></span>
-                          <div class="flex-1 min-w-0"><p class="ti-rnote" x-text="t.note||'কমিশন'"></p><p class="ti-rdate" x-text="rsDate(t.timestamp)"></p></div>
-                          <p class="ti-ramt" x-text="'+৳'+(Number(t.amount)||0).toLocaleString()"></p>
-                        </div>
-                      </template>
-                    </div>
-                  </div>
-                </template>
 
                 <button @click="resellOrdersSubTab='list'" class="w-full text-sm font-bold py-3 rounded-2xl" style="background:var(--accent);color:#fff;border:none;cursor:pointer"><i class="fa-solid fa-file-invoice mr-1.5"></i>সব অর্ডার ও ইনভয়েস দেখুন</button>
                 <p class="text-xs text-center" style="color:var(--fg3)"><i class="fa-solid fa-lock mr-1"></i>এই তথ্য শুধু আপনি লগইন থাকা অবস্থায় দেখতে পারবেন</p>
@@ -5935,7 +5879,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
               <button @click="saveResellerProfile()" class="btn-primary w-full" style="justify-content:center"><i class="fa-solid fa-check mr-2"></i>পরিবর্তন করুন</button>
             </div>
 
-            <div class="pf-card space-y-3">
+            <div class="pf-card space-y-3" id="rs-pin-form">
               <p class="pf-ttl"><i class="fa-solid fa-key"></i> পিন পরিবর্তন</p>
               <p class="text-xs" style="color:var(--fg3)">কমপক্ষে ৬ ডিজিটের পিন দিন (শুধু সংখ্যা)। 000000, 123456 এর মতো সহজ পিন চলবে না।</p>
               <div><label class="dd-label">বর্তমান পিন</label><input class="dd-input" type="password" inputmode="numeric" x-model="resellPinForm.old" autocomplete="current-password"/></div>
@@ -6055,6 +5999,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
                       <div x-show="rgMkt(p)>0">মার্কেটঃ <b x-text="'৳'+rgMkt(p).toLocaleString()"></b></div>
                     </div>
                     <div class="flex items-start gap-2"><p class="fb-title" style="flex:1;min-width:0" x-text="p.name"></p><button type="button" @click.stop="copyPostDesc(p)" class="flex-shrink-0" style="background:var(--accentL);color:var(--accent);border:none;cursor:pointer;width:32px;height:32px;border-radius:10px" title="বিবরণ কপি করুন"><i class="fa-regular fa-copy"></i></button></div>
+                    <button type="button" class="yt-btn" x-show="ytId(p.videoUrl)" @click="ytOpen(p)" aria-label="প্রোডাক্ট ভিডিও দেখুন"><span class="yt-ic"><i class="fa-brands fa-youtube"></i></span><span>ভিডিও দেখুন</span></button>
                     <p class="rgs-del" x-show="rgDelText(p)" style="margin:0 0 8px"><i class="fa-solid fa-truck-fast"></i> <span x-text="rgDelText(p)"></span></p>
                     <div class="fb-btns"><button type="button" class="rg-ord" @click="rgOpenSel(p)"><i class="fa-solid fa-cart-plus"></i> অর্ডার করুন</button><button type="button" @click="dlAll(p)"><i class="fa-solid fa-download"></i> IMAGE</button></div>
                     <div class="fb-photos" @click="rgOpenSel(p)"><template x-for="(im,ix) in rgImgs(p,6)" :key="ix"><img :src="optImg(im,300)" :data-o="im" loading="lazy" decoding="async" x-init="setTimeout(()=>{if($el.complete&&!$el.naturalWidth&&$el.dataset.o&&$el.src!==$el.dataset.o&&!$el.dataset.r){$el.dataset.r=1;$el.src=$el.dataset.o}},8000)" onerror="if(!this.dataset.r&&this.dataset.o&&this.src!==this.dataset.o){this.dataset.r=1;this.src=this.dataset.o}else{this.style.visibility='hidden'}"/></template></div>
@@ -6861,6 +6806,7 @@ refUi:{open:false,tab:'home',loading:false,err:'',joined:false,joining:false,ver
   gxPay:{},form:{name:'',phone:'',division:'',district:'',address:'',pay:'cod',trxId:'',promoCode:'',country:'',city:'',cityOther:'',dial:'',recvNum:'',recvPhone:'',recvName:'',loc:null,upazila:''},locBusy:false,locMsg:'',iloc:null,ilocBusy:false,ilocMsg:'',intlShowAll:false,intlNewN:20,cardDest:(()=>{try{return localStorage.getItem('dd_card_dest')||''}catch(e){return ''}})(),locStep:0,locFlash:false,locRes:null,intlCfg:{},intlSub:'',intlQ:'',_icErr:'',homeSec:'',resellActiveSec:'',
   appliedPromo:null,
   toast:{show:false,msg:'',type:'success'},
+  ytV:null,ytCopied:false,
   tickers:['🔥 আজকের সেরা ডিল!','🚚 দ্রুত ডেলিভারি','✅ ১০০% অরিজিনাল','💳 ক্যাশ অন ডেলিভারি','🎁 বিশেষ অফার','⭐ ৪.৯ রেটিং'],
   navItems:[
     {id:'home',icon:'fa-solid fa-house',label:'হোম'},
@@ -7127,6 +7073,11 @@ catch(e){p.busy=false;this.showToast('জমা হয়নি — ইন্ট
 intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(this.intlCat===c.name?'সব':c.name)},
   // ইন্টারন্যাশনাল ডেলিভারি কনফিগ (অ্যাডমিন সেভ করলে আসে; না থাকলে ডিফল্ট শুধু তথ্য হিসেবে দেখায়)
   get intlCfgSaved(){const f=this.intlCfg&&this.intlCfg.fees;return !!(f&&typeof f==='object'&&Object.keys(f).length)},
+  ytId(u){const s=String(u||'').trim();if(!s)return '';if(/^[A-Za-z0-9_-]{11}$/.test(s))return s;const m=s.match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([A-Za-z0-9_-]{11})/);return m?m[1]:''},
+  ytOpen(p){const id=this.ytId(p&&p.videoUrl);if(!id)return;this.ytV={id,name:String((p&&p.name)||'প্রোডাক্ট ভিডিও')};this.ytCopied=false},
+  ytClose(){this.ytV=null},
+  async ytCopy(){if(!this.ytV)return;const ok=await this.copyText('https://youtu.be/'+this.ytV.id);if(ok){this.ytCopied=true;setTimeout(()=>{this.ytCopied=false},1800);this.showToast('ভিডিও লিংক কপি হয়েছে ✅','success')}else this.showToast('কপি করা যায়নি','error')},
+  async ytShare(){if(!this.ytV)return;const u='https://youtu.be/'+this.ytV.id;if(navigator.share){try{await navigator.share({title:this.ytV.name,url:u})}catch(e){}return}this.ytCopy()},
   get cdHint(){const c=this.cardDest?this.intlCountries.find(x=>x.code===this.cardDest):null;if(!c)return 'দেশ নির্বাচন করলে সেই দেশের ডেলিভারি চার্জ দেখাবে';const f=this.intlFeeOf(c.code);return f!=null?'ডেলিভারি চার্জ ৳'+Number(f).toLocaleString()+' · '+(c.en||c.name):'এই দেশের ডেলিভারি চার্জ অর্ডারের সময় নিশ্চিত করা হবে'},
   _bannerSafe(s){const o=Object.assign({},s||{});['offerHtmlOn','offerHtmlUser','offerHtmlReseller','ownerIntroReseller','resellPopupOn'].forEach(k=>delete o[k]);return o},
   _bannerDefaults(s){const d={offerHtmlOn:false,offerHtmlUser:true,offerHtmlReseller:true,ownerIntroReseller:true,resellPopupOn:false},o={};Object.keys(d).forEach(k=>{o[k]=(s&&s[k]!==undefined)?s[k]:d[k]});return o},
@@ -11079,7 +11030,7 @@ main.dd-nopad{padding-bottom:0!important}
   if(!el||!fr||!xb)return;
   var opened=false,lastFocus=null,wasIn=false,pend=false;
   function wrap(c){return '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base target="_blank"><style>html,body{margin:0;padding:0;background:transparent}body{overflow-x:hidden}</style></head><body>'+c+'<script>(function(){function h(){var b=document.body,d=document.documentElement,v=Math.max(b.scrollHeight,d.scrollHeight,b.offsetHeight);try{parent.postMessage({ddRPH:v},"*")}catch(e){}}window.addEventListener("load",h);window.addEventListener("resize",h);try{new ResizeObserver(h).observe(document.body)}catch(e){}setInterval(h,1500);h()})();<\/script></body></html>'}
-  window.addEventListener('message',function(e){var d=e.data;if(!d||typeof d.ddRPH!=='number')return;if(e.source!==fr.contentWindow)return;fr.style.height=Math.min(Math.max(Math.ceil(d.ddRPH),120),Math.round(window.innerHeight*0.9))+'px'});
+  window.addEventListener('message',function(e){var d=e.data;if(!d||!fr.contentWindow||e.source!==fr.contentWindow)return;if(d.ddRPClose===1){close();return}if(typeof d.ddRPH!=='number')return;fr.style.height=Math.min(Math.max(Math.ceil(d.ddRPH),120),Math.round(window.innerHeight*0.9))+'px'});
   function open(html){
     if(opened)return;opened=true;
     try{sessionStorage.setItem(KEY,'1')}catch(e){}
@@ -12519,67 +12470,6 @@ nav.bottom-nav .nav-btn.active span{color:var(--accent)}
 .rx-it:not(:has(.rx-ar))::after{content:"\f054";font-family:"Font Awesome 6 Free","Font Awesome 5 Free",sans-serif;font-weight:900;font-size:10px;color:#C4C9D1;flex:none}
 .rx-it.on::after{color:#DC2626}
 @media (prefers-reduced-motion:reduce){.rx-dr,.rx-it{animation:none}.rx-sd{transition:none}.rx-bal i{animation:none}}
-/* ══ সাইডবার v6: হোম বাটনের মতো ক্রিম কার্ড + কালারফুল গ্লসি আইকন, কম গ্যাপ ══ */
-.rx-dr{background:#F7F4EF}
-.rx-dh{padding:20px 18px 16px}
-.rx-av{width:44px;height:44px;border-radius:14px;font-size:18px;box-shadow:0 4px 12px rgba(220,38,38,.4)}
-.rx-dn{padding:10px 10px 14px;gap:8px;justify-content:flex-start;background:linear-gradient(180deg,#F9F7F3,#F1ECE4)}
-.rx-gg{gap:5px}
-.rx-gl{margin:0 0 1px!important;padding:0 4px;font-size:11px;font-weight:700;color:#7A6F63}
-.rx-gl::before{width:3px;height:12px}
-.rx-it{min-height:46px;padding:6px 10px!important;gap:11px;border:0!important;border-radius:14px;font-size:14px;font-weight:600;color:#3F3A34;background:linear-gradient(180deg,#FBF9F6,#EDE7DF)!important;box-shadow:0 3px 8px rgba(60,40,20,.1),inset 0 1px 0 rgba(255,255,255,.9)!important}
-.rx-it:hover{background:linear-gradient(180deg,#FFFFFF,#F0EAE2)!important;box-shadow:0 5px 12px rgba(60,40,20,.16),inset 0 1px 0 #fff!important;border-color:transparent}
-.rx-it.on{background:linear-gradient(135deg,#FEF2F2,#FFE9D6)!important;box-shadow:0 5px 14px rgba(220,38,38,.22),inset 0 0 0 1.5px #FCA5A5!important;color:#DC2626}
-.rx-ii{width:34px;height:34px;border-radius:12px;font-size:14px;color:#fff!important;background-image:linear-gradient(145deg,rgba(255,255,255,.35),rgba(255,255,255,0) 65%)!important;box-shadow:0 3px 8px rgba(0,0,0,.18),inset 0 0 0 1px rgba(255,255,255,.3)}
-.rx-it.on .rx-ii{background-color:#DC2626!important}
-.rx-sc-s0 .rx-ii{background-color:#DC2626}
-.rx-sc-s1 .rx-ii{background-color:#64748B}
-.rx-sc-s5 .rx-ii{background-color:#E11D48}
-.rx-sc-s6 .rx-ii{background-color:#DB2777}
-.rx-sc-s7 .rx-ii{background-color:#F59E0B}
-.rx-sc-s2 .rx-ii{background-color:#2563EB}
-.rx-sc-s10 .rx-ii{background-color:#EA580C}
-.rx-sc-s13 .rx-ii{background-color:#4F46E5}
-.rx-sc-s14 .rx-ii{background-color:#059669}
-.rx-sc-s16 .rx-ii{background-color:#0891B2}
-.rx-sc-s17 .rx-ii{background-color:#9333EA}
-.rx-it:not([class*="rx-sc-s"]) .rx-ii,.rx-it[class*="rx-sc-c_"] .rx-ii{background-color:#0D9488}
-.rx-it em{background:#E11D48;color:#fff;padding:2px 8px;box-shadow:0 2px 6px rgba(225,29,72,.35)}
-.rx-it::after{color:#B8AD9F}
-/* ══ v7: সাইডবার প্রফেশনাল কালার, অ্যাপ বাটন স্লিম, রেফারেল ওয়ালেট আইকন ══ */
-.rx-ii{background-image:linear-gradient(145deg,rgba(255,255,255,.22),rgba(0,0,0,.14))!important;box-shadow:0 2px 6px rgba(15,23,42,.22),inset 0 0 0 1px rgba(255,255,255,.18)}
-.rx-sc-s0 .rx-ii,.rx-it.on .rx-ii{background-color:#B91C1C!important}
-.rx-sc-s1 .rx-ii{background-color:#475569}
-.rx-sc-s5 .rx-ii{background-color:#BE123C}
-.rx-sc-s6 .rx-ii{background-color:#9D174D}
-.rx-sc-s7 .rx-ii{background-color:#B45309}
-.rx-sc-s2 .rx-ii{background-color:#1D4ED8}
-.rx-sc-s10 .rx-ii{background-color:#C2410C}
-.rx-sc-s13 .rx-ii{background-color:#4338CA}
-.rx-sc-s14 .rx-ii{background-color:#047857}
-.rx-sc-s16 .rx-ii{background-color:#0E7490}
-.rx-sc-s17 .rx-ii{background-color:#6D28D9}
-.rx-it:not([class*="rx-sc-s"]) .rx-ii{background-color:#0F766E}
-.rx-it em{background:#BE123C;box-shadow:0 2px 6px rgba(190,18,60,.3)}
-.rx button.rx-app{height:38px;max-width:144px;padding:3px 11px 3px 3px;gap:8px;border-radius:13px}
-.rx-app-ic{width:30px;height:30px;border-radius:9px;font-size:14px}
-.rx-app-tx{gap:2px}.rx-app-tx b{font-size:11px}.rx-app-tx small{font-size:8px}
-.rx-w1,.rx-w2{gap:12px;padding:10px 10px 10px 8px}
-.rx-wi{width:36px;height:36px;border-radius:11px;font-size:13px;letter-spacing:1.5px;padding-left:1px;box-shadow:0 3px 8px rgba(0,0,0,.12),inset 0 0 0 1px rgba(255,255,255,.35)}
-.rx-w1 .rx-wi{background:linear-gradient(145deg,#FCD34D,#F59E0B)!important;color:#fff!important}
-.rx-w2 .rx-wi{background:linear-gradient(145deg,#A78BFA,#7C3AED)!important;color:#fff!important}
-.rx-w2 .rx-wi i{font-size:14px;transform:scaleX(1.04)}
-/* v8: রেফারেল ওয়ালেট কার্ডের প্যাডিং ফিক্স (.rx button{padding:0} ওভাররাইড হচ্ছিল) + আরও স্লিম অ্যাপ বাটন */
-.rx .rx-w1,.rx .rx-w2,.rx button.rx-w2{padding:9px 10px 9px 10px!important;gap:10px!important}
-.rx .rx-wi{width:32px!important;height:32px!important;border-radius:10px!important;font-size:12px!important;letter-spacing:1px!important;padding:0!important;margin:0!important}
-.rx .rx-w2 .rx-wi i{font-size:12.5px!important;transform:none!important}
-.rx .rx-w2>div,.rx .rx-w1>div{min-width:0;flex:1}
-.rx-wl{gap:8px}
-.rx button.rx-app{height:32px!important;max-width:124px!important;padding:2px 10px 2px 2px!important;gap:7px!important;border-radius:11px!important}
-.rx button.rx-app .rx-app-ic{width:26px!important;height:26px!important;border-radius:8px!important;font-size:12px!important}
-.rx button.rx-app .rx-app-tx b{font-size:10.5px!important}
-.rx button.rx-app .rx-app-tx small{font-size:7.5px!important}
-.rx-pf{width:34px;height:34px;font-size:14px}
 
 .rx-prof .rg-home{display:flex;align-items:center;gap:9px;margin-top:12px;padding:8px 10px;border-radius:14px;cursor:pointer;color:#fff;position:relative;overflow:hidden;background:linear-gradient(135deg,#0B1226,#1E3A8A 60%,#4C1D95);border:1px solid rgba(147,197,253,.35);box-shadow:0 4px 12px rgba(30,58,138,.25)}
 .rg-home .rg-ic{width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;font-size:15px;flex:none}
@@ -12634,6 +12524,79 @@ nav.bottom-nav .nav-btn.active span{color:var(--accent)}
 .rx-app-tx b{font-size:11.5px;font-weight:800;letter-spacing:.1px;color:#fff}
 .rx-app-tx small{font-size:8.5px;font-weight:600;color:#A7F3D0;display:flex;align-items:center;gap:4px;line-height:1}
 .rx-app-tx small i{font-size:9px;color:#3DDC84}
+</style>
+<style id="dd-yt-css">
+header.rx-slim>div:first-child{padding-top:7px!important;padding-bottom:7px!important}
+header.rx-slim .brand-mark:has(.rx-logo-img){background:transparent!important;box-shadow:none!important;border:0!important;padding:0!important;width:42px!important;height:42px!important}
+.rx-logo-img{width:100%;height:100%;object-fit:contain;display:block}
+.rx-hr{display:flex;align-items:center;gap:8px;flex:none}
+.rx-hr .rx-app{height:38px;width:auto;max-width:150px;padding:3px 10px 3px 3px;gap:8px;border-radius:13px;flex-direction:row;justify-content:flex-start;background:linear-gradient(135deg,#1F2937,#111827);border:1px solid rgba(255,255,255,.12);box-shadow:0 4px 12px -4px rgba(0,0,0,.6);color:#fff}
+.rx-hr .rx-app .rx-app-ic{width:30px;height:30px;border-radius:9px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.rx-hr .rx-app .rx-app-ic img{width:100%;height:100%;object-fit:contain;display:block}
+.rx-hr .rx-app .rx-app-ic i{color:#E8320A;font-size:14px}
+.rx-hr .rx-app .rx-app-tx{display:flex;flex-direction:column;align-items:flex-start;text-align:left;line-height:1.1;gap:2px;white-space:nowrap;color:#fff}
+.rx-hr .rx-app .rx-app-tx b{font-size:11px;font-weight:800;color:#fff}
+.rx-hr .rx-app .rx-app-tx small{font-size:8.5px;font-weight:600;color:#A7F3D0;display:flex;align-items:center;gap:4px;line-height:1}
+.rx-hr .rx-app .rx-app-tx small i{font-size:9px;color:#3DDC84}
+.rx-hr .rx-pf{margin-left:0;width:36px;height:36px;border-width:2px}
+.rx-mr .rx-menu,.rx-mr .rx-bell{width:36px;height:36px;flex:none;border-radius:12px;position:relative;font-size:14px;background:#fff!important;color:#B91C1C!important;border:1px solid #E5E7EB!important;box-shadow:0 3px 8px -4px rgba(0,0,0,.22)!important}
+.rx-mr .rx-menu:active,.rx-mr .rx-bell:active{transform:scale(.92)}
+.rx-bdot{position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:#EF4444;box-shadow:0 0 0 2px #fff}
+.rx-mr .rh-marq{flex:1;min-width:0;height:36px;padding:0 12px;border-radius:12px;background:#FFF5F5!important;border:1px solid #FECACA;color:#7F1D1D!important;box-shadow:0 3px 8px -6px rgba(127,29,29,.35);gap:8px;overflow:hidden}
+.rx-mr .rh-marq>i{color:#DC2626;font-size:12px;flex:none}
+.rh-clip{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+.rh-run{display:inline-block;padding-left:100%;font-size:13px;font-weight:800;line-height:36px;animation:rhRun 18s linear infinite}
+@keyframes rhRun{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.rh-run{animation:none;padding-left:0}}
+/* রিসেলার উপরের বার: ⋮ ও 🔔 একই লম্বা বক্সের ভিতরে, মাঝে ধীরে চলা নোটিস */
+.rx-mr{position:relative;display:flex;align-items:center;gap:6px;height:46px;padding:4px 5px;margin:0 0 10px;border-radius:15px;background:linear-gradient(90deg,#FFF1F2,#FFF7F7 55%,#FFF1F2);border:1px solid #FECACA;box-shadow:0 4px 12px -8px rgba(127,29,29,.35);overflow:hidden}
+.rx-mr .rx-menu,.rx-mr .rx-bell{width:34px!important;height:34px!important;border-radius:11px!important;flex:none;margin:0}
+.rx-mr .rh-marq{flex:1;min-width:0;height:36px;padding:0 6px!important;gap:8px;border:0!important;background:transparent!important;box-shadow:none!important;border-radius:0;color:#7F1D1D!important}
+.rx-mr .rh-marq>i{color:#DC2626}
+.rx-mr .rx-bell{margin-left:auto}
+.rx-prof{padding:10px 12px!important;border-radius:16px!important}
+.rx-prof .rx-pl{gap:10px}
+.rx-prof .rx-pl h2{font-size:15px}
+.rx-prof .rx-tg{font-size:10.5px;padding:1px 7px}
+.rx-prof .rx-wd{padding:6px 11px!important;font-size:11.5px}
+.rx-prof .rx-lo{width:30px;height:30px}
+.rx-prof .rx-wl{margin-top:8px;padding-top:8px;gap:8px}
+.rx-prof .rx-w1,.rx-prof .rx-w2{padding:7px 9px}
+.rx-prof .rx-wi{width:28px;height:28px;font-size:12px}
+.rx-prof .rx-wl b{font-size:13px}
+.rx-prof .rx-rf,.rx-prof .rh-ref0,.rx-prof .rg-home{margin-top:8px}
+.rx button.rx-pinbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;padding:10px 14px;border:0;border-radius:12px;background:linear-gradient(135deg,#D97706,#B45309);color:#fff;font:700 12.5px 'Hind Siliguri',sans-serif;box-shadow:0 6px 14px -6px rgba(180,83,9,.6);cursor:pointer}
+.rx button.rx-pinbtn:active{transform:scale(.98)}
+.rx-ft{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:4px;padding:12px 14px;border-radius:16px;background:#fff;border:1px dashed #E5E7EB;box-shadow:0 2px 8px rgba(17,24,39,.05)}
+.rx-ft-b{display:flex;align-items:center;gap:10px;min-width:0}
+.rx-ft-b img{width:36px;height:36px;border-radius:11px;object-fit:contain;flex:none;background:#fff}
+.rx-ft-b b{display:block;font-size:13px;color:#111827;font-weight:800;line-height:1.2}
+.rx-ft-b small{display:block;font-size:10.5px;color:#6B7280;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rx button.rx-ft-s{flex:none;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;border:0;background:#F3F4F6;color:#374151;font:700 12px 'Hind Siliguri',sans-serif;cursor:pointer}
+/* প্রিমিয়াম হালকা রঙিন আলো: নোটিফিকেশন বক্স ও প্রোফাইল কার্ডের চারপাশে ঘোরে */
+@property --rxa{syntax:'<angle>';inherits:false;initial-value:0deg}
+.rx-glow{position:relative;isolation:isolate}
+.rx-glow::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--rxa),rgba(254,202,202,.15) 0deg,rgba(252,165,165,.9) 60deg,#FFFFFF 85deg,rgba(253,186,116,.95) 110deg,rgba(254,202,202,.15) 150deg,rgba(254,202,202,.15) 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;z-index:-1;animation:rxSpin 6s linear infinite}
+@keyframes rxSpin{to{--rxa:360deg}}
+@media (prefers-reduced-motion:reduce){.rx-glow::before{animation:none}}
+header.rx-slim{overflow:visible}
+header.rx-slim::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:3px;background:linear-gradient(90deg,#7F1D1D 0%,#DC2626 30%,#EF4444 55%,#FB923C 100%);box-shadow:0 3px 12px rgba(220,38,38,.55);pointer-events:none;z-index:1}
+.yt-btn{display:inline-flex;align-items:center;gap:7px;margin:0 0 8px;padding:4px 11px 4px 4px;border-radius:99px;background:#FFF1F1;border:1px solid #FECACA;color:#B91C1C;font:700 11.5px 'Hind Siliguri',sans-serif;cursor:pointer;line-height:1}
+.yt-ic{width:24px;height:24px;border-radius:8px;background:#FF0000;color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 2px 6px rgba(255,0,0,.35)}
+.yt-btn:active{transform:scale(.97)}
+.yt-ov{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:14px;background:rgba(0,0,0,.78);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.yt-card{width:100%;max-width:560px;background:#0F0D0A;border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.yt-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px}
+.yt-tt{display:flex;align-items:center;gap:10px;min-width:0}
+.yt-tt p{margin:0;color:#fff;font-weight:700;font-size:14px;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.yt-tt small{display:block;color:rgba(255,255,255,.55);font-size:11px;margin-top:2px}
+.yt-tic{width:32px;height:32px;border-radius:10px;background:#FF0000;color:#fff;display:flex;align-items:center;justify-content:center;flex:none;font-size:15px}
+.yt-x{width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.1);color:#fff;cursor:pointer;flex:none}
+.yt-frame{position:relative;aspect-ratio:16/9;background:#000}
+.yt-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.yt-act{display:flex;gap:8px;padding:12px 14px 14px}
+.yt-act button{flex:1;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.07);color:#fff;font:700 13px 'Hind Siliguri',sans-serif;display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer}
+.yt-act button.yt-pri{background:linear-gradient(135deg,#EF4444,#B91C1C);border-color:transparent}
 </style>
 </body>
 </html>
