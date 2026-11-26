@@ -784,7 +784,7 @@ img.emoji{height:1.15em;width:1.15em;vertical-align:-.2em;display:inline-block}
 .bottom-nav{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px)) !important}
 
 /* ── Helpline popup ── */
-.help-fab{position:fixed;bottom:90px;right:16px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--shadow);cursor:pointer;border:none;font-size:19px;animation:helpBreathe 2.8s ease-in-out infinite}
+.help-fab{position:fixed;bottom:72px;right:16px;z-index:99;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px var(--shadow);cursor:pointer;border:none;font-size:19px;animation:helpBreathe 2.8s ease-in-out infinite}
 @keyframes helpBreathe{0%,100%{box-shadow:0 6px 20px var(--shadow),0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}50%{box-shadow:0 6px 20px var(--shadow),0 0 0 9px color-mix(in srgb,var(--accent) 0%,transparent)}}
 .help-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--card);border:1px solid var(--border);margin-bottom:10px;transition:transform .15s}
 .help-card:active{transform:scale(.97)}
@@ -4566,7 +4566,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
 <div class="gx-sec"><span class="gx-sn">১</span>কোন দেশে পাঠাবেন</div>
 <div><label class="dd-label">দেশ বেছে নিন *</label>
               <div class="gc-grid"><template x-for="c in intlCountries.filter(x=>intlOk(x.code))" :key="c.code"><button type="button" class="gc-chip" :class="form.country===c.code?'on':''" @click="setDest(c.code)"><span class="gc-f" x-text="c.flag||'🌍'"></span><span class="gc-n" x-text="c.name"></span></button></template></div>
-              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span x-show="!intlLater"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number(intlFeeOf(form.country)||0).toLocaleString('bn-BD')"></span></span><span x-show="intlLater" style="color:#B45309"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ অর্ডারের পর জানানো হবে</span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
+              <div x-show="destCountry" class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold" style="color:#16A34A"><span x-show="!intlLater"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ ৳<span x-text="Number((intlFeeOf(form.country)||0)+cartDelSur()).toLocaleString('bn-BD')"></span></span><span x-show="intlLater" style="color:#B45309"><i class="fa-solid fa-truck-fast"></i> ডেলিভারি চার্জ অর্ডারের পর জানানো হবে</span><span x-show="destCountry&&destCountry.days"><i class="fa-regular fa-clock"></i> <span x-text="destCountry&&destCountry.days"></span></span></div>
             </div>
             <div class="gx-sec"><span class="gx-sn">২</span>আপনার পরিচয় ও যোগাযোগ</div>
 <div><label class="dd-label">প্রাপকের নাম <span style="font-weight:500;color:var(--fg3)">(ঐচ্ছিক — খালি রাখলে উপরের নামই যাবে)</span></label><input class="dd-input" x-model="form.recvName" placeholder="যিনি পণ্য রিসিভ করবেন"/></div>
@@ -5164,7 +5164,7 @@ div.ord-live{display:flex;align-items:center;gap:10px;margin:6px 12px;padding:7p
         <template x-if="resellSubTab==='home'">
 <div class="rx">
 <div class="rx-mr"><div x-show="rhMarquee" class="rh-marq"><i class="fa-solid fa-bullhorn"></i><p class="truncate" x-text="emoTx(rhMarquee)"></p></div>
-<button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
+<button type="button" class="rx-app rx-tap" data-dd-apk aria-label="Daily Deal অ্যাপ ডাউনলোড করুন"><span class="rx-app-ic"><i class="fa-brands fa-android"></i></span><span class="rx-app-tx"><b>অ্যাপ ডাউনলোড</b><small>অ্যান্ড্রয়েড · ফ্রি</small></span></button><button type="button" class="rx-pf rx-tap" @click="resellSubTab='shop'" title="আমার প্রোফাইল" aria-label="আমার প্রোফাইল"><i class="fa-solid fa-user"></i></button></div>
             <div x-show="resellWeakPin" x-cloak class="p-3 rounded-2xl flex items-start gap-2.5 mb-3" style="background:#FEF3C7;border:1px solid #FDE68A"><i class="fa-solid fa-shield-halved mt-0.5" style="color:#B45309"></i><div class="flex-1"><p class="text-xs font-bold" style="color:#92400E">আপনার পিন দুর্বল (৬ ডিজিটের কম বা সহজ পিন)</p><p class="text-xs mt-0.5" style="color:#92400E">নিরাপত্তার জন্য কমপক্ষে ৬ ডিজিটের নতুন পিন সেট করুন। আগের পিন দিয়ে এখনো লগইন করতে পারবেন।</p><button type="button" @click="resellSubTab='shop'" class="text-xs font-bold mt-2 px-3 py-1.5 rounded-lg" style="background:#B45309;color:#fff;border:0;cursor:pointer">পিন বদলান</button></div></div>
 
             
@@ -7193,7 +7193,7 @@ intlPick(c){this.intlSub='';this.intlShowAll=false;this.intlQ='';this.intlCat=(t
   get cartSubtotal(){return this.cart.reduce((s,i)=>s+i.price*i.qty,0)},
   get cartNeedsConfirm(){return this.cart.some(i=>i&&i.deliveryConfirm)},
   cjIntlShipping(base){const m=this.cart.map(i=>(i&&i.delivery&&i.delivery.mode)||'default');if(m.every(x=>x==='free'))return 0;const fx=this.cart.filter(i=>i&&i.delivery&&i.delivery.mode==='fixed').map(i=>Number(i.delivery.fee)||0);return fx.length?Math.max(...fx):base},
-  get shipping(){if(this.cartNeedsConfirm)return 0;if(this.destAbroad)return this.intlLater?0:this.cjIntlShipping(this.intlFeeOf(this.form.country));if(!this.form.division)return 0;return this.shipRate(this.form.division)},
+  get shipping(){if(this.cartNeedsConfirm)return 0;if(this.destAbroad){if(this.intlLater)return 0;const b=this.cjIntlShipping(this.intlFeeOf(this.form.country));return b==null?b:b+this.cartDelSur()}if(!this.form.division)return 0;return this.shipRate(this.form.division)+this.cartDelSur()},
   get grandTotal(){return Math.max(0,this.cartSubtotal+this.shipping+this.codExtraCharge-this.prepaidDiscountAmount-this.advanceShipDiscount-this.promoDiscountAmount)},
   get promoDiscountAmount(){
     if(!this.appliedPromo)return 0;
@@ -8860,11 +8860,15 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(
     if(p.delivery&&(p.delivery.mode==='fixed'||p.delivery.mode==='free'||p.delivery.mode==='confirm'))return p.delivery;
     const f=this.rgCatDel(p);if(f!=null)return f===0?{mode:'free',fee:0}:{mode:'fixed',fee:f};return null},
   saveCardDest(v){try{localStorage.setItem('dd_card_dest',v||'')}catch(e){}},
-  rgDelOf(p){const d=this.normDelOf(p);return(d&&(d.mode==='fixed'||d.mode==='free'))?d:null}, /* রিসেলার সাইট: পণ্যের অরিজিনাল ডেলিভারি চার্জই দেখাবে (নতুন ও পুরাতন দুটোতেই) */
-  _delRange(){const f=this.intlCountries.map(c=>this.intlFeeOf(c.code)).filter(x=>x!=null);if(!f.length)return '';const a=Math.min(...f),b=Math.max(...f);return a===b?'ডেলিভারি ৳'+a.toLocaleString():'ডেলিভারি ৳'+a.toLocaleString()+'–৳'+b.toLocaleString()+' (দেশ অনুযায়ী)'},
-  rgDelText(p){const d=this.rgDelOf(p);if(d)return d.mode==='free'?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString();const n=this.normDelOf(p);if(n&&n.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
-  intlDelText(p){const d=this.normDelOf(p);if(d){if(d.mode==='free')return 'ডেলিভারি ফ্রি';if(d.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';return 'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString()}
-    const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+f.toLocaleString();return this._delRange()},
+  delPct(site){const v=Number(this.settings&&this.settings[site==='r'?'resellDelPct':'normalDelPct']);return(isFinite(v)&&v>0)?v:0},
+  delSur(price,qty,site){const pc=this.delPct(site);if(!pc)return 0;return Math.round((Number(price)||0)*(Number(qty)||1)*pc/100)},
+  cartDelSur(){return this.cart.reduce((s,i)=>(!i||(i.delivery&&i.delivery.mode==='free'))?s:s+this.delSur(i.price,i.qty,'n'),0)},
+  rgCartDelSur(){return this.rgCart.reduce((s,i)=>(!i||(i.resellerDelivery&&i.resellerDelivery.mode==='free'))?s:s+this.delSur(i.resellerPrice,i.qty,'r'),0)},
+  rgDelOf(p){if(p&&p.resellerDelivery&&(p.resellerDelivery.mode==='fixed'||p.resellerDelivery.mode==='free'))return p.resellerDelivery;const d=this.normDelOf(p);return(d&&(d.mode==='fixed'||d.mode==='free'))?d:null}, /* রিসেলার সাইট: অ্যাডমিনের রিসেলার-ডেলিভারি রুল আগে; না থাকলে পণ্যের অরিজিনাল ডেলিভারি চার্জ */
+  _delRange(add){const ad=Number(add)||0;const f=this.intlCountries.map(c=>this.intlFeeOf(c.code)).filter(x=>x!=null).map(x=>x+ad);if(!f.length)return '';const a=Math.min(...f),b=Math.max(...f);return a===b?'ডেলিভারি ৳'+a.toLocaleString():'ডেলিভারি ৳'+a.toLocaleString()+'–৳'+b.toLocaleString()+' (দেশ অনুযায়ী)'},
+  rgDelText(p){const sur=this.delSur(this.rgUnit(p),1,'r');const d=this.rgDelOf(p);if(d)return d.mode==='free'?'ডেলিভারি ফ্রি':'ডেলিভারি ৳'+((Number(d.fee)||0)+sur).toLocaleString();const n=this.normDelOf(p);if(n&&n.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+(f+sur).toLocaleString();return this._delRange(sur)},
+  intlDelText(p){const sur=this.delSur(p&&p.price,1,'n');const d=this.normDelOf(p);if(d){if(d.mode==='free')return 'ডেলিভারি ফ্রি';if(d.mode==='confirm')return 'ডেলিভারি চার্জ WhatsApp-এ নিশ্চিত করা হবে';return 'ডেলিভারি ৳'+((Number(d.fee)||0)+sur).toLocaleString()}
+    const f=this.cardDest?this.intlFeeOf(this.cardDest):null;if(f!=null)return 'ডেলিভারি ৳'+(f+sur).toLocaleString();return this._delRange(sur)},
   rgGoOrder(p){this.rgOpen();this._rgFrom='post';this.rgOpenSel(p)},
   get rgCountries(){const L=this.intlCountries.slice();if(!L.some(c=>c.code==='BD'))L.push({code:'BD',name:'বাংলাদেশ',en:'Bangladesh',flag:'🇧🇩',phone:'880',days:'৩–৫ দিন',regions:[],active:true,order:999});return L},
   rgOk(code){return code==='BD'||this.intlOk(code)},
@@ -8884,11 +8888,12 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(
   get rgMore(){return this.rgAll.length>this.rgLimit},
   get rgDest(){return this.rgForm.country?(this.rgCountries.find(c=>c.code===this.rgForm.country)||null):null},
   get rgDial(){const c=this.rgDest;return c?String(c.phone||'').replace(/\D/g,''):''},
-  rgFeeLabel(c){const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 'ডেলিভারি ফ্রি';const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return 'ডেলিভারি ৳'+Math.max(...fx).toLocaleString();const f=this.intlFeeOf(c.code);return f==null?'চার্জ পরে জানানো হবে':('ডেলিভারি ৳'+f.toLocaleString())},
+  rgFeeLabel(c){const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 'ডেলিভারি ফ্রি';const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return 'ডেলিভারি ৳'+(Math.max(...fx)+this.rgCartDelSur()).toLocaleString();const f=this.intlFeeOf(c.code);return f==null?'চার্জ পরে জানানো হবে':('ডেলিভারি ৳'+(f+this.rgCartDelSur()).toLocaleString())},
   get rgCartCount(){return this.rgCart.reduce((s,i)=>s+(Number(i.qty)||0),0)},
   get rgCost(){return this.rgCart.reduce((s,i)=>s+(Number(i.resellerPrice)||0)*i.qty,0)},
   get rgSub(){return this.rgCart.reduce((s,i)=>s+(Number(i.sell)||0)*i.qty,0)},
-  get rgShip(){const c=this.rgForm.country;if(!c)return 0;const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 0;const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return Math.max(...fx);const f=this.intlFeeOf(c);return f==null?0:f},
+  get rgShip(){const c=this.rgForm.country;if(!c)return 0;const b=this._rgShipBase(c);return this.rgShipPending?b:b+this.rgCartDelSur()},
+  _rgShipBase(c){const d=this.rgCart.map(i=>(i.resellerDelivery&&i.resellerDelivery.mode)||'default');if(d.length&&d.every(x=>x==='free'))return 0;const fx=this.rgCart.filter(i=>i.resellerDelivery&&i.resellerDelivery.mode==='fixed').map(i=>Number(i.resellerDelivery.fee)||0);if(fx.length)return Math.max(...fx);const f=this.intlFeeOf(c);return f==null?0:f},
   get rgShipPending(){const c=this.rgForm.country;if(!c)return false;const anyFixed=this.rgCart.some(i=>i.resellerDelivery&&(i.resellerDelivery.mode==='fixed'||i.resellerDelivery.mode==='free'));return !anyFixed&&this.intlFeeOf(c)==null},
   get rgShipText(){if(!this.rgForm.country)return 'দেশ বেছে নিন';if(this.rgShipPending)return 'পরে জানানো হবে';return this.rgShip>0?('৳'+this.rgShip.toLocaleString()):'ফ্রি'},
   get rgProfit(){return this.rgSub-this.rgCost},
@@ -8901,7 +8906,7 @@ if(ex){ex.qty+=(it.qty||1)}else{this.cart.push({...live,delivery:this.normDelOf(
   get rgSelImgUrl(){return this.rgSelImgs[this.rgSelImg]||''},
   get rgSelSellN(){return Number(this.rgSelSell)||0},
   get rgSelProfit(){return this.rgSel?((this.rgSelSellN-this.rgUnit(this.rgSel))*this.rgSelQty):0},
-  rgSelFee(c){const d=this.rgDelOf(this.rgSel);const m=(d&&d.mode)||'default';if(m==='free')return 'ডেলিভারি ফ্রি';if(m==='fixed')return 'ডেলিভারি ৳'+(Number(d.fee)||0).toLocaleString();const f=this.intlFeeOf(c.code);return f==null?'চার্জ পরে জানানো হবে':('ডেলিভারি ৳'+f.toLocaleString())},
+  rgSelFee(c){const sur=this.rgSel?this.delSur(this.rgUnit(this.rgSel),1,'r'):0;const d=this.rgDelOf(this.rgSel);const m=(d&&d.mode)||'default';if(m==='free')return 'ডেলিভারি ফ্রি';if(m==='fixed')return 'ডেলিভারি ৳'+((Number(d.fee)||0)+sur).toLocaleString();const f=this.intlFeeOf(c.code);return f==null?'চার্জ পরে জানানো হবে':('ডেলিভারি ৳'+(f+sur).toLocaleString())},
   rgSelQtyAdd(d){const n=(Number(this.rgSelQty)||1)+d;if(n<1||n>99)return;this.rgSelQty=n},
   rgConfirmSel(){const p=this.rgSel;if(!p)return;const u=this.rgUnit(p),sv=this.rgSelSellN,q=Number(this.rgSelQty)||1;
     if(!(sv>0))return this.showToast('আপনি কত টাকায় বিক্রি করছেন (সেল প্রাইস) লিখুন!','error');
@@ -11754,11 +11759,13 @@ function syncPend(){
     h.firstChild.addEventListener('click',onDownload);
   }catch(e){}
 }
+document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('[data-dd-apk]'):null;if(a){e.preventDefault();onDownload()}});
 function syncBtn(){
-  if(NATIVE||IOS)return;
+  if(NATIVE||IOS){document.documentElement.classList.remove('dd-apk-on');return}
   syncPend();
+  document.documentElement.classList.toggle('dd-apk-on',!!(cfg&&cfg.enabled!==false&&cfg.apkUrl));
   var d=D(),b=document.getElementById('ddApk');
-  var want=!!(cfg&&cfg.enabled!==false&&cfg.apkUrl&&d&&d.resellSession&&d.resellStatus==='approved'&&d.activeTab==='resell'&&d.resellSubTab==='home'&&!d.postView&&!d.resellSidebarOpen&&!dismissed);
+  var want=false&&!!(cfg&&cfg.enabled!==false&&cfg.apkUrl&&d&&d.resellSession&&d.resellStatus==='approved'&&d.activeTab==='resell'&&d.resellSubTab==='home'&&!d.postView&&!d.resellSidebarOpen&&!dismissed);
   if(!want){if(b)b.classList.remove('on');return}
   if(!b)b=buildBtn();
   var t=b.querySelector('.tx b'),s=b.querySelector('.tx small');
@@ -12289,6 +12296,7 @@ body .dd-gl-btn{display:flex;width:100%;min-width:0;padding:7px 14px;font-size:1
 .pvx-ms{font-size:10px;color:#111;opacity:.7;margin-top:1px;line-height:1.3}.pvx-ms b{font-weight:700}
 /* v8: home profile button + profile page */
 .rx-mr{display:flex;align-items:center;gap:8px}.rx-mr .rh-marq{flex:1;min-width:0}
+.rx-app{display:none;align-items:center;gap:8px;height:40px;padding:0 13px 0 5px;border:0;border-radius:99px;flex:none;cursor:pointer;color:#fff;font-family:inherit;background:linear-gradient(135deg,#0F172A,#1E293B);box-shadow:0 4px 14px rgba(15,23,42,.28);-webkit-tap-highlight-color:transparent}.rx-app:active{transform:scale(.96)}.rx-app-ic{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#E8320A,#FF7A18);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex:none}.rx-app-tx{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left;white-space:nowrap}.rx-app-tx b{font-size:12.5px;font-weight:800}.rx-app-tx small{font-size:9.5px;font-weight:600;opacity:.72}html.dd-apk-on .rx-app{display:inline-flex}
 .rx-pf{margin-left:auto;width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:15px;background:linear-gradient(135deg,#EF4444,#B91C1C)!important;color:#fff!important;border:2px solid #fff!important;box-shadow:0 3px 10px rgba(220,38,38,.4)}
 .pf-hero{display:flex;align-items:center;gap:14px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#18181B,#27272A 55%,#3B2A10);color:#fff;box-shadow:0 8px 22px rgba(0,0,0,.2)}
 .pf-av{width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#EF4444,#F59E0B);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;flex:none;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 2px rgba(255,255,255,.25)}
